@@ -1,65 +1,129 @@
 import questionary
 import yaml
 
+def ask_with_help(question, choices, help_text):
+    while True:
+        choice = questionary.select(
+            question,
+            choices=choices + ["Help / What does this mean?"]
+        ).ask()
+
+        if choice == "Help / What does this mean?":
+            print(help_text)
+        else:
+            return choice
+
+def ask_checkbox_with_help(question, choices_with_explanations):
+    while True:
+        #print("Tip: Press space to select/deselect. Enter to confirm.")
+        selected = questionary.checkbox(
+            question,
+            choices=[f"{k} – {v}" for k, v in choices_with_explanations.items()] +
+                    ["Help / What do these mean?"]
+        ).ask()
+
+        if any("Help" in s for s in selected):
+            print("\nThreat category explanations:")
+            for key, desc in choices_with_explanations.items():
+                print(f"- {key}: {desc}")
+        else:
+            return [k for k in choices_with_explanations.keys() if any(k in s for s in selected)]
+        
+        #add a line break for better readability
+        print("\nTip: Press space to select/deselect. Enter to confirm.")
+
 def run_questionnaire():
     print("=== Threat Modeling Questionnaire ===\n")
 
-    # 1. model_access
-    model_access = questionary.select(
+    model_access = ask_with_help(
         "What level of access might an attacker have to the model?",
-        choices=["white-box", "gray-box", "black-box"]
-    ).ask()
+        ["white-box", "gray-box", "black-box"],
+        """
+- white-box: Full access to architecture, weights, training data.
+- gray-box: Partial knowledge (e.g. architecture but not weights).
+- black-box: Access only to model inputs/outputs.
+"""
+    )
 
-    # 2. attack_goal
-    attack_goal = questionary.select(
+    attack_goal = ask_with_help(
         "What is the likely goal of the attacker?",
-        choices=["targeted", "untargeted"]
-    ).ask()
+        ["targeted", "untargeted"],
+        """
+- targeted: The attacker wants a specific misclassification (e.g., always predict 'cat').
+- untargeted: Any incorrect prediction is acceptable to the attacker.
+"""
+    )
 
-    # 3. deployment_scenario
-    deployment_scenario = questionary.select(
+    deployment_scenario = ask_with_help(
         "Where will the model be deployed?",
-        choices=["cloud", "edge", "mobile", "api_public", "on_device"]
-    ).ask()
+        ["cloud", "edge", "mobile", "api_public", "on_device"],
+        """
+- cloud: Running in a server or datacenter.
+- edge: On local devices near users (e.g., IoT cameras).
+- mobile: In mobile apps.
+- api_public: Exposed to the internet via an API.
+- on_device: Embedded in firmware or local software.
+"""
+    )
 
-    # 4. data_sensitivity
-    data_sensitivity = questionary.select(
+    data_sensitivity = ask_with_help(
         "How sensitive is the training data?",
-        choices=["high", "medium", "low"]
-    ).ask()
+        ["high", "medium", "low"],
+        """
+- high: Data includes personal, biometric, or confidential information.
+- medium: Some relevance, but not critical.
+- low: Public or synthetic datasets.
+"""
+    )
 
-    # 5. training_data_source
-    training_data_source = questionary.select(
+    training_data_source = ask_with_help(
         "Where does the training data come from?",
-        choices=["internal_clean", "external_public", "user_generated", "mixed"]
-    ).ask()
+        ["internal_clean", "external_public", "user_generated", "mixed"],
+        """
+- internal_clean: Fully controlled and verified by your team.
+- external_public: Open datasets from the internet.
+- user_generated: Uploaded or labeled by external users.
+- mixed: A combination of the above.
+"""
+    )
 
-    # 6. model_type
-    model_type = questionary.select(
+    model_type = ask_with_help(
         "What type of architecture will the model use?",
-        choices=["cnn", "transformer", "mlp", "other"]
-    ).ask()
+        ["cnn", "transformer", "mlp", "other"],
+        """
+- cnn: Convolutional Neural Network (image classification, etc).
+- transformer: Vision transformers, BERT-like models.
+- mlp: Simple feed-forward neural networks.
+- other: RNNs, GNNs, etc.
+"""
+    )
 
-    # 7. interface_exposed
-    interface_exposed = questionary.select(
-        "How will the model be accessed by end users or systems?",
-        choices=["api", "local_app", "sdk", "none"]
-    ).ask()
+    interface_exposed = ask_with_help(
+        "How will the model be accessed by users or systems?",
+        ["api", "local_app", "sdk", "none"],
+        """
+- api: Model is served via an online API.
+- local_app: Used inside a desktop or mobile app.
+- sdk: Distributed as a library/module.
+- none: Only embedded, not exposed directly.
+"""
+    )
 
-    # 8. threat_categories (manual for now – dynamic suggestion comes next)
-    threat_categories = questionary.checkbox(
-        "Select relevant threat categories for this project:",
-        choices=[
-            "data_poisoning",
-            "backdoor_attacks",
-            "adversarial_examples",
-            "model_stealing",
-            "membership_inference",
-            "model_inversion"
-        ]
-    ).ask()
+    threat_category_explanations = {
+        "data_poisoning": "Malicious data inserted in training to corrupt the model.",
+        "backdoor_attacks": "Triggers planted during training to cause misclassification when activated.",
+        "adversarial_examples": "Inputs crafted to cause errors at inference time.",
+        "model_stealing": "Cloning the model by observing its outputs.",
+        "membership_inference": "Determining if a specific input was in the training data.",
+        "model_inversion": "Reconstructing private inputs using model predictions."
+    }
 
-    # Create profile dictionary
+    threat_categories = ask_checkbox_with_help(
+        "Which threat categories are relevant for this project?",
+        threat_category_explanations
+    )
+
+    # Create final profile
     profile = {
         "threat_model": {
             "model_access": model_access,
@@ -73,17 +137,17 @@ def run_questionnaire():
         }
     }
 
-    # Print as YAML
+    # Show result
     print("\n=== Generated Threat Profile ===")
     print(yaml.dump(profile, sort_keys=False))
 
-    # Optional: Ask to save
+    # Save
     save = questionary.confirm("Do you want to save this profile to a YAML file?").ask()
     if save:
         filename = questionary.text("Enter filename (e.g., profile.yaml):").ask()
         with open(f"../profiles/{filename}", "w") as f:
             yaml.dump(profile, f)
-        print(f"✅ Profile saved as ../profiles/{filename}")
+        print(f"\n Profile saved as ../profiles/{filename}")
 
 if __name__ == "__main__":
     run_questionnaire()
