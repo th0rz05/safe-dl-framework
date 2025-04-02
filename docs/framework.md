@@ -10,7 +10,6 @@ The framework can be used both for theoretical analysis and for practical integr
 
 ## Table of Contents
 
-- [Introduction to the Deep Neural Network Security Framework](#introduction-to-the-deep-neural-network-security-framework)
 - [Module 1 — Threat Modeling](#module-1--threat-modeling)
   - [1.1. Attack Surfaces in the Deep Learning Lifecycle](#11-attack-surfaces-in-the-deep-learning-lifecycle)
   - [1.2. Types of Attackers and System Knowledge](#12-types-of-attackers-and-system-knowledge)
