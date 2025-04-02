@@ -8,6 +8,51 @@ This framework provides a systematic and modular approach to securing deep learn
 
 The framework can be used both for theoretical analysis and for practical integration into real-world machine learning pipelines.
 
+## Table of Contents
+
+- [Introduction to the Deep Neural Network Security Framework](#introduction-to-the-deep-neural-network-security-framework)
+- [Module 1 — Threat Modeling](#module-1--threat-modeling)
+  - [1.1. Attack Surfaces in the Deep Learning Lifecycle](#11-attack-surfaces-in-the-deep-learning-lifecycle)
+  - [1.2. Types of Attackers and System Knowledge](#12-types-of-attackers-and-system-knowledge)
+  - [1.3. Attacker Motivations](#13-attacker-motivations)
+  - [1.4. General Taxonomy of Attacks](#14-general-taxonomy-of-attacks)
+  - [Threat Profile Checklist](#threat-profile-checklist)
+  - [Module Output](#module-output)
+  - [Conclusion of Module 1](#conclusion-of-module-1)
+- [Module 2 — Adversarial Attacks](#module-2--adversarial-attacks)
+  - [Submodule 2.1 — Data Poisoning Attacks](#submodule-21--data-poisoning-attacks)
+  - [Submodule 2.2 — Backdoor Attacks](#submodule-22--backdoor-attacks)
+  - [Submodule 2.3 — Adversarial Examples (Inference)](#submodule-23--adversarial-examples-inference)
+  - [Submodule 2.4 — Model & Data Stealing Attacks](#submodule-24--model--data-stealing-attacks)
+  - [Conclusion of Module 2](#conclusion-of-module-2)
+- [Module 3 — Vulnerability Assessment](#module-3--vulnerability-assessment)
+  - [3.1. Quantitative Analysis](#31-quantitative-analysis)
+  - [3.2. Qualitative Analysis](#32-qualitative-analysis)
+  - [Module Output](#module-output-1)
+- [Module 4 — Defensive Strategies](#module-4--defensive-strategies)
+  - [Defense Strategy Mapping](#defense-strategy-mapping)
+  - [Defensive Techniques by Category](#defensive-techniques-by-category)
+  - [Module Output](#module-output-2)
+- [Module 5 — Evaluation & Benchmarking](#module-5--evaluation--benchmarking)
+  - [5.1. Clean Accuracy Evaluation](#51-clean-accuracy-evaluation)
+  - [5.2. Robust Accuracy Evaluation](#52-robust-accuracy-evaluation)
+  - [5.3. Before vs After Comparison](#53-before-vs-after-comparison)
+  - [5.4. Advanced Metrics](#54-advanced-metrics)
+  - [Module Output](#module-output-3)
+- [Module 6 — Deployment Guidelines](#module-6--deployment-guidelines)
+  - [6.1. Final Security Checklist](#61-final-security-checklist)
+  - [6.2. Recommendations by Deployment Scenario](#62-recommendations-by-deployment-scenario)
+  - [6.3. Logging and Monitoring](#63-logging-and-monitoring)
+  - [6.4. Model Protection Techniques](#64-model-protection-techniques)
+  - [6.5. Security Documentation](#65-security-documentation)
+  - [Module Output](#module-output-4)
+- [Example Application of the Framework](#example-application-of-the-framework)
+- [Module 7 — Real-Time Monitoring & Detection (Optional)](#module-7--real-time-monitoring--detection-optional)
+  - [Detection Strategies](#detection-strategies)
+  - [Module Output](#module-output-5)
+  - [Deployment Configuration Example](#deployment-configuration-example)
+  - [Conclusion](#conclusion)
+
 ## Module 1 — Threat Modeling
 
 ### Goal of the Module
@@ -52,8 +97,6 @@ Before applying any defense technique, it is essential to understand the most li
 | Adversarial (inference) | White-box, Black-box, Physical, Universal     |
 | Privacy/Stealing     | Model inversion, extraction, membership inference |
 
-
-
 ### Threat Profile Checklist
 
 - [ ] Will the model be used in production?
@@ -83,6 +126,7 @@ recommendations:
   - monitor_API_usage
 
 ```
+
 ### Conclusion of Module 1
 
 This module establishes the foundation for any robust defense strategy. Without a clear understanding of threats, any defense attempt is blind and potentially ineffective. The result here serves as a configurable input for the following modules — from attack simulation to the application of defenses.
@@ -526,17 +570,17 @@ vulnerabilities:
 
 ```markdown
 ## Vulnerability Summary
-	- **Adversarial FGSM Attack**
-		- Clean accuracy: 89.4% 
-		- Accuracy after attack: 31.8% 
-		- Avg perturbation: L∞ = 0.03 
-		- Most affected classes: "dog", "truck" 
+ - **Adversarial FGSM Attack**
+  - Clean accuracy: 89.4% 
+  - Accuracy after attack: 31.8% 
+  - Avg perturbation: L∞ = 0.03 
+  - Most affected classes: "dog", "truck" 
 
-	-  **Backdoor Attack (trigger: bottom-right square)**
-		- Attack Success Rate (ASR): 94% 
-		- Clean accuracy: 90.1% 
-		- Trigger visible: YES 
-		- Trigger universal: YES 
+ -  **Backdoor Attack (trigger: bottom-right square)**
+  - Attack Success Rate (ASR): 94% 
+  - Clean accuracy: 90.1% 
+  - Trigger visible: YES 
+  - Trigger universal: YES 
 ### General Risk Level: HIGH
 ```
 
@@ -544,20 +588,19 @@ vulnerabilities:
 
 ### Technical Considerations
 
--   This module does not apply defenses — it only analyzes attack impact.
-    
--   Identifying specific weaknesses allows the system to apply targeted defenses in Module 4.
-    
--   It acts as a triage system to guide optimal protection strategies.
-    
+- This module does not apply defenses — it only analyzes attack impact.
+
+- Identifying specific weaknesses allows the system to apply targeted defenses in Module 4.
+
+- It acts as a triage system to guide optimal protection strategies.
 
 ----------
 
 ### Additional (Optional) Insights
 
--   Include influence functions or saliency map analysis to understand why specific inputs are vulnerable.
-    
--   Techniques like activation clustering (for backdoors) can also be integrated.
+- Include influence functions or saliency map analysis to understand why specific inputs are vulnerable.
+
+- Techniques like activation clustering (for backdoors) can also be integrated.
 
 ## Module 4 — Defensive Strategies
 
@@ -635,10 +678,10 @@ defense_config:
     - method: neuron_pruning
     - pruning_ratio: 0.2
 ```
--   Logs showing the impact of each defense on both performance and robustness
-    
--   Modular code that can be reused across different models and datasets
-    
+
+- Logs showing the impact of each defense on both performance and robustness
+
+- Modular code that can be reused across different models and datasets
 
 ----------
 
@@ -646,25 +689,24 @@ defense_config:
 
 For each defense, the system evaluates:
 
--   Clean accuracy before/after defense
-    
--   Robust accuracy (retesting attacks from Module 2)
-    
--   Computational overhead (training time, memory usage)
-    
--   Deployment compatibility
-    
+- Clean accuracy before/after defense
+
+- Robust accuracy (retesting attacks from Module 2)
+
+- Computational overhead (training time, memory usage)
+
+- Deployment compatibility
 
 ----------
 
 ### Technical Considerations
 
--   Defenses are modular and interchangeable — the framework does not enforce fixed combinations.
-    
--   Some techniques, like adversarial training, have important trade-offs (e.g., training time, reduced clean accuracy).
-    
--   Users can manually enable or disable techniques for fine-grained control.
-    
+- Defenses are modular and interchangeable — the framework does not enforce fixed combinations.
+
+- Some techniques, like adversarial training, have important trade-offs (e.g., training time, reduced clean accuracy).
+
+- Users can manually enable or disable techniques for fine-grained control.
+
 ## Module 5 — Evaluation & Benchmarking
 
 ### Goal of the Module
@@ -705,14 +747,13 @@ FGSM Attack:
 
 ### 5.4. Advanced Metrics
 
--   Average perturbation norm of adversarial examples that still succeed
-    
--   Additional training time
-    
--   Memory increase during inference
-    
--   Robustness curves (e.g., accuracy vs epsilon)
-    
+- Average perturbation norm of adversarial examples that still succeed
+
+- Additional training time
+
+- Memory increase during inference
+
+- Robustness curves (e.g., accuracy vs epsilon)
 
 ----------
 
@@ -720,14 +761,13 @@ FGSM Attack:
 
 #### Benchmark Report
 
--   Comparative tables by attack type
-    
--   Visuals: bar plots, line plots, heatmaps
-    
--   Effectiveness analysis of applied defenses
-    
--   Suggestions for adjustments (e.g., if defense is weak against transfer attacks)
-    
+- Comparative tables by attack type
+
+- Visuals: bar plots, line plots, heatmaps
+
+- Effectiveness analysis of applied defenses
+
+- Suggestions for adjustments (e.g., if defense is weak against transfer attacks)
 
 #### Sample Markdown Table
 
@@ -743,34 +783,32 @@ FGSM Attack:
 
 The user can:
 
--   Choose which attacks to reevaluate
-    
--   Select focus metrics (e.g., time, memory, accuracy)
-    
--   Export report in PDF, Markdown, or CSV
-    
+- Choose which attacks to reevaluate
+
+- Select focus metrics (e.g., time, memory, accuracy)
+
+- Export report in PDF, Markdown, or CSV
 
 ----------
 
 ### Technical Considerations
 
--   This stage completes the experimental cycle of the framework
-    
--   Enables informed decisions to fine-tune defenses
-    
--   Can be repeated for every new training iteration or dataset (continuous testability)
-    
+- This stage completes the experimental cycle of the framework
+
+- Enables informed decisions to fine-tune defenses
+
+- Can be repeated for every new training iteration or dataset (continuous testability)
 
 ----------
 
 ### Optional Advanced Add-ons
 
--   **Robustness certification**: e.g., via randomized smoothing
-    
--   **Multi-model comparison**: evaluate different architectures with the same defenses
-    
--   **Robustness to distribution shift**: optional extension for advanced use cases
- 
+- **Robustness certification**: e.g., via randomized smoothing
+
+- **Multi-model comparison**: evaluate different architectures with the same defenses
+
+- **Robustness to distribution shift**: optional extension for advanced use cases
+
 ## Module 6 — Deployment Guidelines
 
 ### Goal of the Module
@@ -792,6 +830,7 @@ This module provides best practices, recommended configurations, and final valid
 - [ ] Is there protection against model stealing and backdoor triggers?
 - [ ] Is real-time input validation enabled?
 ```
+
 ___
 
 ### 6.2. Recommendations by Deployment Scenario
@@ -854,11 +893,12 @@ deployment:
     detect_anomalies: true
     alert_threshold: 95% class repeat
 ```
--   Helper scripts for:
-    -   Logging
-    -   Query rate limiting
-    -   Input sanitization
- 
+
+- Helper scripts for:
+  - Logging
+  - Query rate limiting
+  - Input sanitization
+
 ----------
 
 ### Conclusion of Module 6
@@ -889,6 +929,7 @@ threat_model:
     - adversarial_examples
     - model_stealing
 ```
+
 > The framework identifies public data usage, physical deployment, and indirect exposure as high-risk factors.
 
 ### Module 2 — Attack Simulation
@@ -923,6 +964,7 @@ vulnerabilities:
     severity: medium
     recommendation: limit API output + watermarking
 ```
+
 ### Module 4 — Defensive Strategies
 
 The framework applies:
@@ -1052,16 +1094,16 @@ monitoring:
   action_on_detection: log_only  
   # options: log_only, reject_input, fallback_prediction
 ```
+
 ___
 
 ### Considerations
 
--   These techniques increase situational awareness but do **not guarantee perfect detection**
-    
--   Overly aggressive rejection policies can affect usability — proper tuning is essential
-    
--   Monitoring systems must also be secured to avoid introducing new attack surfaces
-    
+- These techniques increase situational awareness but do **not guarantee perfect detection**
+
+- Overly aggressive rejection policies can affect usability — proper tuning is essential
+
+- Monitoring systems must also be secured to avoid introducing new attack surfaces
 
 ----------
 

@@ -1,5 +1,25 @@
 ﻿# Module 1 – Threat Modeling
 
+## Table of Contents
+
+- [1. Introduction](#1-introduction)
+- [2. Design of the Threat Questionnaire](#2-design-of-the-threat-questionnaire)
+  - [2.1 Guiding Principles](#21-guiding-principles)
+  - [2.2 Format and Execution](#22-format-and-execution)
+- [3. Explanation of Each Field](#3-explanation-of-each-field)
+  - [3.1 Field: `model_access`](#31-field-model_access)
+  - [3.2 Field: `attack_goal`](#32-field-attack_goal)
+  - [3.3 Field: `deployment_scenario`](#33-field-deployment_scenario)
+  - [3.4 Field: `data_sensitivity`](#34-field-data_sensitivity)
+  - [3.5 Field: `training_data_source`](#35-field-training_data_source)
+  - [3.6 Field: `model_type`](#36-field-model_type)
+  - [3.7 Field: `interface_exposed`](#37-field-interface_exposed)
+  - [3.8 Field: `threat_categories`](#38-field-threat_categories)
+- [4. Automatic Threat Suggestion Logic](#4-automatic-threat-suggestion-logic)
+- [5. Example Profiles](#5-example-profiles)
+- [6. Discussion and Impact](#6-discussion-and-impact)
+- [7. References](#7-references)
+
 ## 1. Introduction
 
 As deep learning systems become increasingly deployed in real-world, high-stakes applications, understanding the threats that may compromise their integrity, availability, or confidentiality becomes essential. Module 1 of this framework aims to address this challenge by guiding users through a structured process of **threat modeling**, specifically adapted for deep learning workflows.
@@ -7,6 +27,7 @@ As deep learning systems become increasingly deployed in real-world, high-stakes
 Traditional threat modeling techniques used in cybersecurity (e.g., STRIDE) are often too abstract or general to account for the unique characteristics of machine learning systems — such as susceptibility to data poisoning, adversarial perturbations, or model inversion. Therefore, this module proposes a tailored approach that allows users to **explicitly define the attacker assumptions and deployment context** of their model before moving on to attack simulations and defense strategies.
 
 The core deliverable of this module is a `threat profile`, generated through an interactive questionnaire. This profile includes structured information about:
+
 - The model's accessibility (e.g., black-box vs white-box)
 - The deployment context (e.g., cloud, mobile)
 - The data pipeline (e.g., source and sensitivity of the training data)
@@ -14,6 +35,7 @@ The core deliverable of this module is a `threat profile`, generated through an 
 - The likely threat categories to be considered in the next phases
 
 Each of these dimensions was selected based on **evidence and recommendations found across several surveys and studies** on deep learning security, including:
+
 - Liu et al. (2021) – highlighting the importance of access level and data sensitivity in model privacy risks
 - Hu & Hu (2020) – identifying the link between training data origin and poisoning/backdoor risks
 - Khamaiseh et al. (2022) – discussing the impact of deployment scenario on defense viability
@@ -66,6 +88,7 @@ The threat questionnaire is implemented as a standalone **Python CLI tool**, usi
 The output profile, stored typically as `profile.yaml`, contains all relevant information about the model's context and anticipated threat surface. This file is **directly consumed by Module 2 (Attack Simulation)**, which uses the selected threat categories to determine which submodules should be activated.
 
 Example command to launch the questionnaire:
+
 ```bash
 python threat_model_cli.py
 ```
@@ -87,12 +110,11 @@ threat_model:
 
 This modular format makes it easy to:
 
--   Save multiple threat profiles for different projects
-    
--   Share profiles across teams or researchers
-    
--   Reuse threat context consistently in simulations, defenses, and evaluations
-    
+- Save multiple threat profiles for different projects
+
+- Share profiles across teams or researchers
+
+- Reuse threat context consistently in simulations, defenses, and evaluations
 
 By prioritizing simplicity in execution and standardization in output, this module ensures smooth integration into the broader security lifecycle of deep learning workflows.
 
@@ -104,18 +126,21 @@ This section explains each of the fields included in the threat modeling questio
 
 ### 3.1 Field: `model_access`
 
-#### What it asks:
+#### What it asks
+
 What level of access might a potential attacker have to the model?
 
-#### Why it's included:
+#### Why it's included
+
 The attacker's access level is one of the most fundamental factors in determining which attacks are feasible. It distinguishes between attacks that require introspection of the model's internal components and those that only require input/output access.
 
-#### Possible values:
+#### Possible values
+
 - `white-box`: Full access to model architecture, parameters, and possibly training data.
 - `gray-box`: Partial access (e.g., architecture known, weights unknown).
 - `black-box`: Only query access; attacker can submit inputs and observe outputs.
 
-#### Attacks influenced by this field:
+#### Attacks influenced by this field
 
 | Access Level | Common Attacks Enabled                                       |
 |--------------|--------------------------------------------------------------|
@@ -125,7 +150,7 @@ The attacker's access level is one of the most fundamental factors in determinin
 
 (Refs: Akhtar et al., 2021; Wang et al., 2022; Li et al., 2021)
 
-#### Defenses affected:
+#### Defenses affected
 
 | Access Level | Relevant Defenses                                             |
 |--------------|---------------------------------------------------------------|
@@ -135,7 +160,8 @@ The attacker's access level is one of the most fundamental factors in determinin
 
 (Refs: Liu et al., 2021; Sun et al., 2020)
 
-#### Example:
+#### Example
+
 - A publicly deployed API with no published architecture is considered `black-box`.
 - A model embedded in an SDK where architecture is known but weights are encrypted could be `gray-box`.
 - A model released as open source with weights is `white-box`.
@@ -144,17 +170,20 @@ This field is fundamental to controlling the threat scope in subsequent modules 
 
 ### 3.2 Field: `attack_goal`
 
-#### What it asks:
+#### What it asks
+
 What is the likely objective of the attacker when targeting the model?
 
-#### Why it's included:
+#### Why it's included
+
 Different attacks aim for different outcomes. Some attackers may want the model to make a specific mistake (e.g., classify a stop sign as a speed limit sign), while others only need it to make any mistake. This distinction helps in selecting the types of attacks to simulate and the corresponding evaluation metrics.
 
-#### Possible values:
+#### Possible values
+
 - `targeted`: The attacker wants to cause a specific misclassification.
 - `untargeted`: The attacker wants to degrade the model’s performance in general, without requiring a specific incorrect output.
 
-#### Attacks influenced by this field:
+#### Attacks influenced by this field
 
 | Attack Goal  | Common Attack Examples                                  |
 |--------------|----------------------------------------------------------|
@@ -163,7 +192,7 @@ Different attacks aim for different outcomes. Some attackers may want the model 
 
 (Refs: Akhtar et al., 2021; Hu & Hu, 2020; Costa et al., 2024)
 
-#### Defenses affected:
+#### Defenses affected
 
 | Goal Type    | Relevant Defense Strategies                              |
 |--------------|-----------------------------------------------------------|
@@ -172,7 +201,8 @@ Different attacks aim for different outcomes. Some attackers may want the model 
 
 (Refs: Sun et al., 2020; Li et al., 2021)
 
-#### Example:
+#### Example
+
 - In a facial recognition system, an attacker who wants to impersonate a specific person is launching a targeted attack.
 - In an online moderation tool, an attacker who wants to reduce model accuracy in general is performing an untargeted attack.
 
@@ -180,20 +210,23 @@ This field informs which submodules in attack simulation will be configured and 
 
 ### 3.3 Field: `deployment_scenario`
 
-#### What it asks:
+#### What it asks
+
 In what type of environment will the model be deployed?
 
-#### Why it's included:
+#### Why it's included
+
 The deployment scenario determines the available computational resources, the attack surface, and the feasibility of deploying certain defenses. It also influences the attacker's capabilities (e.g., physical access, network-based interaction) and the level of security hardening required.
 
-#### Possible values:
+#### Possible values
+
 - `cloud`: The model runs on remote servers or cloud platforms, typically accessed via API.
 - `edge`: The model runs on devices close to data sources (e.g., surveillance cameras, sensors).
 - `mobile`: The model runs on smartphones or tablets, either locally or via embedded APIs.
 - `api_public`: The model is accessible through a publicly exposed API.
 - `on_device`: The model is embedded in hardware or software without direct user-facing interfaces.
 
-#### Attacks influenced by this field:
+#### Attacks influenced by this field
 
 | Scenario     | Attack Vectors Enabled                                              |
 |--------------|---------------------------------------------------------------------|
@@ -205,7 +238,7 @@ The deployment scenario determines the available computational resources, the at
 
 (Refs: Liu et al., 2021; Khamaiseh et al., 2022; Wang et al., 2022)
 
-#### Defenses affected:
+#### Defenses affected
 
 | Scenario     | Recommended Defenses                                                |
 |--------------|----------------------------------------------------------------------|
@@ -217,7 +250,8 @@ The deployment scenario determines the available computational resources, the at
 
 (Refs: Sun et al., 2020; Li et al., 2024; Peng et al., 2024)
 
-#### Example:
+#### Example
+
 - A medical diagnostic model running in a hospital server is considered `cloud`.
 - A traffic sign classifier in a smart camera is `edge`.
 - A speech recognition model running in a smartphone app is `mobile`.
@@ -226,18 +260,21 @@ This field is critical for understanding the trade-offs between robustness, late
 
 ### 3.4 Field: `data_sensitivity`
 
-#### What it asks:
+#### What it asks
+
 How sensitive or confidential is the training data used for the model?
 
-#### Why it's included:
+#### Why it's included
+
 The sensitivity of the training data determines the **potential consequences of privacy-related attacks** such as model inversion, membership inference, or data leakage. It also affects regulatory compliance requirements and the need for privacy-preserving defenses.
 
-#### Possible values:
+#### Possible values
+
 - `high`: Data contains sensitive personal, biometric, medical, or confidential information.
 - `medium`: Data includes contextual or semi-personal information that could still raise concerns.
 - `low`: Data is non-sensitive, public, or synthetic.
 
-#### Attacks influenced by this field:
+#### Attacks influenced by this field
 
 | Sensitivity Level | Associated Attack Risks                                         |
 |-------------------|-----------------------------------------------------------------|
@@ -247,7 +284,7 @@ The sensitivity of the training data determines the **potential consequences of 
 
 (Refs: Liu et al., 2021; Hu & Hu, 2020)
 
-#### Defenses affected:
+#### Defenses affected
 
 | Sensitivity Level | Recommended Defenses                                            |
 |-------------------|------------------------------------------------------------------|
@@ -257,7 +294,8 @@ The sensitivity of the training data determines the **potential consequences of 
 
 (Refs: Sun et al., 2020; Li et al., 2021)
 
-#### Example:
+#### Example
+
 - A facial recognition model trained with biometric data is considered `high` sensitivity.
 - A model trained on user interaction logs may be `medium`.
 - A model trained on publicly available images of traffic signs is `low`.
@@ -266,19 +304,22 @@ Understanding this field allows the framework to determine whether additional pr
 
 ### 3.5 Field: `training_data_source`
 
-#### What it asks:
+#### What it asks
+
 Where does the training data come from?
 
-#### Why it's included:
+#### Why it's included
+
 The origin of the training data is directly tied to the **risk of poisoning and backdoor attacks**. Datasets collected from external or user-submitted sources are more susceptible to manipulation. This field also helps define the attacker’s position in the pipeline — whether they can poison data before or during training.
 
-#### Possible values:
+#### Possible values
+
 - `internal_clean`: Fully controlled and curated dataset collected internally.
 - `external_public`: Public datasets available online (e.g., ImageNet, CIFAR, COCO).
 - `user_generated`: Data submitted by users or third parties (e.g., app uploads, crowd-labeling).
 - `mixed`: A combination of the above sources.
 
-#### Attacks influenced by this field:
+#### Attacks influenced by this field
 
 | Source Type      | Primary Threats                                                  |
 |------------------|------------------------------------------------------------------|
@@ -289,7 +330,7 @@ The origin of the training data is directly tied to the **risk of poisoning and 
 
 (Refs: Hu & Hu, 2020; Liu et al., 2021; Khamaiseh et al., 2022)
 
-#### Defenses affected:
+#### Defenses affected
 
 | Source Type      | Recommended Defenses                                              |
 |------------------|-------------------------------------------------------------------|
@@ -300,7 +341,8 @@ The origin of the training data is directly tied to the **risk of poisoning and 
 
 (Refs: Sun et al., 2020; Akhtar et al., 2021)
 
-#### Example:
+#### Example
+
 - A self-collected dataset used in a closed research lab is `internal_clean`.
 - ImageNet or CIFAR-10 are typical examples of `external_public`.
 - A voice assistant trained with user-submitted audio is `user_generated`.
@@ -310,19 +352,22 @@ Correctly identifying the data source helps the framework decide which types of 
 
 ### 3.6 Field: `model_type`
 
-#### What it asks:
+#### What it asks
+
 What type of neural network architecture will the model use?
 
-#### Why it's included:
+#### Why it's included
+
 The architecture type influences the **attack surface and the effectiveness of certain defenses**. Some attacks exploit structural properties specific to convolutional networks or transformers. Similarly, some defenses are designed to target specific model families. This field also helps submodules optimize attack and defense parameters.
 
-#### Possible values:
+#### Possible values
+
 - `cnn`: Convolutional Neural Networks, typically used in image classification.
 - `transformer`: Transformer-based architectures (e.g., ViT, BERT, DETR).
 - `mlp`: Multi-Layer Perceptrons (fully connected networks).
 - `other`: Any architecture outside the scope of the above, such as RNNs or GNNs.
 
-#### Attacks influenced by this field:
+#### Attacks influenced by this field
 
 | Model Type   | Common Attack Vectors                                                  |
 |--------------|------------------------------------------------------------------------|
@@ -333,7 +378,7 @@ The architecture type influences the **attack surface and the effectiveness of c
 
 (Refs: Akhtar et al., 2021; Costa et al., 2024; Li et al., 2021)
 
-#### Defenses affected:
+#### Defenses affected
 
 | Model Type   | Recommended Defenses                                                   |
 |--------------|------------------------------------------------------------------------|
@@ -344,7 +389,8 @@ The architecture type influences the **attack surface and the effectiveness of c
 
 (Refs: Sun et al., 2020; Li et al., 2024)
 
-#### Example:
+#### Example
+
 - A ResNet-based image classifier is a `cnn`.
 - A ViT or BERT-like model used for image or text is a `transformer`.
 - A basic fully connected classifier with no spatial awareness is an `mlp`.
@@ -353,19 +399,22 @@ While this field does not alone determine the threat landscape, it refines the s
 
 ### 3.7 Field: `interface_exposed`
 
-#### What it asks:
+#### What it asks
+
 How is the model exposed or accessed by external users or systems?
 
-#### Why it's included:
+#### Why it's included
+
 The interface through which a model is accessed determines **how attackers interact with it**, what kind of queries they can perform, and whether they can exploit its outputs. This field is essential for assessing **API-based threats**, including model stealing, inference attacks, and abuse of access frequency.
 
-#### Possible values:
+#### Possible values
+
 - `api`: The model is accessed via a remote or public-facing API.
 - `local_app`: The model runs inside a standalone application (e.g., mobile or desktop).
 - `sdk`: The model is embedded into a software development kit distributed to third parties.
 - `none`: The model is fully embedded or internal, with no external interface.
 
-#### Attacks influenced by this field:
+#### Attacks influenced by this field
 
 | Interface Type | Threat Vectors                                                        |
 |----------------|------------------------------------------------------------------------|
@@ -376,7 +425,7 @@ The interface through which a model is accessed determines **how attackers inter
 
 (Refs: Liu et al., 2021; Wang et al., 2022; Li et al., 2021)
 
-#### Defenses affected:
+#### Defenses affected
 
 | Interface Type | Suitable Defenses                                                      |
 |----------------|------------------------------------------------------------------------|
@@ -387,7 +436,8 @@ The interface through which a model is accessed determines **how attackers inter
 
 (Refs: Sun et al., 2020; Akhtar et al., 2021)
 
-#### Example:
+#### Example
+
 - A vision model served via a REST API on the cloud uses `api`.
 - A desktop application that runs inference locally is `local_app`.
 - A pre-trained model embedded in a mobile SDK is `sdk`.
@@ -397,13 +447,16 @@ This field is critical for understanding the **attack surface** and for defining
 
 ### 3.8 Field: `threat_categories`
 
-#### What it asks:
+#### What it asks
+
 Which categories of threats are relevant to this project or system?
 
-#### Why it's included:
+#### Why it's included
+
 This field serves as the **bridge between threat modeling and attack simulation**. Based on the user's answers to previous questions, the framework suggests a list of likely threat categories. The user can then confirm or edit this list manually. This controls which attack submodules are activated in Module 2 and which defenses are prioritized in later stages.
 
-#### Possible values:
+#### Possible values
+
 This is a multi-selection field. Each value represents a distinct threat category:
 
 - `data_poisoning`: Insertion of malicious data into the training set to compromise model behavior.
@@ -413,7 +466,8 @@ This is a multi-selection field. Each value represents a distinct threat categor
 - `membership_inference`: Determining if a specific input was part of the training data.
 - `model_inversion`: Reconstructing training data based on model predictions.
 
-#### How values are suggested:
+#### How values are suggested
+
 A set of heuristic rules is applied based on earlier responses. For example:
 
 - Using external or user-generated training data → `data_poisoning`
@@ -425,13 +479,16 @@ These suggestions can be overridden by the user during the questionnaire.
 
 (Refs: Hu & Hu, 2020; Liu et al., 2021; Wang et al., 2022; Sun et al., 2020)
 
-#### Attacks influenced:
+#### Attacks influenced
+
 This field directly activates submodules in Module 2. Each selected threat triggers corresponding simulations.
 
-#### Defenses affected:
+#### Defenses affected
+
 Downstream modules (Module 4 and 5) filter recommended defenses and robustness evaluations based on selected threats.
 
-#### Example:
+#### Example
+
 - If a user selects `data_poisoning` and `adversarial_examples`, only those attacks will be simulated, and defenses will be tailored accordingly.
 
 This field ensures **customization and modularity** in the framework, avoiding unnecessary computation and focusing efforts on threats that are realistically relevant to the use case.
@@ -443,6 +500,7 @@ To support users who may not have deep experience in security, the threat modeli
 ### 4.1 Purpose
 
 The automatic suggestion logic is intended to:
+
 - Translate architectural and contextual information into actionable security concerns.
 - Pre-select threat categories that are logically consistent with the provided information.
 - Serve as a baseline that users can accept or manually adjust.
@@ -453,7 +511,7 @@ This balances flexibility with guidance, helping novice users without restrictin
 
 The logic relies on a small set of deterministic rules. These rules were derived from findings in multiple survey papers that link deployment patterns and threat vectors.
 
-#### Rule Examples:
+#### Rule Examples
 
 | Condition                                                 | Suggested Threats                   | Justification                                               |
 |-----------------------------------------------------------|-------------------------------------|-------------------------------------------------------------|
@@ -468,6 +526,7 @@ The logic is implemented in Python as simple `if`-statements, making it easy to 
 ### 4.3 Editable Suggestions
 
 After the threat categories are suggested, users are prompted to confirm or modify them. This step ensures:
+
 - Transparency of the recommendation process
 - Customization for edge cases not covered by rules
 - Increased user engagement with the threat modeling process
@@ -506,14 +565,13 @@ threat_model:
 
 **Explanation:**
 
--   The model is embedded in a mobile SDK, limiting user access to outputs only (`black-box`).
-    
--   Public datasets increase the likelihood of `data_poisoning`.
-    
--   Mobile environments are prone to adversarial input manipulation.
-    
--   The use of an SDK raises concerns about offline reverse engineering and unauthorized usage.
-    
+- The model is embedded in a mobile SDK, limiting user access to outputs only (`black-box`).
+
+- Public datasets increase the likelihood of `data_poisoning`.
+
+- Mobile environments are prone to adversarial input manipulation.
+
+- The use of an SDK raises concerns about offline reverse engineering and unauthorized usage.
 
 (Refs: Akhtar et al., 2021; Liu et al., 2021; Khamaiseh et al., 2022)
 
@@ -543,14 +601,13 @@ threat_model:
 
 **Explanation:**
 
--   A gray-box setting is assumed due to potential architecture disclosure via publications or documentation.
-    
--   API-based access opens the door to `model_stealing` and `membership inference`.
-    
--   The high sensitivity of training data suggests the need for `model_inversion` defenses.
-    
--   The mixed data source includes public and user-contributed content, justifying `data_poisoning` concerns.
-    
+- A gray-box setting is assumed due to potential architecture disclosure via publications or documentation.
+
+- API-based access opens the door to `model_stealing` and `membership inference`.
+
+- The high sensitivity of training data suggests the need for `model_inversion` defenses.
+
+- The mixed data source includes public and user-contributed content, justifying `data_poisoning` concerns.
 
 (Refs: Liu et al., 2021; Hu & Hu, 2020; Wang et al., 2022; Sun et al., 2020)
 
@@ -558,12 +615,12 @@ threat_model:
 
 These profiles can be used:
 
--   As templates for quick setup of the framework
-    
--   As case studies for evaluation in the thesis
-    
--   For benchmarking the system under different threat conditions
-   
+- As templates for quick setup of the framework
+
+- As case studies for evaluation in the thesis
+
+- For benchmarking the system under different threat conditions
+
 ## 6. Discussion and Impact
 
 The threat modeling module serves as the foundation of the entire security framework. By collecting structured, justified information about the model's context, it enables the rest of the system to adapt intelligently and consistently. Its impact is both practical and methodological.
@@ -612,7 +669,6 @@ Such enhancements could increase accuracy and adaptivity while maintaining the m
 
 By clearly connecting system characteristics to threat categories, this module empowers the user to build not only more secure models, but also more transparent and auditable machine learning pipelines.
 
-
 ## 7. References
 
 The following works were directly used to support the structure, logic, and content of the threat modeling module. Each field in the questionnaire and its implications for attacks and defenses are grounded in the insights and recommendations from these surveys and studies.
@@ -645,4 +701,3 @@ The following works were directly used to support the structure, logic, and cont
   Cited to support concerns around API exposure and model stealing in black-box or public interface settings.
 
 These references ensure that the module is not only practical but also aligned with state-of-the-art knowledge in adversarial machine learning and deep learning security.
-
