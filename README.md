@@ -1,33 +1,42 @@
-# safe-dl-framework
+# 🛡️ Safe-DL-Framework
 
-## **Modular Security Framework for Deep Learning Projects**
+A modular and extensible security framework for deep learning systems, focused on **threat modeling**, **attack simulation**, **defensive strategies**, and **secure deployment**.  
+Created as part of a master’s thesis at FEUP by Tiago Barbosa.
 
-This framework provides a structured and practical approach to identifying, simulating, and defending against adversarial threats in deep learning models. It is especially suited for projects involving image classification, computer vision, and model deployment in potentially hostile environments.
+---
 
-## 📌 Features
+## 📚 Documentation
 
-- 🔍 Threat modeling with customizable profiles
-- 🧪 Simulation of real-world attacks:
-  - Data poisoning
-  - Backdoor attacks
-  - Adversarial examples
-  - Model stealing and inference attacks
-- 🛡️ Adaptive defense strategies
-- 📊 Robustness benchmarking and evaluation tools
-- 🚀 Secure deployment checklists
-- 🧠 Optional real-time detection module for production environments
+- 📄 [Full Framework Overview](docs/framework.md)
+- 🧩 [Module 1 – Threat Modeling](docs/module1.md)
 
-## ⚙️ Modules Overview
+---
 
-1. **Threat Modeling** – Define attacker assumptions and generate threat profiles
-2. **Attack Simulation** – Apply selected attacks based on threat profile
-3. **Vulnerability Assessment** – Quantify model weaknesses
-4. **Defensive Strategies** – Apply and test appropriate defenses
-5. **Benchmarking** – Compare model performance before and after defenses
-6. **Deployment Guidelines** – Secure your model in the real world
-7. *(Optional)* **Real-Time Monitoring** – Detect anomalies during inference
+## 🔍 Key Features
 
-## 📦 Installation
+- Structured **threat modeling** based on attacker goals, data sensitivity, and system architecture
+- Simulation of major attacks: **data poisoning**, **backdoors**, **adversarial examples**, **model stealing**, and more
+- Automatic defense mapping and benchmarking tools
+- Deployment-ready configurations with optional **real-time monitoring**
+- YAML-based profiles for reproducibility and automation
+
+---
+
+## 🧱 Modules Overview
+
+1. **Threat Modeling** – Define attacker capabilities and generate a threat profile  
+2. **Attack Simulation** – Launch realistic attacks based on selected threat categories  
+3. **Vulnerability Assessment** – Quantify and visualize model weaknesses  
+4. **Defensive Strategies** – Automatically recommend and apply countermeasures  
+5. **Benchmarking** – Evaluate the impact of defenses in clean and adversarial settings  
+6. **Deployment Guidelines** – Secure your final model with best practices  
+7. *(Optional)* **Real-Time Monitoring** – Detect anomalies at runtime
+
+---
+
+## 🚀 Getting Started
+
+Clone the repository and install dependencies:
 
 ```bash
 git clone https://github.com/yourusername/safe-dl-framework.git
@@ -35,37 +44,46 @@ cd safe-dl-framework
 pip install -r requirements.txt
 ```
 
-## 🚀 Usage
-
-Start with the threat modeling module:
+Start by creating a threat profile:
 
 ```bash
 python threat_model_cli.py
 ```
 
-Then simulate attacks, apply defenses, and evaluate robustness:
+Then run the main pipeline with your profile:
 
 ```bash
-python run_framework.py --profile traffic_signs_profile.yaml
+python run_framework.py --profile profiles/my_project.yaml
 ```
+
+---
 
 ## 📁 Project Structure
 
-```bash
+```
 .
-├── attacks/              # Attack scripts by category
-├── defenses/             # Defensive techniques
-├── framework/            # Core logic and pipeline
-├── profiles/             # YAML threat profiles
-├── results/              # Benchmark results and logs
-├── threat_model_cli.py   # Threat modeling questionnaire (CLI)
-├── run_framework.py      # Main execution script
+├── attacks/               # Adversarial attack implementations
+├── defenses/              # Defensive strategies
+├── framework/             # Pipeline integration code
+├── profiles/              # YAML threat profiles
+├── results/               # Logs and evaluation reports
+├── docs/                  # Documentation (markdown)
+│   ├── framework.md
+│   └── module1.md
+├── threat_model_cli.py    # CLI-based threat modeling tool
+├── run_framework.py       # Main execution script
 └── requirements.txt
 ```
 
+---
+
+## 👨‍💻 Author
+
+Created by **Tiago Barbosa**, M.Sc. Informatics and Computing Engineering @ FEUP  
+This framework is part of the master's thesis *"Enhancing Security in Deep Neural Networks Against Adversarial Attacks."*
+
+---
+
 ## 📖 License
 
-MIT License
-
-Designed by Tiago Barbosa – M.Sc. Informatics and Computing Engineering @ FEUP
-Framework created as part of a master's thesis on enhancing the security of deep neural networks.
+This project is licensed under the MIT License.
