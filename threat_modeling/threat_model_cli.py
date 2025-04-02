@@ -170,10 +170,10 @@ def run_questionnaire():
     # Save
     save = questionary.confirm("Do you want to save this profile to a YAML file?").ask()
     if save:
-        filename = questionary.text("Enter filename (e.g., profile.yaml):").ask()
-        with open(f"../profiles/{filename}", "w") as f:
+        filename = questionary.text("Enter filename (e.g., 'test' to save as test.yaml):").ask()
+        with open(f"../profiles/{filename}.yaml", "w") as f:
             yaml.dump(profile, f)
-        print(f"\n Profile saved as ../profiles/{filename}")
+        print(f"\n Profile saved as ../profiles/{filename}.yaml")
 
 if __name__ == "__main__":
     run_questionnaire()

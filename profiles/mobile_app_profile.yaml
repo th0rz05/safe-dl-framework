@@ -1,0 +1,11 @@
+threat_model:
+  attack_goal: targeted
+  data_sensitivity: medium
+  deployment_scenario: mobile
+  interface_exposed: sdk
+  model_access: black-box
+  model_type: cnn
+  threat_categories:
+  - data_poisoning
+  - adversarial_examples
+  training_data_source: external_public

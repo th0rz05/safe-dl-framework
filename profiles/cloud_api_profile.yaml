@@ -1,0 +1,14 @@
+threat_model:
+  attack_goal: untargeted
+  data_sensitivity: high
+  deployment_scenario: cloud
+  interface_exposed: api
+  model_access: gray-box
+  model_type: transformer
+  threat_categories:
+  - model_stealing
+  - membership_inference
+  - backdoor_attacks
+  - data_poisoning
+  - model_inversion
+  training_data_source: mixed
