@@ -13,13 +13,14 @@ def ask_with_help(question, choices, help_text):
         else:
             return choice
 
-def ask_checkbox_with_help(question, choices_with_explanations):
+def ask_checkbox_with_help(question, choices_with_explanations, preselected=None):
     while True:
-        #print("Tip: Press space to select/deselect. Enter to confirm.")
         selected = questionary.checkbox(
             question,
-            choices=[f"{k} – {v}" for k, v in choices_with_explanations.items()] +
-                    ["Help / What do these mean?"]
+            choices=[
+                questionary.Choice(f"{k} – {v}", checked=(preselected and k in preselected))
+                for k, v in choices_with_explanations.items()
+            ] + [questionary.Choice("Help / What do these mean?")]
         ).ask()
 
         if any("Help" in s for s in selected):
@@ -28,9 +29,6 @@ def ask_checkbox_with_help(question, choices_with_explanations):
                 print(f"- {key}: {desc}")
         else:
             return [k for k in choices_with_explanations.keys() if any(k in s for s in selected)]
-        
-        #add a line break for better readability
-        print("\nTip: Press space to select/deselect. Enter to confirm.")
 
 def run_questionnaire():
     print("=== Threat Modeling Questionnaire ===\n")
@@ -109,6 +107,30 @@ def run_questionnaire():
 """
     )
 
+    # === Threat suggestion logic ===
+    suggested_threats = set()
+
+    if training_data_source in ["external_public", "user_generated", "mixed"]:
+        suggested_threats.add("data_poisoning")
+
+    if interface_exposed == "api":
+        suggested_threats.update(["model_stealing", "membership_inference"])
+
+    if deployment_scenario in ["mobile", "edge", "api_public"]:
+        suggested_threats.add("adversarial_examples")
+
+    if model_access in ["white-box", "gray-box"]:
+        suggested_threats.add("backdoor_attacks")
+
+    if data_sensitivity == "high":
+        suggested_threats.add("model_inversion")
+
+    print("\nBased on your answers, we suggest the following threat categories:")
+    for t in suggested_threats:
+        print(f"- {t}")
+
+    edit = questionary.confirm("Do you want to edit this list?", default=False).ask()
+
     threat_category_explanations = {
         "data_poisoning": "Malicious data inserted in training to corrupt the model.",
         "backdoor_attacks": "Triggers planted during training to cause misclassification when activated.",
@@ -118,10 +140,14 @@ def run_questionnaire():
         "model_inversion": "Reconstructing private inputs using model predictions."
     }
 
-    threat_categories = ask_checkbox_with_help(
-        "Which threat categories are relevant for this project?",
-        threat_category_explanations
-    )
+    if edit:
+        threat_categories = ask_checkbox_with_help(
+            "Select relevant threat categories (space to toggle):",
+            threat_category_explanations,
+            preselected=suggested_threats
+        )
+    else:
+        threat_categories = list(suggested_threats)
 
     # Create final profile
     profile = {
