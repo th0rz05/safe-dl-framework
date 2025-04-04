@@ -1,9 +1,16 @@
-def get_dataset():
-    from torchvision.datasets import MNIST
-    from torchvision import transforms
-    from torch.utils.data import DataLoader
+from torchvision.datasets import MNIST
+from torchvision import transforms
+from torch.utils.data import random_split
 
+def get_dataset():
     transform = transforms.ToTensor()
-    trainset = MNIST(root="./data", train=True, download=True, transform=transform)
+
+    full_train = MNIST(root="./data", train=True, download=True, transform=transform)
     testset = MNIST(root="./data", train=False, download=True, transform=transform)
-    return trainset, testset
+
+    # Split 10% for validation
+    val_size = int(0.1 * len(full_train))
+    train_size = len(full_train) - val_size
+    trainset, valset = random_split(full_train, [train_size, val_size])
+
+    return trainset, testset, valset
