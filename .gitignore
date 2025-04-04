@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+*.egg-info/
+*.pkl
+*.pt
+
+# Virtual environment
+venv/
+.env/
+.venv/
+
+# PyTorch Datasets (ex: MNIST, CIFAR10, etc.)
+data/
+datasets/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# VSCode & IDEs
+.vscode/
+*.code-workspace
+
+# Logs & Results
+results/
+logs/
+*.log
+
+# YAMLs gerados
+*.yaml
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# PyTorch Lightning / Checkpoints
+checkpoints/
+*.ckpt
