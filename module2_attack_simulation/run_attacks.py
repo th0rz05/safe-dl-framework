@@ -5,6 +5,21 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 import json
+import questionary
+
+def choose_profile():
+    profiles_path = os.path.join("..", "profiles")
+    profiles = [f for f in os.listdir(profiles_path) if f.endswith(".yaml")]
+
+    if not profiles:
+        raise FileNotFoundError("No .yaml files found in ../profiles")
+
+    selected = questionary.select(
+        "Choose a threat profile:",
+        choices=profiles
+    ).ask()
+
+    return selected
 
 def load_profile(filename):
     path = os.path.join("..", "profiles", filename)
@@ -39,7 +54,7 @@ def evaluate(model, dataset, desc=""):
     return acc
 
 def run_attacks(profile, model, trainset, testset, valset):
-    # Baseline: treinar com dataset limpo
+    # Baseline: t´reinar com dataset limpo
     print("[*] Training baseline model (clean data)...")
     from attacks.utils import train_model
 
@@ -61,7 +76,7 @@ def run_attacks(profile, model, trainset, testset, valset):
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
-    profile_name = input("Enter the name of your profile YAML file (e.g., profile.yaml): ").strip()
+    profile_name = choose_profile()
     
     print("\n[*] Loading profile...")
     profile = load_profile(profile_name)

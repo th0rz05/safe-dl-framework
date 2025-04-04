@@ -1,3 +1,5 @@
+import torch
+
 def get_model():
     import torch.nn as nn
     import torch.nn.functional as F
