@@ -5,7 +5,8 @@ from copy import deepcopy
 import random
 import os
 import json
-from attacks.utils import train_model, evaluate_model
+from attacks.utils import train_model, evaluate_model, get_class_labels
+
 
 def flip_labels(dataset, flip_rate=0.1, target_class=None, flip_to_class=None):
     poisoned_dataset = deepcopy(dataset)
@@ -35,19 +36,44 @@ def run(trainset, testset, valset, model, profile):
     cfg = profile["threat_model"]
     goal = cfg.get("attack_goal", "untargeted")
     data_source = cfg.get("training_data_source", "internal_clean")
+    classes = get_class_labels(trainset)
 
-    if data_source == "user_generated" and goal == "targeted":
-        target_class = 1
-        flip_to_class = 7
-        flip_rate = 0.05
+    if data_source == "user_generated":
+        if goal == "targeted":
+            target_class = classes[0]
+            flip_to_class = classes[-1]
+            flip_rate = 0.05
+        else:  # untargeted
+            target_class = None
+            flip_to_class = None
+            flip_rate = 0.08
+
+    elif data_source == "mixed":
+        if goal == "targeted":
+            target_class = classes[0]
+            flip_to_class = classes[-1]
+            flip_rate = 0.04
+        else:
+            target_class = None
+            flip_to_class = None
+            flip_rate = 0.08
+
     elif data_source == "external_public":
-        target_class = None
-        flip_to_class = None
-        flip_rate = 0.1
-    else:
+        if goal == "targeted":
+            target_class = classes[0]
+            flip_to_class = classes[-1]
+            flip_rate = 0.08
+        else:
+            target_class = None
+            flip_to_class = None
+            flip_rate = 0.1
+
+
+    else:  # internal_clean or unknown
         target_class = None
         flip_to_class = None
         flip_rate = 0.05
+
 
     print(f"[*] Applying label flipping attack: rate={flip_rate}, target={target_class}→{flip_to_class}")
     poisoned_trainset = flip_labels(trainset, flip_rate, target_class, flip_to_class)

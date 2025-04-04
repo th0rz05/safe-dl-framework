@@ -43,3 +43,16 @@ def evaluate_model(model, dataset):
             total += y.size(0)
 
     return correct / total
+
+
+def get_class_labels(dataset):
+    
+    if hasattr(dataset, "dataset") and hasattr(dataset.dataset, "targets"):
+        targets = dataset.dataset.targets
+    elif hasattr(dataset, "targets"):
+        targets = dataset.targets
+    else:
+        raise ValueError("Dataset does not expose `.targets` attribute.")
+
+    unique_labels = sorted(set(int(label) for label in targets))
+    return unique_labels

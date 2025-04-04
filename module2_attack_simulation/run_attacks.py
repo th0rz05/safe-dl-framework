@@ -9,7 +9,7 @@ import questionary
 
 def choose_profile():
     profiles_path = os.path.join("..", "profiles")
-    profiles = [f for f in os.listdir(profiles_path) if f.endswith(".yaml")]
+    profiles = [f for f in os.listdir(profiles_path) if f.endswith(".yaml")].sort()
 
     if not profiles:
         raise FileNotFoundError("No .yaml files found in ../profiles")

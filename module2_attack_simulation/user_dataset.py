@@ -14,3 +14,9 @@ def get_dataset():
     trainset, valset = random_split(full_train, [train_size, val_size])
 
     return trainset, testset, valset
+
+if __name__ == "__main__":
+    train, test, val = get_dataset()
+    labels = sorted(set(int(train.dataset.targets[i]) for i in train.indices))
+    print("Train labels:", labels)
+
