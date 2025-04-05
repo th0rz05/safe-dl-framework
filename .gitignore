@@ -27,9 +27,6 @@ results/
 logs/
 *.log
 
-# YAMLs gerados
-*.yaml
-
 # Sistema
 .DS_Store
 Thumbs.db

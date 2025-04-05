@@ -1,6 +1,9 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
+import os
+import shutil
 
 def train_model(model, trainset, valset=None, epochs=3, batch_size=64):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -56,3 +59,25 @@ def get_class_labels(dataset):
 
     unique_labels = sorted(set(int(label) for label in targets))
     return unique_labels
+
+
+
+def save_flip_examples(dataset, flip_log, output_dir="results/flipped_samples", num_examples=5):
+    # Apaga o diretório anterior, se existir
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    for i, entry in enumerate(flip_log[:num_examples]):
+        idx = entry["index"]
+        original = entry["original_label"]
+        new = entry["new_label"]
+        img, _ = dataset[idx]
+
+        plt.imshow(img.squeeze(), cmap="gray")
+        plt.title(f"{original} -> {new}")
+        plt.axis("off")
+        filename = f"sample_{i}_{original}_to_{new}.png"
+        filepath = os.path.join(output_dir, filename)
+        plt.savefig(filepath, bbox_inches="tight")
+        plt.close()
