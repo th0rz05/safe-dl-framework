@@ -25,7 +25,6 @@ datasets/
 # Logs
 logs/
 *.log
-results/
 
 # Sistema
 .DS_Store
