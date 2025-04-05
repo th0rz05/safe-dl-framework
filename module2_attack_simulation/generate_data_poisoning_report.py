@@ -56,4 +56,4 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
     print(f"[✔] Markdown report generated at {md_file}")
 
 if __name__ == "__main__":
-    generate_report()
+    generate_data_poisoning_report()
