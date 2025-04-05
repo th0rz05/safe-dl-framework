@@ -3,8 +3,10 @@
 ## Overview
 
 - **Attack Type:** label_flipping
+- **Strategy:** many_to_one
 - **Flip Rate:** 0.08
-- **Targeted Attack:** No (untargeted)
+- **Target Class:** 4
+- **Source Classes:** All except target
 - **Number of Flipped Samples:** 3898
 
 ## Performance Metrics
@@ -14,7 +16,7 @@
 ## Flip Summary
 
 | Original -> New | Count |
-|-----------------|-------|
+|------------------|--------|
 | 1->4 | 445 |
 | 8->4 | 403 |
 | 0->4 | 409 |

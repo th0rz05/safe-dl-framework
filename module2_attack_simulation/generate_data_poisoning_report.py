@@ -6,18 +6,18 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
         results = json.load(f)
 
     lines = []
-
     lines.append("# Data Poisoning Attack Report\n")
 
     lines.append("## Overview\n")
     lines.append(f"- **Attack Type:** {results.get('attack_type')}")
+    lines.append(f"- **Strategy:** {results.get('flipping_strategy')}")
     lines.append(f"- **Flip Rate:** {results.get('flip_rate')}")
-    target_class = results.get("target_class")
-    flip_to_class = results.get("flip_to_class")
-    if target_class is not None and flip_to_class is not None:
-        lines.append(f"- **Targeted Attack:** Yes (from {target_class} to {flip_to_class})")
+    if results.get("flipping_strategy") == "one_to_one":
+        lines.append(f"- **Source Class:** {results.get('source_class')}")
+        lines.append(f"- **Target Class:** {results.get('target_class')}")
     else:
-        lines.append("- **Targeted Attack:** No (untargeted)")
+        lines.append(f"- **Target Class:** {results.get('target_class')}")
+        lines.append("- **Source Classes:** All except target")
     lines.append(f"- **Number of Flipped Samples:** {results.get('num_flipped')}")
     lines.append("")
 
@@ -26,7 +26,7 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
 
     lines.append("## Flip Summary\n")
     lines.append("| Original -> New | Count |")
-    lines.append("|-----------------|-------|")
+    lines.append("|------------------|--------|")
     for key, count in results.get("flipping_map", {}).items():
         lines.append(f"| {key} | {count} |")
     lines.append("")
