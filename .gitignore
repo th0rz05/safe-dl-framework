@@ -22,8 +22,7 @@ datasets/
 .vscode/
 *.code-workspace
 
-# Logs & Results
-results/
+# Logs
 logs/
 *.log
 
