@@ -7,6 +7,7 @@ import random
 import os
 import json
 from attacks.utils import train_model, evaluate_model, get_class_labels, save_flip_examples
+from generate_data_poisoning_report import generate_data_poisoning_report
 
 
 def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one", source_class=None, target_class=None):
@@ -111,3 +112,10 @@ def run(trainset, testset, valset, model, profile):
 
     with open("results/data_poisoning_metrics.json", "w") as f:
         json.dump(result, f, indent=2)
+        
+    print("[✔] Data poisoning metrics saved to results/data_poisoning_metrics.json")
+    
+    generate_data_poisoning_report(json_file="results/data_poisoning_metrics.json", md_file="results/data_poisoning_report.md")
+    print("[✔] Data poisoning report generated at results/data_poisoning_report.md")
+    
+    

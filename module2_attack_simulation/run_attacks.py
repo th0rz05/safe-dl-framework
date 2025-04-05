@@ -6,7 +6,6 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 import json
 import questionary
-from generate_data_poisoning_report import generate_data_poisoning_report
 
 def choose_profile():
     profiles_path = os.path.join("..", "profiles")
@@ -74,7 +73,6 @@ def run_attacks(profile, model, trainset, testset, valset):
         print("[*] Running Data Poisoning attack...")
         attack = importlib.import_module("attacks.data_poisoning.run")
         attack.run(trainset, testset, valset, model, profile)
-        generate_data_poisoning_report(json_file="results/data_poisoning_metrics.json", md_file="results/data_poisoning_report.md")
         
 
 def main():
