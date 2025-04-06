@@ -31,21 +31,49 @@ def train_model(model, trainset, valset=None, epochs=3, batch_size=64):
             acc = evaluate_model(model, valset)
             print(f"         Validation accuracy = {acc:.4f}")
 
-def evaluate_model(model, dataset):
+def evaluate_model(model, dataset, class_names=None):
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     model.eval()
     loader = DataLoader(dataset, batch_size=64)
 
-    correct, total = 0, 0
+    total = 0
+    correct = 0
+    class_correct = {}
+    class_total = {}
+
     with torch.no_grad():
         for x, y in loader:
             x, y = x.to(device), y.to(device)
             preds = model(x).argmax(1)
-            correct += (preds == y).sum().item()
-            total += y.size(0)
 
-    return correct / total
+            total += y.size(0)
+            correct += (preds == y).sum().item()
+
+            for label, prediction in zip(y, preds):
+                label = int(label)
+                pred = int(prediction)
+
+                class_total[label] = class_total.get(label, 0) + 1
+                if label == pred:
+                    class_correct[label] = class_correct.get(label, 0) + 1
+
+    overall_acc = correct / total
+    print(f"[+] Overall accuracy: {overall_acc:.4f}")
+
+    per_class_accuracy = {}
+    for cls in sorted(class_total.keys()):
+        total_c = class_total[cls]
+        correct_c = class_correct.get(cls, 0)
+        acc = correct_c / total_c if total_c > 0 else 0.0
+        name = class_names[cls] if class_names else str(cls)
+        per_class_accuracy[name] = round(acc, 4)
+        print(f"  - {name} (class {cls}): {acc:.4f} ({correct_c}/{total_c})")
+
+    return overall_acc, per_class_accuracy
+
+
 
 
 def get_class_labels(dataset):

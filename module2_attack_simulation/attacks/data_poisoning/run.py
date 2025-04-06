@@ -144,8 +144,18 @@ def run(trainset, testset, valset, model, profile, class_names):
     print("[*] Training model on poisoned dataset...")
     train_model(model, poisoned_trainset, valset, epochs=3)
 
-    acc = evaluate_model(model, testset)
-    print(f"[+] Accuracy after poisoning: {acc:.4f}")
+    focus_classes = []
+    if strategy == "one_to_one":
+        focus_classes = [source_class, target_class]
+    elif strategy == "many_to_one":
+        focus_classes = [target_class]
+
+    acc, per_class_accuracy = evaluate_model(
+        model,
+        testset,
+        class_names=class_names,
+        focus_classes=focus_classes
+    )
 
     os.makedirs("results", exist_ok=True)
     save_flip_examples(trainset.dataset, flip_log, num_examples=5,class_names=class_names)
@@ -154,6 +164,7 @@ def run(trainset, testset, valset, model, profile, class_names):
         "attack_type": "label_flipping",
         "flipping_strategy": strategy,
         "accuracy_after_attack": acc,
+        "per_class_accuracy": per_class_accuracy,
         "flip_rate": flip_rate,
         "source_class": source_class,
         "target_class": target_class,

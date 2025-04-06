@@ -23,6 +23,13 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
 
     lines.append("## Performance Metrics\n")
     lines.append(f"- **Accuracy After Attack:** {results.get('accuracy_after_attack')}\n")
+    
+    lines.append("### Per-Class Accuracy\n")
+    lines.append("| Class | Accuracy |")
+    lines.append("|--------|----------|")
+    for class_name, acc in results.get("per_class_accuracy", {}).items():
+        lines.append(f"| {class_name} | {acc:.4f} |")
+    lines.append("")
 
     lines.append("## Flip Summary\n")
     lines.append("| Original -> New | Count |")
