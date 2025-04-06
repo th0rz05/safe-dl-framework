@@ -1,9 +1,11 @@
 import questionary
 import yaml
 import os
-from dataset_loader import list_builtin_datasets
+from dataset_loader import list_builtin_datasets, load_builtin_dataset, load_user_dataset
 from model_loader import get_builtin_model
 from glob import glob
+import torch
+import random
 
 
 def select_dataset():
@@ -11,18 +13,45 @@ def select_dataset():
     selected = questionary.select("Select a dataset:", choices=choices).ask()
 
     if "user" in selected:
-        return {"type": "custom", "name": "user_dataset.py"}
+        dataset_info = {"type": "custom", "name": "user_dataset.py"}
+        try:
+            train, _, _ = load_user_dataset()
+            num_classes = detect_num_classes(train)
+        except Exception as e:
+            print(f"[!] Could not load custom dataset: {e}")
+            num_classes = None
     else:
-        return {"type": "builtin", "name": selected.split(" ")[0]}
+        dataset_name = selected.split(" ")[0]
+        dataset_info = {"type": "builtin", "name": dataset_name}
+        try:
+            train, _, _ = load_builtin_dataset(dataset_name)
+            num_classes = detect_num_classes(train)
+        except Exception as e:
+            print(f"[!] Could not load built-in dataset '{dataset_name}': {e}")
+            num_classes = None
+
+    if num_classes is None:
+        num_classes = int(questionary.text("How many output classes does your dataset have?", default="10").ask())
+
+    return dataset_info, num_classes
 
 
-def select_model():
+def detect_num_classes(dataset):
+    try:
+        targets = [int(dataset.dataset.targets[i]) for i in dataset.indices]
+        return len(set(targets))
+    except:
+        return None
+
+
+def select_model(num_classes):
     choices = ["cnn", "mlp", "resnet18", "resnet50", "vit", "user_model.py"]
     selected = questionary.select("Select a model:", choices=choices).ask()
 
     model_info = {
         "type": "custom" if "user" in selected else "builtin",
-        "name": selected
+        "name": selected,
+        "num_classes": num_classes
     }
 
     if model_info["type"] == "builtin" and selected in ["cnn", "mlp"]:
@@ -51,12 +80,69 @@ def select_profile():
     selected = questionary.select("Select a threat profile to use:", choices=profiles).ask()
     return selected
 
+def suggest_data_poisoning(profile_data):
+    print("\n=== Attack Parameter Suggestion: Label Flipping ===\n")
+    cfg = profile_data.get("threat_model", {})
+    goal = cfg.get("attack_goal", "untargeted")
+    data_source = cfg.get("training_data_source", "internal_clean")
+
+    # Estratégia e flip rate sugeridos
+    if goal == "targeted":
+        if data_source == "user_generated":
+            strategy = "one_to_one"
+            flip_rate = 0.05
+        else:
+            strategy = "many_to_one"
+            flip_rate = 0.08
+    else:
+        strategy = "many_to_one"
+        flip_rate = 0.10 if data_source == "external_public" else 0.08
+
+    # Target / source sugested
+    num_classes = profile_data.get("model", {}).get("num_classes", 10)
+    classes = list(range(num_classes))
+
+    if strategy == "one_to_one":
+        source_class = random.choice(classes)
+        target_class = random.choice([c for c in classes if c != source_class])
+    else:
+        source_class = None
+        target_class = random.choice(classes)
+
+    
+    print(f"Suggested strategy: {strategy}")
+    print(f"Suggested flip_rate: {flip_rate}")
+    if source_class is not None:
+        print(f"Suggested class to flip FROM: {source_class}")
+    print(f"Suggested class to flip TO: {target_class}")
+
+    confirm = questionary.confirm("Do you want to accept these values?").ask()
+    if not confirm:
+        strategy = questionary.select("Select strategy:", choices=["one_to_one", "many_to_one"]).ask()
+        flip_rate = float(questionary.text("Flip rate (e.g., 0.05):", default="0.08").ask())
+        if strategy == "one_to_one":
+            source_class = int(questionary.text("Source class to flip FROM:").ask())
+        else:
+            source_class = None
+        target_class = int(questionary.text("Target class to flip TO:").ask())
+
+    profile_data["attack_overrides"] = {
+        "data_poisoning": {
+            "strategy": strategy,
+            "flip_rate": flip_rate,
+            "source_class": source_class,
+            "target_class": target_class
+        }
+    }
+
+    print("\n[✔] Attack configuration added to profile.")
+
 
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
 
-    dataset_info = select_dataset()
-    model_info = select_model()
+    dataset_info, num_classes = select_dataset()
+    model_info = select_model(num_classes)
     profile_path = select_profile()
 
     print("\nConfiguration complete!\n")
@@ -69,15 +155,17 @@ def run_setup():
         with open(profile_path, "r") as f:
             profile_data = yaml.safe_load(f)
 
-    # Update or add model/dataset sections
     profile_data["dataset"] = dataset_info
     profile_data["model"] = model_info
+    
+    suggest_data_poisoning(profile_data)
 
     if save_new:
         filename = questionary.text("Enter filename (e.g., my_combined_profile.yaml):").ask()
         final_path = os.path.join("../profiles", filename)
     else:
         final_path = profile_path
+        
 
     with open(final_path, "w") as f:
         yaml.dump(profile_data, f)
