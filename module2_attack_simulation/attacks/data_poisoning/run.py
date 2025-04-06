@@ -7,7 +7,7 @@ import os
 import json
 
 from attacks.utils import train_model, evaluate_model, get_class_labels, save_flip_examples
-from generate_data_poisoning_report import generate_data_poisoning_report
+from attacks.data_poisoning.generate_data_poisoning_report import generate_data_poisoning_report
 
 
 def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one", source_class=None, target_class=None):
