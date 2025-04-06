@@ -1,11 +1,12 @@
 import yaml
-import importlib
 import os
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
 import json
 import questionary
+from torch.utils.data import DataLoader
+from dataset_loader import load_builtin_dataset, load_user_dataset
+from model_loader import get_builtin_model, load_user_model
+
 
 def choose_profile():
     profiles_path = os.path.join("..", "profiles")
@@ -21,6 +22,7 @@ def choose_profile():
 
     return selected
 
+
 def load_profile(filename):
     path = os.path.join("..", "profiles", filename)
     if not os.path.exists(path):
@@ -28,17 +30,35 @@ def load_profile(filename):
     with open(path, "r") as f:
         return yaml.safe_load(f)
 
-def load_model():
-    user_model = importlib.import_module("user_model")
-    return user_model.get_model()
 
-def load_dataset():
-    user_dataset = importlib.import_module("user_dataset")
-    return user_dataset.get_dataset()
+def load_model_from_profile(profile):
+    model_info = profile.get("model", {})
+    name = model_info.get("name")
+    model_type = model_info.get("type")
+    num_classes = model_info.get("num_classes", 10)
+    params = model_info.get("params", {})
+
+    if model_type == "custom":
+        return load_user_model()
+    else:
+        return get_builtin_model(name=name, num_classes=num_classes, input_shape=(1, 28, 28), **params)
+
+
+def load_dataset_from_profile(profile):
+    dataset_info = profile.get("dataset", {})
+    name = dataset_info.get("name")
+    dataset_type = dataset_info.get("type")
+
+    if dataset_type == "custom":
+        return load_user_dataset()
+    else:
+        return load_builtin_dataset(name)
+
 
 def evaluate(model, dataset, desc=""):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     loader = DataLoader(dataset, batch_size=64)
+    model.to(device)
     model.eval()
     correct, total = 0, 0
 
@@ -53,8 +73,8 @@ def evaluate(model, dataset, desc=""):
     print(f"[+] Accuracy on {desc}: {acc:.4f}")
     return acc
 
+
 def run_attacks(profile, model, trainset, testset, valset):
-    # Baseline: t´reinar com dataset limpo
     print("[*] Training baseline model (clean data)...")
     from attacks.utils import train_model
 
@@ -66,28 +86,29 @@ def run_attacks(profile, model, trainset, testset, valset):
     with open("results/baseline_accuracy.json", "w") as f:
         json.dump({"baseline_accuracy": baseline_acc}, f, indent=2)
 
-    # Ataques com base no profile
+    # Ataques com base no perfil
     threat_categories = profile.get("threat_model", {}).get("threat_categories", [])
-    
+
     if "data_poisoning" in threat_categories:
         print("[*] Running Data Poisoning attack...")
-        attack = importlib.import_module("attacks.data_poisoning.run")
+        attack = __import__("attacks.data_poisoning.run", fromlist=["run"])
         attack.run(trainset, testset, valset, model, profile)
-        
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
     profile_name = choose_profile()
-    
+
     print("\n[*] Loading profile...")
     profile = load_profile(profile_name)
 
-    print("[*] Loading user model and dataset...")
-    model = load_model()
-    trainset, testset, valset = load_dataset()
+    print("[*] Loading model and dataset from profile...")
+    model = load_model_from_profile(profile)
+    trainset, testset, valset = load_dataset_from_profile(profile)
 
     print("[*] Starting attack simulations...\n")
     run_attacks(profile, model, trainset, testset, valset)
+
 
 if __name__ == "__main__":
     main()
