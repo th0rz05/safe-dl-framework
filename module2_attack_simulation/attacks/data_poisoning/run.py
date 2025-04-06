@@ -42,7 +42,7 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
                 "new_label_name": target_name
             })
 
-            flip_map[f"{orig_name}→{target_name}"] += 1
+            flip_map[f"{orig_name}->{target_name}"] += 1
 
     elif strategy == "many_to_one":
         if target_class is None:
