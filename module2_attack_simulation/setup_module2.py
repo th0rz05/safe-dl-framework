@@ -1,4 +1,5 @@
 import questionary
+from questionary import Choice
 import yaml
 import os
 from dataset_loader import list_builtin_datasets, load_builtin_dataset, load_user_dataset
@@ -123,9 +124,9 @@ def suggest_data_poisoning(profile_data):
         strategy = questionary.select(
             "Choose flipping strategy:",
             choices=[
-                ("Fully random (random→random)", "fully_random"),
-                ("Random to fixed (many→one)", "many_to_one"),
-                ("Fixed to fixed (one→one)", "one_to_one")
+                Choice("Fully random (random->random)", value="fully_random"),
+                Choice("Random to fixed (many->one)", value="many_to_one"),
+                Choice("Fixed to fixed (one->one)", value="one_to_one")
             ]
         ).ask()
 
@@ -173,36 +174,31 @@ def suggest_data_poisoning(profile_data):
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
 
+    # Dataset and model selection
     dataset_info, num_classes = select_dataset()
     model_info = select_model(num_classes)
     profile_path = select_profile()
 
-    print("\nConfiguration complete!\n")
+    if profile_path is None:
+        print("[!] No profile selected. Exiting.")
+        return
 
-    # Ask to save this as a new profile or overwrite selected one
-    save_new = questionary.confirm("Do you want to save a new combined profile with dataset and model info?").ask()
+    # Load the existing profile
+    with open(profile_path, "r") as f:
+        profile_data = yaml.safe_load(f)
 
-    profile_data = {}
-    if profile_path:
-        with open(profile_path, "r") as f:
-            profile_data = yaml.safe_load(f)
-
+    # Replace dataset and model fields
     profile_data["dataset"] = dataset_info
     profile_data["model"] = model_info
-    
+
+    # Suggest attack configuration and save it
     suggest_data_poisoning(profile_data)
 
-    if save_new:
-        filename = questionary.text("Enter filename (e.g., my_combined_profile.yaml):").ask()
-        final_path = os.path.join("../profiles", filename)
-    else:
-        final_path = profile_path
-        
-
-    with open(final_path, "w") as f:
+    with open(profile_path, "w") as f:
         yaml.dump(profile_data, f)
 
-    print(f"\n[✔] Final profile saved at: {final_path}")
+    print(f"\n[✔] Profile updated and saved at: {profile_path}")
+
 
 
 if __name__ == "__main__":
