@@ -81,3 +81,41 @@ def save_flip_examples(dataset, flip_log, output_dir="results/flipped_samples", 
         filepath = os.path.join(output_dir, filename)
         plt.savefig(filepath, bbox_inches="tight")
         plt.close()
+    
+
+def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/flipped_examples"):
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
+
+    saved = 0
+    for example in flip_log:
+        try:
+            idx = example["index"]
+            original_label = example["original_label"]
+            new_label = example["new_label"]
+            img, _ = dataset[idx]  # img: tensor [C, H, W]
+
+            # Convert image to NumPy array and rearrange if needed
+            img = img.cpu()
+
+            if img.shape[0] in [3, 4]:  # RGB or RGBA
+                img = img.permute(1, 2, 0)  # [H, W, C]
+
+            img = img.squeeze()
+
+            # Save the image with appropriate color mapping
+            plt.figure()
+            plt.imshow(img, cmap="gray" if img.ndim == 2 else None)
+            plt.axis("off")
+            plt.title(f"{original_label} → {new_label}")
+            filename = os.path.join(output_dir, f"flip_{idx}_{original_label}_to_{new_label}.png")
+            plt.savefig(filename)
+            plt.close()
+
+            saved += 1
+            if saved >= num_examples:
+                break
+
+        except Exception as e:
+            print(f"[!] Failed to save flip example for index {example.get('index', '?')}: {e}")
