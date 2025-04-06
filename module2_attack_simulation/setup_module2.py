@@ -10,6 +10,16 @@ import random
 
 
 def select_dataset():
+    dataset_shapes = {
+        "mnist": [1, 28, 28],
+        "fashionmnist": [1, 28, 28],
+        "cifar10": [3, 32, 32],
+        "cifar100": [3, 32, 32],
+        "svhn": [3, 32, 32],
+        "kmnist": [1, 28, 28],
+        "emnist": [1, 28, 28]
+    }
+
     choices = [f"{name} (built-in)" for name in list_builtin_datasets()] + ["user_dataset.py"]
     selected = questionary.select("Select a dataset:", choices=choices).ask()
 
@@ -21,8 +31,9 @@ def select_dataset():
         except Exception as e:
             print(f"[!] Could not load custom dataset: {e}")
             num_classes = None
+        input_shape = [1, 28, 28]  # fallback default
     else:
-        dataset_name = selected.split(" ")[0]
+        dataset_name = selected.split(" ")[0].lower()
         dataset_info = {"type": "builtin", "name": dataset_name}
         try:
             train, _, _ = load_builtin_dataset(dataset_name)
@@ -30,11 +41,12 @@ def select_dataset():
         except Exception as e:
             print(f"[!] Could not load built-in dataset '{dataset_name}': {e}")
             num_classes = None
+        input_shape = dataset_shapes.get(dataset_name, [1, 28, 28])
 
     if num_classes is None:
         num_classes = int(questionary.text("How many output classes does your dataset have?", default="10").ask())
 
-    return dataset_info, num_classes
+    return dataset_info, num_classes, input_shape
 
 
 def detect_num_classes(dataset):

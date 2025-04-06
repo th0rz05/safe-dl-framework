@@ -5,44 +5,61 @@ import os
 
 
 class SimpleCNN(nn.Module):
-    def __init__(self, input_channels=1, num_classes=10):
+    def __init__(self, input_channels=1, conv_filters=32, hidden_size=128, num_classes=10):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Conv2d(input_channels, 32, 3, 1),
+            nn.Conv2d(input_channels, conv_filters, 3, 1),
             nn.ReLU(),
             nn.MaxPool2d(2),
             nn.Flatten(),
-            nn.Linear(4608 if input_channels == 1 else 5408, 128),
+            nn.Linear(self._calculate_flatten_size(input_channels, conv_filters), hidden_size),
             nn.ReLU(),
-            nn.Linear(128, num_classes)
+            nn.Linear(hidden_size, num_classes)
         )
+
+    def _calculate_flatten_size(self, input_channels, conv_filters):
+        # Assuming input is (batch, channels, 28, 28)
+        # After Conv2d(3x3), output: (batch, conv_filters, 26, 26)
+        # After MaxPool2d(2), output: (batch, conv_filters, 13, 13)
+        return conv_filters * 13 * 13
 
     def forward(self, x):
         return self.net(x)
+
 
 
 class MLP(nn.Module):
-    def __init__(self, input_size=784, num_classes=10):
+    def __init__(self, input_size=784, hidden_size=128, num_classes=10):
         super().__init__()
         self.net = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(input_size, 128),
+            nn.Linear(input_size, hidden_size),
             nn.ReLU(),
-            nn.Linear(128, num_classes)
+            nn.Linear(hidden_size, num_classes)
         )
 
     def forward(self, x):
         return self.net(x)
 
 
-def get_builtin_model(name="cnn", num_classes=10, input_shape=(1, 28, 28)):
+
+def get_builtin_model(name="cnn", num_classes=10, input_shape=(1, 28, 28), **params):
     input_channels, height, width = input_shape
 
     if name == "cnn":
-        return SimpleCNN(input_channels=input_channels, num_classes=num_classes)
+        return SimpleCNN(
+            input_channels=input_channels,
+            conv_filters=params.get("conv_filters", 32),
+            hidden_size=params.get("hidden_size", 128),
+            num_classes=num_classes
+        )
 
     elif name == "mlp":
-        return MLP(input_size=input_channels * height * width, num_classes=num_classes)
+        return MLP(
+            input_size=params.get("input_size", input_channels * height * width),
+            hidden_size=params.get("hidden_size", 128),
+            num_classes=num_classes
+        )
 
     elif name == "resnet18":
         model = models.resnet18(pretrained=False)
