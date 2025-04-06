@@ -57,7 +57,7 @@ def detect_num_classes(dataset):
         return None
 
 
-def select_model(num_classes):
+def select_model(num_classes, input_shape):
     choices = ["cnn", "mlp", "resnet18", "resnet50", "vit", "user_model.py"]
     selected = questionary.select("Select a model:", choices=choices).ask()
 
@@ -67,21 +67,35 @@ def select_model(num_classes):
         "num_classes": num_classes
     }
 
-    if model_info["type"] == "builtin" and selected in ["cnn", "mlp"]:
-        params = {}
+    # Handle input shape for built-in models
+    if model_info["type"] == "builtin":
+        if questionary.confirm("Do you want to customize the input shape?", default=False).ask():
+            channels = int(questionary.text("Number of input channels:", default=str(input_shape[0])).ask())
+            height = int(questionary.text("Image height:", default=str(input_shape[1])).ask())
+            width = int(questionary.text("Image width:", default=str(input_shape[2])).ask())
+            model_info["input_shape"] = [channels, height, width]
+        else:
+            model_info["input_shape"] = input_shape
+
+        # Optional parameters for CNN and MLP
         if selected == "cnn":
             filters = questionary.text("Number of conv filters (default: 32):", default="32").ask()
             hidden = questionary.text("Hidden layer size (default: 128):", default="128").ask()
-            params = {"conv_filters": int(filters), "hidden_size": int(hidden)}
+            model_info["params"] = {
+                "conv_filters": int(filters),
+                "hidden_size": int(hidden)
+            }
 
         elif selected == "mlp":
             hidden = questionary.text("Hidden layer size (default: 128):", default="128").ask()
             input_size = questionary.text("Input size (default: 784):", default="784").ask()
-            params = {"hidden_size": int(hidden), "input_size": int(input_size)}
-
-        model_info["params"] = params
+            model_info["params"] = {
+                "hidden_size": int(hidden),
+                "input_size": int(input_size)
+            }
 
     return model_info
+
 
 
 def select_profile():
@@ -186,24 +200,20 @@ def suggest_data_poisoning(profile_data):
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
 
-    # Dataset and model selection
-    dataset_info, num_classes = select_dataset()
-    model_info = select_model(num_classes)
+    dataset_info, num_classes, input_shape = select_dataset()
+    model_info = select_model(num_classes, input_shape)
     profile_path = select_profile()
 
     if profile_path is None:
         print("[!] No profile selected. Exiting.")
         return
 
-    # Load the existing profile
     with open(profile_path, "r") as f:
         profile_data = yaml.safe_load(f)
 
-    # Replace dataset and model fields
     profile_data["dataset"] = dataset_info
     profile_data["model"] = model_info
 
-    # Suggest attack configuration and save it
     suggest_data_poisoning(profile_data)
 
     with open(profile_path, "w") as f:
