@@ -66,7 +66,7 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
                 "new_label_name": target_name
             })
 
-            flip_map[f"{orig_name}→{target_name}"] += 1
+            flip_map[f"{orig_name}->{target_name}"] += 1
 
     elif strategy == "fully_random":
         selected_indices = random.sample(indices, int(len(indices) * flip_rate))
@@ -142,7 +142,7 @@ def run(trainset, testset, valset, model, profile, class_names):
     )
 
     print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=5)
+    train_model(model, poisoned_trainset, valset, epochs=3)
 
     acc = evaluate_model(model, testset)
     print(f"[+] Accuracy after poisoning: {acc:.4f}")

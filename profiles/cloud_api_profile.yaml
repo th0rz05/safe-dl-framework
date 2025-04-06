@@ -12,11 +12,8 @@ model:
   - 3
   - 32
   - 32
-  name: cnn
+  name: resnet18
   num_classes: 10
-  params:
-    conv_filters: 32
-    hidden_size: 128
   type: builtin
 threat_model:
   attack_goal: untargeted

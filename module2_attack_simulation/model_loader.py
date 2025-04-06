@@ -74,17 +74,17 @@ def get_builtin_model(name="cnn", num_classes=10, input_shape=(1, 28, 28), **par
         )
 
     elif name == "resnet18":
-        model = models.resnet18(pretrained=False)
+        model = models.resnet18(weights=None)
         model.fc = nn.Linear(model.fc.in_features, num_classes)
         return model
 
     elif name == "resnet50":
-        model = models.resnet50(pretrained=False)
+        model = models.resnet50(weights=None)
         model.fc = nn.Linear(model.fc.in_features, num_classes)
         return model
 
     elif name == "vit":
-        model = models.vit_b_16(pretrained=False)
+        model = models.vit_b_16(weights=None)
         model.heads = nn.Linear(model.heads.in_features, num_classes)
         return model
 
