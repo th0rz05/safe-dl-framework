@@ -26,7 +26,7 @@ def select_dataset():
     if "user" in selected:
         dataset_info = {"type": "custom", "name": "user_dataset.py"}
         try:
-            _, _, _,num_classes,class_names = load_user_dataset()
+            _, _, _,class_names, num_classes = load_user_dataset()
         except Exception as e:
             print(f"[!] Could not load custom dataset: {e}")
             num_classes = None
@@ -35,7 +35,7 @@ def select_dataset():
         dataset_name = selected.split(" ")[0].lower()
         dataset_info = {"type": "builtin", "name": dataset_name}
         try:
-            _, _, _, num_classes, class_names = load_builtin_dataset(dataset_name)
+            _, _, _, class_names, num_classes  = load_builtin_dataset(dataset_name)
         except Exception as e:
             print(f"[!] Could not load built-in dataset '{dataset_name}': {e}")
             num_classes = None
@@ -46,6 +46,7 @@ def select_dataset():
         
     if class_names is None:
         class_names = [str(i) for i in range(num_classes)]
+        
 
     return dataset_info, num_classes, input_shape, class_names
 
@@ -190,7 +191,7 @@ def suggest_data_poisoning(profile_data, class_names):
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
 
-    dataset_info, num_classes, input_shape = select_dataset()
+    dataset_info, num_classes, input_shape, class_names = select_dataset()
     model_info = select_model(num_classes, input_shape)
     profile_path = select_profile()
 
@@ -204,7 +205,7 @@ def run_setup():
     profile_data["dataset"] = dataset_info
     profile_data["model"] = model_info
 
-    suggest_data_poisoning(profile_data)
+    suggest_data_poisoning(profile_data, class_names)
 
     with open(profile_path, "w") as f:
         yaml.dump(profile_data, f)

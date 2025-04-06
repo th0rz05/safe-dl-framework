@@ -1,9 +1,9 @@
 attack_overrides:
   data_poisoning:
-    flip_rate: 0.08
+    flip_rate: 0.15
     source_class: null
-    strategy: fully_random
-    target_class: null
+    strategy: many_to_one
+    target_class: 0
 dataset:
   name: cifar10
   type: builtin
