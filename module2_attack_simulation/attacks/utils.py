@@ -62,7 +62,7 @@ def get_class_labels(dataset):
 
 
 
-def save_flip_examples(dataset, flip_log, output_dir="results/flipped_samples", num_examples=5):
+def save_flip_examples(dataset, flip_log, output_dir="results/flipped_examples", num_examples=5):
     # Apaga o diretório anterior, se existir
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
