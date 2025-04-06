@@ -45,8 +45,9 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
     for i, flip in enumerate(results.get("example_flips", [])[:5]):
         orig = flip["original_label"]
         new = flip["new_label"]
-        fname = f"flipped_samples/sample_{i}_{orig}_to_{new}.png"
-        lines.append(f"![{orig}->{new}]({fname})")
+        idx = flip["index"]
+        fname = f"flipped_examples/flip_{idx}_{orig}_to_{new}.png"
+        lines.append(f"**{orig} -> {new}**\n\n![flip]({fname})\n")
     lines.append("")
 
     os.makedirs(os.path.dirname(md_file), exist_ok=True)

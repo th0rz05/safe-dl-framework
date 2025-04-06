@@ -125,8 +125,23 @@
 
 ## Visual Flip Examples (first 5)
 
-![6->0](flipped_examples/flip_0_6_to_0.png)
-![5->6](flipped_examples/flip_1_5_to_6.png)
-![6->3](flipped_examples/flip_2_6_to_3.png)
-![3->9](flipped_examples/flip_3_3_to_9.png)
-![7->6](flipped_examples/flip_4_7_to_6.png)
+**6 -> 0**
+
+![flip](flipped_examples/flip_23593_6_to_0.png)
+
+**5 -> 6**
+
+![flip](flipped_examples/flip_37359_5_to_6.png)
+
+**6 -> 3**
+
+![flip](flipped_examples/flip_3341_6_to_3.png)
+
+**3 -> 9**
+
+![flip](flipped_examples/flip_39166_3_to_9.png)
+
+**7 -> 6**
+
+![flip](flipped_examples/flip_37897_7_to_6.png)
+
