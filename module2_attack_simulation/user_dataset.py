@@ -13,10 +13,18 @@ def get_dataset():
     train_size = len(full_train) - val_size
     trainset, valset = random_split(full_train, [train_size, val_size])
 
-    return trainset, testset, valset
+    # Get number of classes
+    targets = [int(full_train.targets[i]) for i in range(len(full_train))]
+    num_classes = len(set(targets))
 
+    # Get class names (MNIST doesn't include them, so fallback to string numbers)
+    class_names = [str(i) for i in range(num_classes)]
+
+    return trainset, testset, valset, class_names, num_classes
+
+
+# Optional test run
 if __name__ == "__main__":
-    train, test, val = get_dataset()
-    labels = sorted(set(int(train.dataset.targets[i]) for i in train.indices))
-    print("Train labels:", labels)
-
+    train, test, val, class_names, num_classes = get_dataset()
+    print("Detected labels:", class_names)
+    print("Num classes:", num_classes)

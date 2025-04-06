@@ -45,8 +45,12 @@ def load_builtin_dataset(name):
     val_size = int(0.1 * len(full_train))
     train_size = len(full_train) - val_size
     trainset, valset = random_split(full_train, [train_size, val_size])
+    
+    num_classes = detect_num_classes(trainset)
+    
+    class_names = get_class_names(trainset, num_classes)
 
-    return trainset, testset, valset
+    return trainset, testset, valset, class_names, num_classes
 
 
 def load_user_dataset(module_path="user_dataset.py"):
@@ -70,3 +74,22 @@ def list_builtin_datasets():
         "svhn",
         "emnist"
     ]
+
+def detect_num_classes(dataset):
+    try:
+        targets = [int(dataset.dataset.targets[i]) for i in dataset.indices]
+        return len(set(targets))
+    except:
+        return None
+    
+def get_class_names(dataset,num_classes):
+
+    if num_classes is None:
+        return None
+    
+    try:
+        class_names = dataset.dataset.classes
+    except AttributeError:
+        class_names = [str(i) for i in range(num_classes)]
+        
+    return class_names

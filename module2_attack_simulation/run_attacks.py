@@ -122,15 +122,8 @@ def main():
 
     print("[*] Loading model and dataset from profile...")
     model = load_model_from_profile(profile)
-    trainset, testset, valset = load_dataset_from_profile(profile)
+    trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
     
-        # After loading trainset, testset, valset
-    try:
-        class_names = trainset.dataset.classes
-    except AttributeError:
-        class_names = [str(i) for i in range(profile["model"]["num_classes"])]
-
-
     print("[*] Starting attack simulations...\n")
     run_attacks(profile, model, trainset, testset, valset, class_names)
 

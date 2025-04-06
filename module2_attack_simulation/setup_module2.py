@@ -26,8 +26,7 @@ def select_dataset():
     if "user" in selected:
         dataset_info = {"type": "custom", "name": "user_dataset.py"}
         try:
-            train, _, _ = load_user_dataset()
-            num_classes = detect_num_classes(train)
+            _, _, _,num_classes,class_names = load_user_dataset()
         except Exception as e:
             print(f"[!] Could not load custom dataset: {e}")
             num_classes = None
@@ -36,8 +35,7 @@ def select_dataset():
         dataset_name = selected.split(" ")[0].lower()
         dataset_info = {"type": "builtin", "name": dataset_name}
         try:
-            train, _, _ = load_builtin_dataset(dataset_name)
-            num_classes = detect_num_classes(train)
+            _, _, _, num_classes, class_names = load_builtin_dataset(dataset_name)
         except Exception as e:
             print(f"[!] Could not load built-in dataset '{dataset_name}': {e}")
             num_classes = None
@@ -45,16 +43,11 @@ def select_dataset():
 
     if num_classes is None:
         num_classes = int(questionary.text("How many output classes does your dataset have?", default="10").ask())
+        
+    if class_names is None:
+        class_names = [str(i) for i in range(num_classes)]
 
-    return dataset_info, num_classes, input_shape
-
-
-def detect_num_classes(dataset):
-    try:
-        targets = [int(dataset.dataset.targets[i]) for i in dataset.indices]
-        return len(set(targets))
-    except:
-        return None
+    return dataset_info, num_classes, input_shape, class_names
 
 
 def select_model(num_classes, input_shape):
@@ -107,14 +100,15 @@ def select_profile():
     selected = questionary.select("Select a threat profile to use:", choices=profiles).ask()
     return selected
 
-def suggest_data_poisoning(profile_data):
+def suggest_data_poisoning(profile_data, class_names):
     print("\n=== Attack Parameter Suggestion: Label Flipping ===\n")
     cfg = profile_data.get("threat_model", {})
     goal = cfg.get("attack_goal", "untargeted")
     data_source = cfg.get("training_data_source", "internal_clean")
     num_classes = profile_data.get("model", {}).get("num_classes", 10)
     classes = list(range(num_classes))
-    
+
+    # Default suggestion
     if goal == "targeted":
         if data_source == "user_generated":
             strategy = "one_to_one"
@@ -131,60 +125,56 @@ def suggest_data_poisoning(profile_data):
 
     if strategy == "many_to_one":
         target_class = random.choice(classes)
-
     elif strategy == "one_to_one":
         source_class = random.choice(classes)
         target_class = random.choice([c for c in classes if c != source_class])
 
-    # Mostrar sugestões
     print(f"Suggested strategy: {strategy}")
     print(f"Suggested flip_rate: {flip_rate}")
     if source_class is not None:
-        print(f"Suggested source class: {source_class}")
+        print(f"Suggested source class: {source_class} – {class_names[source_class]}")
     if target_class is not None:
-        print(f"Suggested target class: {target_class}")
+        print(f"Suggested target class: {target_class} – {class_names[target_class]}")
 
-    confirm = questionary.confirm("Do you want to accept these suggestions?").ask()
-    if not confirm:
-        # Estratégia
+    if not questionary.confirm("Do you want to accept these suggestions?").ask():
         strategy = questionary.select(
             "Choose flipping strategy:",
             choices=[
-                Choice("Fully random (random->random)", value="fully_random"),
-                Choice("Random to fixed (many->one)", value="many_to_one"),
-                Choice("Fixed to fixed (one->one)", value="one_to_one")
+                Choice("Fully random (random→random)", value="fully_random"),
+                Choice("Random to fixed (many→one)", value="many_to_one"),
+                Choice("Fixed to fixed (one→one)", value="one_to_one")
             ]
         ).ask()
 
-        # Flip rate
         flip_rate = float(questionary.text("Flip rate (e.g., 0.08):", default=str(flip_rate)).ask())
 
-        # Classes conforme estratégia
+        class_options = [f"{i} – {name}" for i, name in enumerate(class_names)]
+
         if strategy == "many_to_one":
-            auto_target = questionary.confirm("Pick target class randomly?").ask()
-            if auto_target:
+            if questionary.confirm("Pick target class randomly?").ask():
                 target_class = random.choice(classes)
             else:
-                target_class = int(questionary.text("Enter target class to flip TO:").ask())
+                target_class_str = questionary.select("Select target class (flip TO):", choices=class_options).ask()
+                target_class = int(target_class_str.split(" ")[0])
             source_class = None
 
         elif strategy == "one_to_one":
-            auto_source = questionary.confirm("Pick source class randomly?").ask()
-            if auto_source:
+            if questionary.confirm("Pick source class randomly?").ask():
                 source_class = random.choice(classes)
             else:
-                source_class = int(questionary.text("Enter source class to flip FROM:").ask())
+                source_class_str = questionary.select("Select source class (flip FROM):", choices=class_options).ask()
+                source_class = int(source_class_str.split(" ")[0])
 
-            auto_target = questionary.confirm("Pick target class randomly?").ask()
-            if auto_target:
+            if questionary.confirm("Pick target class randomly?").ask():
                 target_class = random.choice([c for c in classes if c != source_class])
             else:
-                target_class = int(questionary.text("Enter target class to flip TO:").ask())
+                target_class_str = questionary.select("Select target class (flip TO):", choices=class_options).ask()
+                target_class = int(target_class_str.split(" ")[0])
         else:
             source_class = None
             target_class = None
 
-    # Salvar no perfil
+    # Save to profile
     profile_data["attack_overrides"] = {
         "data_poisoning": {
             "strategy": strategy,
