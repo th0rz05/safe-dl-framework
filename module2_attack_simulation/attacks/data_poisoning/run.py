@@ -88,7 +88,7 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
                 "new_label_name": new_name
             })
 
-            flip_map[f"{orig_name}→{new_name}"] += 1
+            flip_map[f"{orig_name}->{new_name}"] += 1
 
     else:
         raise ValueError(f"Unknown flipping strategy: {strategy}")

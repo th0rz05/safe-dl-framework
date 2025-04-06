@@ -42,13 +42,20 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
     lines.append("")
 
     lines.append("## Visual Flip Examples (first 5)\n")
+    lines.append('<div style="display: flex; gap: 10px;">')
     for i, flip in enumerate(results.get("example_flips", [])[:5]):
         orig = flip.get("original_label_name", flip["original_label"])
         new = flip.get("new_label_name", flip["new_label"])
         idx = flip["index"]
         fname = f"flipped_examples/flip_{idx}_{flip['original_label']}_to_{flip['new_label']}.png"
-        lines.append(f"**{orig} -> {new}**\n\n![flip]({fname})\n")
-    lines.append("")
+        lines.append(
+            f'<div style="text-align: center;">'
+            f'<img src="{fname}" alt="flip" style="width: 120px;"><br>'
+            f'<small><strong>{orig} -> {new}</strong></small>'
+            f'</div>'
+        )
+    lines.append('</div>\n')
+
 
     os.makedirs(os.path.dirname(md_file), exist_ok=True)
     with open(md_file, "w") as f:
