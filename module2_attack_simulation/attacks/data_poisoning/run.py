@@ -142,7 +142,7 @@ def run(trainset, testset, valset, model, profile, class_names):
     )
 
     print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=3)
+    train_model(model, poisoned_trainset, valset, epochs=5)
 
     acc = evaluate_model(model, testset)
     print(f"[+] Accuracy after poisoning: {acc:.4f}")

@@ -97,7 +97,7 @@ def run_attacks(profile, model, trainset, testset, valset, class_names):
         **model_cfg.get("params", {})
     )
     
-    train_model(clean_model, trainset, valset, epochs=3)
+    train_model(clean_model, trainset, valset, epochs=5)
     baseline_acc = evaluate(clean_model, testset, desc="clean test set")
 
     os.makedirs("results", exist_ok=True)
