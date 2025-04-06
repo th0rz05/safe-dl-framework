@@ -153,8 +153,7 @@ def run(trainset, testset, valset, model, profile, class_names):
     acc, per_class_accuracy = evaluate_model(
         model,
         testset,
-        class_names=class_names,
-        focus_classes=focus_classes
+        class_names=class_names
     )
 
     os.makedirs("results", exist_ok=True)

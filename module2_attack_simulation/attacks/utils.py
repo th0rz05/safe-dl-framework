@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import os
 import shutil
 
-def train_model(model, trainset, valset=None, epochs=3, batch_size=64):
+def train_model(model, trainset, valset=None, epochs=3, batch_size=64, class_names=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
@@ -28,8 +28,8 @@ def train_model(model, trainset, valset=None, epochs=3, batch_size=64):
         print(f"Epoch {epoch+1}: Train loss = {running_loss:.4f}")
 
         if val_loader:
-            acc = evaluate_model(model, valset)
-            print(f"         Validation accuracy = {acc:.4f}")
+            acc, per_class_accuracy = evaluate_model(model, valset, class_names=class_names)
+            print(f"Epoch {epoch+1}: Validation accuracy = {acc:.4f}")
 
 def evaluate_model(model, dataset, class_names=None):
     
