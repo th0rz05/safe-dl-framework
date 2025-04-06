@@ -32,16 +32,26 @@ def load_profile(filename):
 
 
 def load_model_from_profile(profile):
-    model_info = profile.get("model", {})
-    name = model_info.get("name")
-    model_type = model_info.get("type")
-    num_classes = model_info.get("num_classes", 10)
-    params = model_info.get("params", {})
+    model_cfg = profile.get("model", {})
+    model_type = model_cfg.get("type", "builtin")
+    model_name = model_cfg.get("name")
+    num_classes = model_cfg.get("num_classes", 10)
+    input_shape = tuple(model_cfg.get("input_shape", [1, 28, 28]))
+    params = model_cfg.get("params", {})
 
     if model_type == "custom":
-        return load_user_model()
+        return load_user_model("user_model.py")
+
+    elif model_type == "builtin":
+        return get_builtin_model(
+            name=model_name,
+            num_classes=num_classes,
+            input_shape=input_shape,
+            **params
+        )
+
     else:
-        return get_builtin_model(name=name, num_classes=num_classes, input_shape=(1, 28, 28), **params)
+        raise ValueError(f"Unknown model type: {model_type}")
 
 
 def load_dataset_from_profile(profile):
