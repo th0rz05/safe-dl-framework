@@ -105,14 +105,15 @@ def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/fl
             img = img.squeeze()
 
             # Save the image with appropriate color mapping
-            plt.figure()
+            plt.figure(figsize=(3, 3))
             plt.imshow(img, cmap="gray" if img.ndim == 2 else None)
             plt.axis("off")
             plt.title(f"{original_label} → {new_label}")
             filename = os.path.join(output_dir, f"flip_{idx}_{original_label}_to_{new_label}.png")
-            plt.savefig(filename)
+            plt.savefig(filename, dpi=300, bbox_inches="tight")
             plt.close()
-
+            
+            
             saved += 1
             if saved >= num_examples:
                 break
