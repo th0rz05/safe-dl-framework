@@ -83,7 +83,7 @@ def save_flip_examples(dataset, flip_log, output_dir="results/flipped_examples",
         plt.close()
     
 
-def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/flipped_examples"):
+def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/flipped_examples", class_names=None):
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.makedirs(output_dir, exist_ok=True)
@@ -94,6 +94,8 @@ def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/fl
             idx = example["index"]
             original_label = example["original_label"]
             new_label = example["new_label"]
+            original_label_name = example.get("original_label_name", original_label)
+            new_label_name = example.get("new_label_name", new_label)
             img, _ = dataset[idx]  # img: tensor [C, H, W]
 
             # Convert image to NumPy array and rearrange if needed
@@ -105,10 +107,10 @@ def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/fl
             img = img.squeeze()
 
             # Save the image with appropriate color mapping
-            plt.figure(figsize=(3, 3))
+            plt.figure()
             plt.imshow(img, cmap="gray" if img.ndim == 2 else None)
             plt.axis("off")
-            plt.title(f"{original_label} → {new_label}")
+            plt.title(f"{original_label} -> {new_label}")
             filename = os.path.join(output_dir, f"flip_{idx}_{original_label}_to_{new_label}.png")
             plt.savefig(filename, dpi=300, bbox_inches="tight")
             plt.close()
