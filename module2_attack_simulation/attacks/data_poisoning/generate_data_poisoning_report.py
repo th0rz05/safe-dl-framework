@@ -36,17 +36,17 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
     lines.append("|--------|----------------|-----------|")
     for flip in results.get("example_flips", []):
         idx = flip["index"]
-        orig = flip["original_label"]
-        new = flip["new_label"]
+        orig = flip.get("original_label_name", flip["original_label"])
+        new = flip.get("new_label_name", flip["new_label"])
         lines.append(f"| {idx} | {orig} | {new} |")
     lines.append("")
 
     lines.append("## Visual Flip Examples (first 5)\n")
     for i, flip in enumerate(results.get("example_flips", [])[:5]):
-        orig = flip["original_label"]
-        new = flip["new_label"]
+        orig = flip.get("original_label_name", flip["original_label"])
+        new = flip.get("new_label_name", flip["new_label"])
         idx = flip["index"]
-        fname = f"flipped_examples/flip_{idx}_{orig}_to_{new}.png"
+        fname = f"flipped_examples/flip_{idx}_{flip['original_label']}_to_{flip['new_label']}.png"
         lines.append(f"**{orig} -> {new}**\n\n![flip]({fname})\n")
     lines.append("")
 

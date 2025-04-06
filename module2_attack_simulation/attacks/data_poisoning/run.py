@@ -10,7 +10,7 @@ from attacks.utils import train_model, evaluate_model, get_class_labels, save_fl
 from attacks.data_poisoning.generate_data_poisoning_report import generate_data_poisoning_report
 
 
-def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one", source_class=None, target_class=None):
+def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one", source_class=None, target_class=None, class_names=None):
     poisoned_dataset = deepcopy(dataset)
     targets = poisoned_dataset.dataset.targets
     indices = poisoned_dataset.indices
@@ -49,7 +49,13 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one", source_class=None
             original = int(targets[idx])
             new_label = random.choice([c for c in range(num_classes) if c != original])
             targets[idx] = new_label
-            flip_log.append({"index": idx, "original_label": original, "new_label": new_label})
+            flip_log.append({
+                "index": idx,
+                "original_label": original,
+                "new_label": new_label,
+                "original_label_name": class_names[original] if class_names else str(original),
+                "new_label_name": class_names[new_label] if class_names else str(new_label)
+            })
             flip_map[f"{original}->{new_label}"] += 1
 
     else:
@@ -58,7 +64,7 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one", source_class=None
     return poisoned_dataset, flip_log, dict(flip_map)
 
 
-def run(trainset, testset, valset, model, profile):
+def run(trainset, testset, valset, model, profile, class_names):
     print("[*] Running label flipping attack from profile configuration...")
 
     attack_cfg = profile.get("attack_overrides", {}).get("data_poisoning", {})
@@ -98,7 +104,8 @@ def run(trainset, testset, valset, model, profile):
         flip_rate=flip_rate,
         strategy=strategy,
         source_class=source_class,
-        target_class=target_class
+        target_class=target_class,
+        class_names=class_names
     )
 
     print("[*] Training model on poisoned dataset...")

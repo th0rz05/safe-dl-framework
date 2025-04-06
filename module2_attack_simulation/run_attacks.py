@@ -84,7 +84,7 @@ def evaluate(model, dataset, desc=""):
     return acc
 
 
-def run_attacks(profile, model, trainset, testset, valset):
+def run_attacks(profile, model, trainset, testset, valset, class_names):
     print("[*] Training baseline model (clean data)...")
     from attacks.utils import train_model
 
@@ -110,7 +110,7 @@ def run_attacks(profile, model, trainset, testset, valset):
     if "data_poisoning" in threat_categories:
         print("[*] Running Data Poisoning attack...")
         attack = __import__("attacks.data_poisoning.run", fromlist=["run"])
-        attack.run(trainset, testset, valset, model, profile)
+        attack.run(trainset, testset, valset, model, profile, class_names)
 
 
 def main():
@@ -123,9 +123,16 @@ def main():
     print("[*] Loading model and dataset from profile...")
     model = load_model_from_profile(profile)
     trainset, testset, valset = load_dataset_from_profile(profile)
+    
+        # After loading trainset, testset, valset
+    try:
+        class_names = trainset.dataset.classes
+    except AttributeError:
+        class_names = [str(i) for i in range(profile["model"]["num_classes"])]
+
 
     print("[*] Starting attack simulations...\n")
-    run_attacks(profile, model, trainset, testset, valset)
+    run_attacks(profile, model, trainset, testset, valset, class_names)
 
 
 if __name__ == "__main__":
