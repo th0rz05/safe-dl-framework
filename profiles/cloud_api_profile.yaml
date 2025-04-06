@@ -2,12 +2,16 @@ attack_overrides:
   data_poisoning:
     flip_rate: 0.08
     source_class: null
-    strategy: many_to_one
-    target_class: 5
+    strategy: fully_random
+    target_class: null
 dataset:
   name: cifar10
   type: builtin
 model:
+  input_shape:
+  - 3
+  - 32
+  - 32
   name: cnn
   num_classes: 10
   params:
