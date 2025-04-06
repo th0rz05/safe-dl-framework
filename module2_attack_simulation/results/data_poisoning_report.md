@@ -7,57 +7,57 @@
 - **Flip Rate:** 0.1
 - **Target Class:** 2
 - **Source Classes:** All except target
-- **Number of Flipped Samples:** 4047
+- **Number of Flipped Samples:** 4045
 
 ## Performance Metrics
 
-- **Accuracy After Attack:** 0.5471
+- **Accuracy After Attack:** 0.5721
 
 ### Per-Class Accuracy
 
 | Class | Accuracy |
 |--------|----------|
-| airplane | 0.4760 |
-| automobile | 0.7930 |
-| bird | 0.4890 |
-| cat | 0.3430 |
-| deer | 0.2110 |
-| dog | 0.4560 |
-| frog | 0.9100 |
-| horse | 0.4310 |
-| ship | 0.7150 |
-| truck | 0.6470 |
+| airplane | 0.4600 |
+| automobile | 0.7090 |
+| bird | 0.3750 |
+| cat | 0.2620 |
+| deer | 0.5020 |
+| dog | 0.5830 |
+| frog | 0.6930 |
+| horse | 0.7460 |
+| ship | 0.7930 |
+| truck | 0.5980 |
 
 ## Flip Summary
 
 | Original -> New | Count |
 |------------------|--------|
-| ship->bird | 466 |
-| airplane->bird | 459 |
-| deer->bird | 435 |
+| ship->bird | 431 |
+| automobile->bird | 468 |
 | frog->bird | 432 |
-| automobile->bird | 460 |
-| cat->bird | 422 |
-| dog->bird | 464 |
-| truck->bird | 470 |
-| horse->bird | 439 |
+| airplane->bird | 446 |
+| deer->bird | 482 |
+| cat->bird | 431 |
+| truck->bird | 460 |
+| horse->bird | 437 |
+| dog->bird | 458 |
 
 ## Example Flips
 
 | Index | Original Label | New Label |
 |--------|----------------|-----------|
-| 28153 | ship | bird |
-| 25189 | airplane | bird |
-| 14429 | deer | bird |
-| 34539 | frog | bird |
-| 47989 | automobile | bird |
+| 29078 | ship | bird |
+| 29616 | automobile | bird |
+| 5882 | frog | bird |
+| 37191 | airplane | bird |
+| 24221 | deer | bird |
 
 ## Visual Flip Examples (first 5)
 
 <div style="display: flex; gap: 10px;">
-<div style="text-align: center;"><small><strong>ship -> bird</strong></small><br><img src="flipped_examples/flip_28153_8_to_2.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>airplane -> bird</strong></small><br><img src="flipped_examples/flip_25189_0_to_2.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>deer -> bird</strong></small><br><img src="flipped_examples/flip_14429_4_to_2.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>frog -> bird</strong></small><br><img src="flipped_examples/flip_34539_6_to_2.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>automobile -> bird</strong></small><br><img src="flipped_examples/flip_47989_1_to_2.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>ship -> bird</strong></small><br><img src="flipped_examples/flip_29078_8_to_2.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>automobile -> bird</strong></small><br><img src="flipped_examples/flip_29616_1_to_2.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>frog -> bird</strong></small><br><img src="flipped_examples/flip_5882_6_to_2.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>airplane -> bird</strong></small><br><img src="flipped_examples/flip_37191_0_to_2.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>deer -> bird</strong></small><br><img src="flipped_examples/flip_24221_4_to_2.png" alt="flip" style="width: 120px;"></div>
 </div>

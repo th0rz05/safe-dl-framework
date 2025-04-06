@@ -1,68 +1,68 @@
 {
   "attack_type": "label_flipping",
   "flipping_strategy": "many_to_one",
-  "accuracy_after_attack": 0.5471,
+  "accuracy_after_attack": 0.5721,
   "per_class_accuracy": {
-    "airplane": 0.476,
-    "automobile": 0.793,
-    "bird": 0.489,
-    "cat": 0.343,
-    "deer": 0.211,
-    "dog": 0.456,
-    "frog": 0.91,
-    "horse": 0.431,
-    "ship": 0.715,
-    "truck": 0.647
+    "airplane": 0.46,
+    "automobile": 0.709,
+    "bird": 0.375,
+    "cat": 0.262,
+    "deer": 0.502,
+    "dog": 0.583,
+    "frog": 0.693,
+    "horse": 0.746,
+    "ship": 0.793,
+    "truck": 0.598
   },
   "flip_rate": 0.1,
   "source_class": null,
   "target_class": 2,
-  "num_flipped": 4047,
+  "num_flipped": 4045,
   "flipping_map": {
-    "ship->bird": 466,
-    "airplane->bird": 459,
-    "deer->bird": 435,
+    "ship->bird": 431,
+    "automobile->bird": 468,
     "frog->bird": 432,
-    "automobile->bird": 460,
-    "cat->bird": 422,
-    "dog->bird": 464,
-    "truck->bird": 470,
-    "horse->bird": 439
+    "airplane->bird": 446,
+    "deer->bird": 482,
+    "cat->bird": 431,
+    "truck->bird": 460,
+    "horse->bird": 437,
+    "dog->bird": 458
   },
   "example_flips": [
     {
-      "index": 28153,
+      "index": 29078,
       "original_label": 8,
       "new_label": 2,
       "original_label_name": "ship",
       "new_label_name": "bird"
     },
     {
-      "index": 25189,
-      "original_label": 0,
+      "index": 29616,
+      "original_label": 1,
       "new_label": 2,
-      "original_label_name": "airplane",
+      "original_label_name": "automobile",
       "new_label_name": "bird"
     },
     {
-      "index": 14429,
-      "original_label": 4,
-      "new_label": 2,
-      "original_label_name": "deer",
-      "new_label_name": "bird"
-    },
-    {
-      "index": 34539,
+      "index": 5882,
       "original_label": 6,
       "new_label": 2,
       "original_label_name": "frog",
       "new_label_name": "bird"
     },
     {
-      "index": 47989,
-      "original_label": 1,
+      "index": 37191,
+      "original_label": 0,
       "new_label": 2,
-      "original_label_name": "automobile",
+      "original_label_name": "airplane",
+      "new_label_name": "bird"
+    },
+    {
+      "index": 24221,
+      "original_label": 4,
+      "new_label": 2,
+      "original_label_name": "deer",
       "new_label_name": "bird"
     }
   ]
