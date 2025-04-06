@@ -88,8 +88,6 @@ def run_attacks(profile, model, trainset, testset, valset):
     print("[*] Training baseline model (clean data)...")
     from attacks.utils import train_model
 
-    print("[*] Training baseline model (clean data)...")
-
     # Rebuild the model using the profile
     model_cfg = profile["model"]
     clean_model = get_builtin_model(

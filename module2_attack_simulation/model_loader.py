@@ -2,35 +2,44 @@ import torch.nn as nn
 import torchvision.models as models
 import importlib.util
 import os
-
+import torch
 
 class SimpleCNN(nn.Module):
-    def __init__(self, input_channels=1, conv_filters=32, hidden_size=128, num_classes=10):
+    def __init__(self, input_channels=1, conv_filters=32, hidden_size=128, num_classes=10, input_height=28, input_width=28):
         super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(input_channels, conv_filters, 3, 1),
+        self.conv = nn.Sequential(
+            nn.Conv2d(input_channels, conv_filters, kernel_size=3, stride=1),
             nn.ReLU(),
-            nn.MaxPool2d(2),
+            nn.MaxPool2d(2)
+        )
+
+        # Dynamically calculate flatten size
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, input_channels, input_height, input_width)
+            conv_out = self.conv(dummy_input)
+            flatten_size = conv_out.view(1, -1).shape[1]
+
+        self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(self._calculate_flatten_size(input_channels, conv_filters), hidden_size),
+            nn.Linear(flatten_size, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, num_classes)
         )
 
-    def _calculate_flatten_size(self, input_channels, conv_filters):
-        # Assuming input is (batch, channels, 28, 28)
-        # After Conv2d(3x3), output: (batch, conv_filters, 26, 26)
-        # After MaxPool2d(2), output: (batch, conv_filters, 13, 13)
-        return conv_filters * 13 * 13
-
     def forward(self, x):
-        return self.net(x)
+        x = self.conv(x)
+        x = self.fc(x)
+        return x
+
 
 
 
 class MLP(nn.Module):
-    def __init__(self, input_size=784, hidden_size=128, num_classes=10):
+    def __init__(self, input_shape=(1, 28, 28), hidden_size=128, num_classes=10):
         super().__init__()
+        input_channels, height, width = input_shape
+        input_size = input_channels * height * width
+
         self.net = nn.Sequential(
             nn.Flatten(),
             nn.Linear(input_size, hidden_size),
@@ -43,6 +52,7 @@ class MLP(nn.Module):
 
 
 
+
 def get_builtin_model(name="cnn", num_classes=10, input_shape=(1, 28, 28), **params):
     input_channels, height, width = input_shape
 
@@ -51,12 +61,14 @@ def get_builtin_model(name="cnn", num_classes=10, input_shape=(1, 28, 28), **par
             input_channels=input_channels,
             conv_filters=params.get("conv_filters", 32),
             hidden_size=params.get("hidden_size", 128),
-            num_classes=num_classes
+            num_classes=num_classes,
+            input_height=height,
+            input_width=width
         )
 
     elif name == "mlp":
         return MLP(
-            input_size=params.get("input_size", input_channels * height * width),
+            input_shape=input_shape,
             hidden_size=params.get("hidden_size", 128),
             num_classes=num_classes
         )
