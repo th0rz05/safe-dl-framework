@@ -11,137 +11,119 @@
 
 ## Performance Metrics
 
-- **Accuracy After Attack:** 0.5775
+- **Accuracy After Attack:** 0.5893
 
 ## Flip Summary
 
 | Original -> New | Count |
 |------------------|--------|
-| 4->2 | 34 |
-| 5->3 | 43 |
-| 5->6 | 43 |
-| 3->0 | 31 |
-| 2->5 | 42 |
-| 1->0 | 39 |
-| 2->8 | 41 |
-| 8->2 | 45 |
-| 3->5 | 47 |
-| 0->9 | 49 |
-| 9->1 | 34 |
-| 9->7 | 30 |
-| 7->8 | 38 |
-| 7->2 | 33 |
-| 5->1 | 34 |
-| 6->2 | 43 |
-| 7->3 | 43 |
-| 0->6 | 40 |
-| 9->5 | 46 |
-| 5->4 | 48 |
-| 1->3 | 39 |
-| 6->4 | 28 |
-| 4->5 | 47 |
-| 6->8 | 42 |
-| 5->0 | 49 |
-| 8->7 | 38 |
-| 3->2 | 43 |
-| 0->1 | 37 |
-| 7->1 | 39 |
-| 6->5 | 46 |
-| 7->9 | 43 |
-| 9->0 | 28 |
-| 3->6 | 30 |
-| 3->9 | 34 |
-| 5->7 | 41 |
-| 4->6 | 48 |
-| 2->0 | 44 |
-| 8->4 | 38 |
-| 1->8 | 41 |
-| 4->0 | 34 |
-| 4->7 | 42 |
-| 5->9 | 42 |
-| 1->4 | 43 |
-| 6->9 | 38 |
-| 3->4 | 45 |
-| 7->5 | 48 |
-| 4->8 | 40 |
-| 8->5 | 33 |
-| 3->7 | 41 |
-| 4->3 | 39 |
-| 2->1 | 36 |
-| 9->8 | 51 |
-| 9->4 | 43 |
-| 1->5 | 33 |
-| 1->6 | 30 |
-| 6->0 | 41 |
-| 4->9 | 47 |
-| 1->2 | 48 |
-| 2->9 | 43 |
-| 7->0 | 59 |
-| 0->2 | 33 |
-| 1->9 | 45 |
-| 9->2 | 43 |
-| 8->0 | 37 |
-| 2->7 | 46 |
-| 0->8 | 39 |
-| 6->1 | 43 |
-| 0->4 | 50 |
-| 2->3 | 60 |
-| 4->1 | 41 |
-| 9->6 | 40 |
-| 6->3 | 43 |
-| 1->7 | 48 |
-| 7->6 | 37 |
-| 3->1 | 27 |
-| 8->3 | 31 |
-| 7->4 | 39 |
-| 3->8 | 35 |
-| 0->3 | 35 |
-| 2->6 | 42 |
-| 2->4 | 41 |
-| 5->8 | 42 |
-| 8->9 | 38 |
-| 8->6 | 35 |
-| 0->7 | 28 |
-| 9->3 | 33 |
-| 6->7 | 39 |
-| 8->1 | 25 |
-| 5->2 | 35 |
-| 0->5 | 36 |
+| horse->deer | 47 |
+| truck->frog | 29 |
+| cat->deer | 36 |
+| cat->bird | 37 |
+| bird->automobile | 43 |
+| automobile->horse | 39 |
+| truck->deer | 51 |
+| truck->airplane | 37 |
+| truck->horse | 42 |
+| automobile->ship | 38 |
+| ship->bird | 33 |
+| ship->frog | 37 |
+| frog->airplane | 42 |
+| automobile->deer | 50 |
+| dog->cat | 43 |
+| dog->airplane | 40 |
+| frog->truck | 37 |
+| horse->dog | 36 |
+| airplane->horse | 34 |
+| horse->ship | 45 |
+| deer->airplane | 37 |
+| truck->dog | 37 |
+| ship->dog | 44 |
+| deer->truck | 54 |
+| deer->ship | 38 |
+| dog->deer | 41 |
+| truck->bird | 43 |
+| ship->deer | 43 |
+| cat->dog | 38 |
+| airplane->bird | 51 |
+| cat->truck | 35 |
+| automobile->dog | 35 |
+| frog->dog | 37 |
+| frog->automobile | 46 |
+| deer->cat | 53 |
+| frog->ship | 43 |
+| bird->deer | 34 |
+| bird->frog | 45 |
+| automobile->truck | 49 |
+| horse->bird | 55 |
+| automobile->bird | 45 |
+| truck->ship | 48 |
+| bird->airplane | 51 |
+| cat->ship | 48 |
+| deer->dog | 46 |
+| ship->automobile | 42 |
+| dog->ship | 34 |
+| airplane->frog | 41 |
+| ship->truck | 29 |
+| airplane->dog | 37 |
+| truck->cat | 46 |
+| bird->horse | 46 |
+| frog->bird | 32 |
+| automobile->airplane | 40 |
+| ship->horse | 44 |
+| dog->truck | 45 |
+| bird->ship | 43 |
+| airplane->deer | 34 |
+| airplane->truck | 40 |
+| deer->horse | 33 |
+| cat->frog | 38 |
+| airplane->ship | 22 |
+| horse->frog | 33 |
+| dog->automobile | 49 |
+| horse->airplane | 39 |
+| horse->cat | 29 |
+| bird->dog | 50 |
+| truck->automobile | 37 |
+| ship->cat | 28 |
+| frog->deer | 35 |
+| ship->airplane | 40 |
+| frog->cat | 29 |
+| frog->horse | 35 |
+| automobile->frog | 41 |
+| deer->automobile | 30 |
+| cat->airplane | 46 |
+| airplane->automobile | 37 |
+| airplane->cat | 40 |
+| automobile->cat | 33 |
+| dog->horse | 36 |
+| deer->bird | 45 |
+| horse->automobile | 42 |
+| bird->cat | 43 |
+| deer->frog | 30 |
+| cat->automobile | 45 |
+| horse->truck | 31 |
+| cat->horse | 40 |
+| dog->bird | 35 |
+| bird->truck | 42 |
+| dog->frog | 42 |
 
 ## Example Flips
 
 | Index | Original Label | New Label |
 |--------|----------------|-----------|
-| 49898 | deer | bird |
-| 2500 | dog | cat |
-| 20348 | dog | frog |
-| 24518 | cat | airplane |
-| 3462 | bird | dog |
-| 25050 | automobile | airplane |
-| 27549 | bird | ship |
-| 37147 | ship | bird |
-| 3242 | cat | dog |
-| 14275 | airplane | truck |
+| 44398 | horse | deer |
+| 42632 | truck | frog |
+| 26883 | cat | deer |
+| 25235 | cat | bird |
+| 48873 | bird | automobile |
 
 ## Visual Flip Examples (first 5)
 
-**deer -> bird**
-
-![flip](flipped_examples/flip_49898_4_to_2.png)
-
-**dog -> cat**
-
-![flip](flipped_examples/flip_2500_5_to_3.png)
-
-**dog -> frog**
-
-![flip](flipped_examples/flip_20348_5_to_6.png)
-
-**cat -> airplane**
-
-![flip](flipped_examples/flip_24518_3_to_0.png)
-
-**bird -> dog**
-
-![flip](flipped_examples/flip_3462_2_to_5.png)
-
+<div style="display: flex; gap: 10px;">
+<div style="text-align: center;"><img src="flipped_examples/flip_44398_7_to_4.png" alt="flip" style="width: 120px;"><br><small><strong>horse -> deer</strong></small></div>
+<div style="text-align: center;"><img src="flipped_examples/flip_42632_9_to_6.png" alt="flip" style="width: 120px;"><br><small><strong>truck -> frog</strong></small></div>
+<div style="text-align: center;"><img src="flipped_examples/flip_26883_3_to_4.png" alt="flip" style="width: 120px;"><br><small><strong>cat -> deer</strong></small></div>
+<div style="text-align: center;"><img src="flipped_examples/flip_25235_3_to_2.png" alt="flip" style="width: 120px;"><br><small><strong>cat -> bird</strong></small></div>
+<div style="text-align: center;"><img src="flipped_examples/flip_48873_2_to_1.png" alt="flip" style="width: 120px;"><br><small><strong>bird -> automobile</strong></small></div>
+</div>
