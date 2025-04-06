@@ -85,8 +85,9 @@ def suggest_data_poisoning(profile_data):
     cfg = profile_data.get("threat_model", {})
     goal = cfg.get("attack_goal", "untargeted")
     data_source = cfg.get("training_data_source", "internal_clean")
-
-    # Estratégia e flip rate sugeridos
+    num_classes = profile_data.get("model", {}).get("num_classes", 10)
+    classes = list(range(num_classes))
+    
     if goal == "targeted":
         if data_source == "user_generated":
             strategy = "one_to_one"
@@ -95,37 +96,68 @@ def suggest_data_poisoning(profile_data):
             strategy = "many_to_one"
             flip_rate = 0.08
     else:
-        strategy = "many_to_one"
-        flip_rate = 0.10 if data_source == "external_public" else 0.08
+        strategy = "fully_random"
+        flip_rate = 0.1 if data_source == "external_public" else 0.08
 
-    # Target / source sugested
-    num_classes = profile_data.get("model", {}).get("num_classes", 10)
-    classes = list(range(num_classes))
+    source_class = None
+    target_class = None
 
-    if strategy == "one_to_one":
-        source_class = random.choice(classes)
-        target_class = random.choice([c for c in classes if c != source_class])
-    else:
-        source_class = None
+    if strategy == "many_to_one":
         target_class = random.choice(classes)
 
-    
+    elif strategy == "one_to_one":
+        source_class = random.choice(classes)
+        target_class = random.choice([c for c in classes if c != source_class])
+
+    # Mostrar sugestões
     print(f"Suggested strategy: {strategy}")
     print(f"Suggested flip_rate: {flip_rate}")
     if source_class is not None:
-        print(f"Suggested class to flip FROM: {source_class}")
-    print(f"Suggested class to flip TO: {target_class}")
+        print(f"Suggested source class: {source_class}")
+    if target_class is not None:
+        print(f"Suggested target class: {target_class}")
 
-    confirm = questionary.confirm("Do you want to accept these values?").ask()
+    confirm = questionary.confirm("Do you want to accept these suggestions?").ask()
     if not confirm:
-        strategy = questionary.select("Select strategy:", choices=["one_to_one", "many_to_one"]).ask()
-        flip_rate = float(questionary.text("Flip rate (e.g., 0.05):", default="0.08").ask())
-        if strategy == "one_to_one":
-            source_class = int(questionary.text("Source class to flip FROM:").ask())
+        # Estratégia
+        strategy = questionary.select(
+            "Choose flipping strategy:",
+            choices=[
+                ("Fully random (random→random)", "fully_random"),
+                ("Random to fixed (many→one)", "many_to_one"),
+                ("Fixed to fixed (one→one)", "one_to_one")
+            ]
+        ).ask()
+
+        # Flip rate
+        flip_rate = float(questionary.text("Flip rate (e.g., 0.08):", default=str(flip_rate)).ask())
+
+        # Classes conforme estratégia
+        if strategy == "many_to_one":
+            auto_target = questionary.confirm("Pick target class randomly?").ask()
+            if auto_target:
+                target_class = random.choice(classes)
+            else:
+                target_class = int(questionary.text("Enter target class to flip TO:").ask())
+            source_class = None
+
+        elif strategy == "one_to_one":
+            auto_source = questionary.confirm("Pick source class randomly?").ask()
+            if auto_source:
+                source_class = random.choice(classes)
+            else:
+                source_class = int(questionary.text("Enter source class to flip FROM:").ask())
+
+            auto_target = questionary.confirm("Pick target class randomly?").ask()
+            if auto_target:
+                target_class = random.choice([c for c in classes if c != source_class])
+            else:
+                target_class = int(questionary.text("Enter target class to flip TO:").ask())
         else:
             source_class = None
-        target_class = int(questionary.text("Target class to flip TO:").ask())
+            target_class = None
 
+    # Salvar no perfil
     profile_data["attack_overrides"] = {
         "data_poisoning": {
             "strategy": strategy,
@@ -135,7 +167,7 @@ def suggest_data_poisoning(profile_data):
         }
     }
 
-    print("\n[✔] Attack configuration added to profile.")
+    print("\n[✔] Attack configuration saved in profile.")
 
 
 def run_setup():
