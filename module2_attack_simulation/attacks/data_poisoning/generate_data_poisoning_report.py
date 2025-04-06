@@ -50,8 +50,8 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
         fname = f"flipped_examples/flip_{idx}_{flip['original_label']}_to_{flip['new_label']}.png"
         lines.append(
             f'<div style="text-align: center;">'
-            f'<small><strong>{orig} -> {new}</strong></small>'
-            f'<img src="{fname}" alt="flip" style="width: 120px;"><br>'
+            f'<small><strong>{orig} -> {new}</strong></small><br>'
+            f'<img src="{fname}" alt="flip" style="width: 120px;">'
             f'</div>'
         )
     lines.append('</div>\n')

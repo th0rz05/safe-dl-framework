@@ -121,9 +121,9 @@
 ## Visual Flip Examples (first 5)
 
 <div style="display: flex; gap: 10px;">
-<div style="text-align: center;"><small><strong>horse -> deer</strong></small><img src="flipped_examples/flip_44398_7_to_4.png" alt="flip" style="width: 120px;"><br></div>
-<div style="text-align: center;"><small><strong>truck -> frog</strong></small><img src="flipped_examples/flip_42632_9_to_6.png" alt="flip" style="width: 120px;"><br></div>
-<div style="text-align: center;"><small><strong>cat -> deer</strong></small><img src="flipped_examples/flip_26883_3_to_4.png" alt="flip" style="width: 120px;"><br></div>
-<div style="text-align: center;"><small><strong>cat -> bird</strong></small><img src="flipped_examples/flip_25235_3_to_2.png" alt="flip" style="width: 120px;"><br></div>
-<div style="text-align: center;"><small><strong>bird -> automobile</strong></small><img src="flipped_examples/flip_48873_2_to_1.png" alt="flip" style="width: 120px;"><br></div>
+<div style="text-align: center;"><small><strong>horse -> deer</strong></small><br><img src="flipped_examples/flip_44398_7_to_4.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>truck -> frog</strong></small><br><img src="flipped_examples/flip_42632_9_to_6.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>cat -> deer</strong></small><br><img src="flipped_examples/flip_26883_3_to_4.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>cat -> bird</strong></small><br><img src="flipped_examples/flip_25235_3_to_2.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>bird -> automobile</strong></small><br><img src="flipped_examples/flip_48873_2_to_1.png" alt="flip" style="width: 120px;"></div>
 </div>
