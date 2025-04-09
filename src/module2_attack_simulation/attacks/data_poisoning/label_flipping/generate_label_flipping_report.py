@@ -54,7 +54,7 @@ def generate_label_flipping_report(json_file, md_file):
         orig = flip.get("original_label_name", flip["original_label"])
         new = flip.get("new_label_name", flip["new_label"])
         idx = flip["index"]
-        fname = f"flipped_examples/flip_{idx}_{flip['original_label']}_to_{flip['new_label']}.png"
+        fname = f"examples/flip_{idx}_{flip['original_label']}_to_{flip['new_label']}.png"
         lines.append(
             f'<div style="text-align: center;">'
             f'<small><strong>{orig} -> {new}</strong></small><br>'
@@ -71,4 +71,6 @@ def generate_label_flipping_report(json_file, md_file):
     print(f"[✔] Markdown report generated at {md_file}")
 
 if __name__ == "__main__":
-    generate_label_flipping_report("results/data_poisoning/label_flipping/label_flipping_results.json", "results/data_poisoning/label_flipping/label_flipping_report.md")
+    generate_label_flipping_report("../../../results/data_poisoning/label_flipping/label_flipping_metrics.json",
+                                   "../../../results/data_poisoning/label_flipping/label_flipping_report.md")
+
