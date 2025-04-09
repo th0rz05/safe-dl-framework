@@ -1,0 +1,1 @@
+{"accuracy": 0.5864, "per_class_accuracy": {"airplane": 0.686, "automobile": 0.693, "bird": 0.425, "cat": 0.345, "deer": 0.502, "dog": 0.375, "frog": 0.805, "horse": 0.58, "ship": 0.791, "truck": 0.662}}

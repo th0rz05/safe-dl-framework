@@ -1,0 +1,69 @@
+{
+  "attack_type": "label_flipping",
+  "flipping_strategy": "many_to_one",
+  "accuracy_after_attack": 0.5488,
+  "per_class_accuracy": {
+    "airplane": 0.682,
+    "automobile": 0.742,
+    "bird": 0.44,
+    "cat": 0.338,
+    "deer": 0.377,
+    "dog": 0.302,
+    "frog": 0.873,
+    "horse": 0.474,
+    "ship": 0.796,
+    "truck": 0.464
+  },
+  "flip_rate": 0.1,
+  "source_class": null,
+  "target_class": 6,
+  "num_flipped": 4049,
+  "flipping_map": {
+    "bird->frog": 449,
+    "truck->frog": 454,
+    "cat->frog": 435,
+    "deer->frog": 438,
+    "dog->frog": 455,
+    "automobile->frog": 436,
+    "horse->frog": 475,
+    "ship->frog": 424,
+    "airplane->frog": 483
+  },
+  "example_flips": [
+    {
+      "index": 11193,
+      "original_label": 2,
+      "new_label": 6,
+      "original_label_name": "bird",
+      "new_label_name": "frog"
+    },
+    {
+      "index": 47086,
+      "original_label": 9,
+      "new_label": 6,
+      "original_label_name": "truck",
+      "new_label_name": "frog"
+    },
+    {
+      "index": 38999,
+      "original_label": 3,
+      "new_label": 6,
+      "original_label_name": "cat",
+      "new_label_name": "frog"
+    },
+    {
+      "index": 4986,
+      "original_label": 9,
+      "new_label": 6,
+      "original_label_name": "truck",
+      "new_label_name": "frog"
+    },
+    {
+      "index": 26417,
+      "original_label": 4,
+      "new_label": 6,
+      "original_label_name": "deer",
+      "new_label_name": "frog"
+    }
+  ]
+}
