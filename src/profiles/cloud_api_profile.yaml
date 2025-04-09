@@ -1,10 +1,17 @@
 attack_overrides:
   data_poisoning:
+    clean_label:
+      epsilon: 0.1
+      fraction_poison: 0.08
+      max_iterations: 100
+      perturbation_method: feature_collision
+      source_selection: random
+      target_class: null
     label_flipping:
-      flip_rate: 0.1
+      flip_rate: 0.08
       source_class: null
-      strategy: many_to_one
-      target_class: 6
+      strategy: fully_random
+      target_class: null
 dataset:
   name: cifar10
   type: builtin

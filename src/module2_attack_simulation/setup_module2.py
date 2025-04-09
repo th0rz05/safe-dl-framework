@@ -102,7 +102,7 @@ def select_profile():
     return selected
 
 def configure_label_flipping(profile_data, class_names):
-    print("\n=== Attack Parameter Suggestion: Label Flipping ===\n")
+    print("\n=== Configuring Label Flipping ===\n")
     cfg = profile_data.get("threat_model", {})
     goal = cfg.get("attack_goal", "untargeted")
     data_source = cfg.get("training_data_source", "internal_clean")
@@ -184,6 +184,76 @@ def configure_label_flipping(profile_data, class_names):
 
     return cfg
 
+def configure_clean_label(class_names, profile_data):
+    print("\n=== Configuring Clean Label Attack ===\n")
+
+    cfg = profile_data.get("threat_model", {})
+    goal = cfg.get("attack_goal", "untargeted")
+    data_source = cfg.get("training_data_source", "internal_clean")
+    num_classes = profile_data.get("model", {}).get("num_classes", len(class_names))
+
+    # ======== SUGGESTION LOGIC ========
+    if goal == "targeted":
+        target_class = random.randint(0, num_classes - 1)
+        fraction_poison = 0.05
+    else:
+        target_class = None
+        fraction_poison = 0.08
+
+    if data_source == "user_generated":
+        perturbation_method = "overlay"
+    else:
+        perturbation_method = "feature_collision"
+
+    max_iterations = 100
+    epsilon = 0.1
+    source_selection = "random"
+
+    # ======== SHOW SUGGESTION TO USER ========
+    print("Suggested configuration:")
+    print(f"  - Poison fraction: {fraction_poison}")
+    if target_class is not None:
+        print(f"  - Target class: {target_class} – {class_names[target_class]}")
+    else:
+        print("  - Target class: None (untargeted)")
+    print(f"  - Perturbation method: {perturbation_method}")
+    print(f"  - Max iterations: {max_iterations}")
+    print(f"  - Epsilon: {epsilon}")
+    print(f"  - Source selection: {source_selection}")
+
+    if not questionary.confirm("Do you want to accept these suggestions?").ask():
+        fraction_poison = float(questionary.text("Poisoning fraction (e.g., 0.05):", default=str(fraction_poison)).ask())
+
+        class_options = [f"{i} – {name}" for i, name in enumerate(class_names)]
+        if questionary.confirm("Is this a targeted attack?", default=(target_class is not None)).ask():
+            target_class_str = questionary.select("Select target class:", choices=class_options).ask()
+            target_class = int(target_class_str.split(" ")[0])
+        else:
+            target_class = None
+
+        perturbation_method = questionary.select(
+            "Select perturbation method:",
+            choices=["overlay", "feature_collision", "noise"]
+        ).ask()
+
+        max_iterations = int(questionary.text("Max optimization iterations:", default=str(max_iterations)).ask())
+        epsilon = float(questionary.text("Perturbation epsilon:", default=str(epsilon)).ask())
+
+        source_selection = questionary.select(
+            "Source image selection strategy:",
+            choices=["random", "most_confident", "least_confident"]
+        ).ask()
+
+    return {
+        "fraction_poison": fraction_poison,
+        "target_class": target_class,
+        "perturbation_method": perturbation_method,
+        "max_iterations": max_iterations,
+        "epsilon": epsilon,
+        "source_selection": source_selection
+    }
+
+
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
 
@@ -218,6 +288,8 @@ def run_setup():
 
         if "label_flipping" in selected_attacks:
             data_poisoning_cfg["label_flipping"] = configure_label_flipping(profile_data,class_names)
+        if "clean_label" in selected_attacks:
+            data_poisoning_cfg["clean_label"] = configure_clean_label(class_names, profile_data)
 
         profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
         profile_data["attack_overrides"]["data_poisoning"] = data_poisoning_cfg
