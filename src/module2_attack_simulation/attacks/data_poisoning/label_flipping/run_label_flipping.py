@@ -4,9 +4,9 @@ import random
 import os
 import json
 
-from src.module2_attack_simulation.attacks.data_poisoning.label_flipping.generate_label_flipping_report import \
+from attacks.data_poisoning.label_flipping.generate_label_flipping_report import \
     generate_label_flipping_report
-from src.module2_attack_simulation.attacks.utils import train_model, evaluate_model, get_class_labels, save_flip_examples
+from attacks.utils import train_model, evaluate_model, get_class_labels, save_flip_examples
 
 
 def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
@@ -99,7 +99,7 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
 def run_label_flipping(trainset, testset, valset, model, profile, class_names):
     print("[*] Running label flipping attack from profile configuration...")
 
-    attack_cfg = profile.get("attack_overrides", {}).get("data_poisoning", {})
+    attack_cfg = profile.get("attack_overrides", {}).get("data_poisoning", {}).get("label_flipping", {})
     strategy = attack_cfg.get("strategy")
     flip_rate = attack_cfg.get("flip_rate")
     source_class = attack_cfg.get("source_class")

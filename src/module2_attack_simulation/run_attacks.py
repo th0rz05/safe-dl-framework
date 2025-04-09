@@ -110,7 +110,7 @@ def main():
     trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
 
     print("[*] Training clean model...")
-    train_clean_model(profile, trainset, testset, valset, class_names)
+    #train_clean_model(profile, trainset, testset, valset, class_names)
     
     print("[*] Starting attack simulations...\n")
     run_attacks(profile,trainset, testset, valset, class_names)
