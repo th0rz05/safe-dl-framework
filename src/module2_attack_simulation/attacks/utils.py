@@ -88,30 +88,7 @@ def get_class_labels(dataset):
     unique_labels = sorted(set(int(label) for label in targets))
     return unique_labels
 
-
-
-def save_flip_examples(dataset, flip_log, output_dir="results/flipped_examples", num_examples=5):
-    # Apaga o diretório anterior, se existir
-    if os.path.exists(output_dir):
-        shutil.rmtree(output_dir)
-    os.makedirs(output_dir, exist_ok=True)
-
-    for i, entry in enumerate(flip_log[:num_examples]):
-        idx = entry["index"]
-        original = entry["original_label"]
-        new = entry["new_label"]
-        img, _ = dataset[idx]
-
-        plt.imshow(img.squeeze(), cmap="gray")
-        plt.title(f"{original} -> {new}")
-        plt.axis("off")
-        filename = f"sample_{i}_{original}_to_{new}.png"
-        filepath = os.path.join(output_dir, filename)
-        plt.savefig(filepath, bbox_inches="tight")
-        plt.close()
-    
-
-def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/flipped_examples", class_names=None):
+def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/data_poisoning/label_flipping/examples", class_names=None):
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.makedirs(output_dir, exist_ok=True)

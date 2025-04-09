@@ -178,10 +178,12 @@ def suggest_data_poisoning(profile_data, class_names):
     # Save to profile
     profile_data["attack_overrides"] = {
         "data_poisoning": {
-            "strategy": strategy,
-            "flip_rate": flip_rate,
-            "source_class": source_class,
-            "target_class": target_class
+            "label_flipping": {
+                "strategy": strategy,
+                "flip_rate": flip_rate,
+                "source_class": source_class,
+                "target_class": target_class
+            }
         }
     }
 

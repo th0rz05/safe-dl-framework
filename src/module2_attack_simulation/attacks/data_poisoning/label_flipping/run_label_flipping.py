@@ -1,13 +1,12 @@
-import torch
-from torch.utils.data import DataLoader
 from copy import deepcopy
 from collections import defaultdict
 import random
 import os
 import json
 
-from attacks.utils import train_model, evaluate_model, get_class_labels, save_flip_examples
-from attacks.data_poisoning.generate_data_poisoning_report import generate_data_poisoning_report
+from src.module2_attack_simulation.attacks.data_poisoning.label_flipping.generate_label_flipping_report import \
+    generate_label_flipping_report
+from src.module2_attack_simulation.attacks.utils import train_model, evaluate_model, get_class_labels, save_flip_examples
 
 
 def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
@@ -144,12 +143,6 @@ def run(trainset, testset, valset, model, profile, class_names):
     print("[*] Training model on poisoned dataset...")
     train_model(model, poisoned_trainset, valset, epochs=3)
 
-    focus_classes = []
-    if strategy == "one_to_one":
-        focus_classes = [source_class, target_class]
-    elif strategy == "many_to_one":
-        focus_classes = [target_class]
-
     acc, per_class_accuracy = evaluate_model(
         model,
         testset,
@@ -172,13 +165,13 @@ def run(trainset, testset, valset, model, profile, class_names):
         "example_flips": flip_log[:5]
     }
 
-    with open("results/data_poisoning_metrics.json", "w") as f:
+    with open("results/data_poisoning/label_flipping/label_flipping_metrics.json", "w") as f:
         json.dump(result, f, indent=2)
 
-    print("[✔] Data poisoning metrics saved to results/data_poisoning_metrics.json")
+    print("[✔] Data poisoning metrics saved to results/data_poisoning/label_flipping/label_flipping_metrics.json")
 
-    generate_data_poisoning_report(
-        json_file="results/data_poisoning_metrics.json",
-        md_file="results/data_poisoning_report.md"
+    generate_label_flipping_report(
+        json_file="results/data_poisoning/label_flipping/label_flipping_metrics.json",
+        md_file="results/data_poisoning/label_flipping/label_flipping_report.md"
     )
-    print("[✔] Data poisoning report generated at results/data_poisoning_report.md")
+    print("[✔] Data poisoning report generated at results/data_poisoning/label_flipping/label_flipping_report.md")

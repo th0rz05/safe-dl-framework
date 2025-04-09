@@ -1,23 +1,3 @@
-attack_overrides:
-  data_poisoning:
-    flip_rate: 0.1
-    source_class: null
-    strategy: many_to_one
-    target_class: 2
-dataset:
-  name: cifar10
-  type: builtin
-model:
-  input_shape:
-  - 3
-  - 32
-  - 32
-  name: cnn
-  num_classes: 10
-  params:
-    conv_filters: 32
-    hidden_size: 128
-  type: builtin
 threat_model:
   attack_goal: untargeted
   data_sensitivity: high

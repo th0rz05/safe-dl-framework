@@ -1,12 +1,12 @@
 import json
 import os
 
-def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.json", md_file="results/data_poisoning_report.md"):
+def generate_label_flipping_report(json_file, md_file):
     with open(json_file, "r") as f:
         results = json.load(f)
 
     lines = []
-    lines.append("# Data Poisoning Attack Report\n")
+    lines.append("#Data Poisoning - Label Flipping Attack Report\n")
 
     lines.append("## Overview\n")
     lines.append(f"- **Attack Type:** {results.get('attack_type')}")
@@ -71,4 +71,4 @@ def generate_data_poisoning_report(json_file="results/data_poisoning_metrics.jso
     print(f"[✔] Markdown report generated at {md_file}")
 
 if __name__ == "__main__":
-    generate_data_poisoning_report()
+    generate_label_flipping_report("results/data_poisoning/label_flipping/label_flipping_results.json", "results/data_poisoning/label_flipping/label_flipping_report.md")

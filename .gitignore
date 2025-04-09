@@ -33,3 +33,6 @@ Thumbs.db
 # PyTorch Lightning / Checkpoints
 checkpoints/
 *.ckpt
+
+# PyCharm
+.idea/

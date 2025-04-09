@@ -10,7 +10,7 @@ from attacks.utils import evaluate_model
 
 
 def choose_profile():
-    profiles_path = os.path.join("..", "profiles")
+    profiles_path = os.path.join("../..", "profiles")
     profiles = sorted([f for f in os.listdir(profiles_path) if f.endswith(".yaml")])
 
     if not profiles:
@@ -25,7 +25,7 @@ def choose_profile():
 
 
 def load_profile(filename):
-    path = os.path.join("..", "profiles", filename)
+    path = os.path.join("../..", "profiles", filename)
     if not os.path.exists(path):
         raise FileNotFoundError(f"Profile file not found: {path}")
     with open(path, "r") as f:
@@ -91,8 +91,6 @@ def run_attacks(profile, model, trainset, testset, valset, class_names):
 
     if "data_poisoning" in threat_categories:
         print("[*] Running Data Poisoning attack...")
-        attack = __import__("attacks.data_poisoning.run", fromlist=["run"])
-        attack.run(trainset, testset, valset, model, profile, class_names)
 
 
 def main():
