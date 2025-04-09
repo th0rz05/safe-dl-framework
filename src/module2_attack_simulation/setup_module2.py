@@ -101,7 +101,7 @@ def select_profile():
     selected = questionary.select("Select a threat profile to use:", choices=profiles).ask()
     return selected
 
-def suggest_data_poisoning(profile_data, class_names):
+def configure_label_flipping(profile_data, class_names):
     print("\n=== Attack Parameter Suggestion: Label Flipping ===\n")
     cfg = profile_data.get("threat_model", {})
     goal = cfg.get("attack_goal", "untargeted")
@@ -175,20 +175,14 @@ def suggest_data_poisoning(profile_data, class_names):
             source_class = None
             target_class = None
 
-    # Save to profile
-    profile_data["attack_overrides"] = {
-        "data_poisoning": {
-            "label_flipping": {
+    cfg = {
                 "strategy": strategy,
                 "flip_rate": flip_rate,
                 "source_class": source_class,
                 "target_class": target_class
             }
-        }
-    }
 
-    print("\n[✔] Attack configuration saved in profile.")
-
+    return cfg
 
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
@@ -207,13 +201,31 @@ def run_setup():
     profile_data["dataset"] = dataset_info
     profile_data["model"] = model_info
 
-    suggest_data_poisoning(profile_data, class_names)
+    threat_categories = profile_data.get("threat_model", {}).get("threat_categories", [])
+
+    if "data_poisoning" not in threat_categories:
+        print("[*] Data poisoning not selected in threat model. Skipping...")
+    else:
+        selected_attacks = questionary.checkbox(
+            "Select the data poisoning attacks to simulate:",
+            choices=[
+                Choice("Label Flipping", value="label_flipping"),
+                Choice("Clean Label ", value="clean_label"),
+            ]
+        ).ask()
+
+        data_poisoning_cfg = {}
+
+        if "label_flipping" in selected_attacks:
+            data_poisoning_cfg["label_flipping"] = configure_label_flipping(profile_data,class_names)
+
+        profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
+        profile_data["attack_overrides"]["data_poisoning"] = data_poisoning_cfg
 
     with open(profile_path, "w") as f:
         yaml.dump(profile_data, f)
 
     print(f"\n[✔] Profile updated and saved at: {profile_path}")
-
 
 
 if __name__ == "__main__":
