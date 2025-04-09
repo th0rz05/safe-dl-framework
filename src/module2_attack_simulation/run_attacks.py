@@ -10,7 +10,7 @@ from attacks.utils import evaluate_model
 
 
 def choose_profile():
-    profiles_path = os.path.join("../..", "profiles")
+    profiles_path = os.path.join("../", "profiles")
     profiles = sorted([f for f in os.listdir(profiles_path) if f.endswith(".yaml")])
 
     if not profiles:
@@ -25,7 +25,7 @@ def choose_profile():
 
 
 def load_profile(filename):
-    path = os.path.join("../..", "profiles", filename)
+    path = os.path.join("../", "profiles", filename)
     if not os.path.exists(path):
         raise FileNotFoundError(f"Profile file not found: {path}")
     with open(path, "r") as f:
@@ -65,33 +65,39 @@ def load_dataset_from_profile(profile):
     else:
         return load_builtin_dataset(name)
 
-
-def run_attacks(profile, model, trainset, testset, valset, class_names):
+def train_clean_model(profile, trainset, testset, valset, class_names):
     print("[*] Training baseline model (clean data)...")
     from attacks.utils import train_model
 
-    # Rebuild the model using the profile
-    model_cfg = profile["model"]
-    clean_model = get_builtin_model(
-        name=model_cfg["name"],
-        num_classes=model_cfg["num_classes"],
-        input_shape=tuple(model_cfg.get("input_shape", [1, 28, 28])),
-        **model_cfg.get("params", {})
-    )
-    
-    train_model(clean_model, trainset, valset, epochs=3,class_names=class_names)
-    baseline_acc,per_class_acc = evaluate_model(clean_model, testset, class_names=class_names)
+    clean_model = load_model_from_profile(profile)
+
+    train_model(clean_model, trainset, valset, epochs=3, class_names=class_names)
+    baseline_acc, per_class_acc = evaluate_model(clean_model, testset, class_names=class_names)
 
     os.makedirs("results", exist_ok=True)
     with open("results/baseline_accuracy.json", "w") as f:
         json.dump({"accuracy": baseline_acc, "per_class_accuracy": per_class_acc}, f)
 
-    # Ataques com base no perfil
+
+def run_attacks(profile,trainset, testset, valset, class_names):
+
     threat_categories = profile.get("threat_model", {}).get("threat_categories", [])
 
     if "data_poisoning" in threat_categories:
-        print("[*] Running Data Poisoning attack...")
+        print("[*] Running Data Poisoning attacks...")
 
+        dp_attacks = profile.get("attack_overrides", {}).get("data_poisoning", {})
+
+        if "label_flipping" in dp_attacks:
+            print("  - Executing Label Flipping...")
+            from attacks.data_poisoning.label_flipping.run_label_flipping import run_label_flipping
+
+            label_flipping_model = load_model_from_profile(profile)
+
+            run_label_flipping(trainset, testset, valset, label_flipping_model, profile, class_names)
+
+        if "clean_label" in dp_attacks:
+            print("  - Executing Clean Label (not yet implemented)...")
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
@@ -100,12 +106,14 @@ def main():
     print("\n[*] Loading profile...")
     profile = load_profile(profile_name)
 
-    print("[*] Loading model and dataset from profile...")
-    model = load_model_from_profile(profile)
+    print("[*] Loading dataset from profile...")
     trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
+
+    print("[*] Training clean model...")
+    train_clean_model(profile, trainset, testset, valset, class_names)
     
     print("[*] Starting attack simulations...\n")
-    run_attacks(profile, model, trainset, testset, valset, class_names)
+    run_attacks(profile,trainset, testset, valset, class_names)
 
 
 if __name__ == "__main__":

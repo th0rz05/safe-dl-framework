@@ -96,7 +96,7 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
 
 
 
-def run(trainset, testset, valset, model, profile, class_names):
+def run_label_flipping(trainset, testset, valset, model, profile, class_names):
     print("[*] Running label flipping attack from profile configuration...")
 
     attack_cfg = profile.get("attack_overrides", {}).get("data_poisoning", {})
