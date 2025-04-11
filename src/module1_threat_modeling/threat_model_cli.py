@@ -171,6 +171,8 @@ def run_questionnaire():
     save = questionary.confirm("Do you want to save this profile to a YAML file?").ask()
     if save:
         filename = questionary.text("Enter filename (e.g., 'test' to save as test.yaml):").ask()
+        # add filename to profile
+        profile["name"] = filename
         with open(f"../profiles/{filename}.yaml", "w") as f:
             yaml.dump(profile, f)
         print(f"\n Profile saved as ../profiles/{filename}.yaml")

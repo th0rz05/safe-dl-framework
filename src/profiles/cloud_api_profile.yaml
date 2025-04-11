@@ -4,12 +4,13 @@ attack_overrides:
       epsilon: 0.1
       fraction_poison: 0.15
       max_iterations: 100
-      perturbation_method: overlay
+      perturbation_method: noise
       source_selection: random
-      target_class: 1
+      target_class: 9
 dataset:
   name: cifar10
   type: builtin
+name: cloud_api_profile
 model:
   input_shape:
   - 3
