@@ -5,8 +5,7 @@ import json
 import questionary
 from torch.utils.data import DataLoader
 from dataset_loader import load_builtin_dataset, load_user_dataset
-from model_loader import get_builtin_model, load_user_model
-from attacks.utils import evaluate_model
+from attacks.utils import evaluate_model, save_model, load_model_from_profile
 
 
 def choose_profile():
@@ -32,29 +31,6 @@ def load_profile(filename):
         return yaml.safe_load(f)
 
 
-def load_model_from_profile(profile):
-    model_cfg = profile.get("model", {})
-    model_type = model_cfg.get("type", "builtin")
-    model_name = model_cfg.get("name")
-    num_classes = model_cfg.get("num_classes", 10)
-    input_shape = tuple(model_cfg.get("input_shape", [1, 28, 28]))
-    params = model_cfg.get("params", {})
-
-    if model_type == "custom":
-        return load_user_model("user_model.py")
-
-    elif model_type == "builtin":
-        return get_builtin_model(
-            name=model_name,
-            num_classes=num_classes,
-            input_shape=input_shape,
-            **params
-        )
-
-    else:
-        raise ValueError(f"Unknown model type: {model_type}")
-
-
 def load_dataset_from_profile(profile):
     dataset_info = profile.get("dataset", {})
     name = dataset_info.get("name")
@@ -72,11 +48,13 @@ def train_clean_model(profile, trainset, testset, valset, class_names):
     clean_model = load_model_from_profile(profile)
 
     train_model(clean_model, trainset, valset, epochs=15, class_names=class_names)
+    save_model(clean_model,profile.get("name"), "clean_model")
     baseline_acc, per_class_acc = evaluate_model(clean_model, testset, class_names=class_names)
 
     os.makedirs("results", exist_ok=True)
     with open("results/baseline_accuracy.json", "w") as f:
         json.dump({"accuracy": baseline_acc, "per_class_accuracy": per_class_acc}, f)
+
 
 
 def run_attacks(profile,trainset, testset, valset, class_names):
@@ -116,7 +94,7 @@ def main():
     trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
 
     print("[*] Training clean model...")
-    #train_clean_model(profile, trainset, testset, valset, class_names)
+    train_clean_model(profile, trainset, testset, valset, class_names)
 
     print("[*] Starting attack simulations...\n")
     run_attacks(profile,trainset, testset, valset, class_names)

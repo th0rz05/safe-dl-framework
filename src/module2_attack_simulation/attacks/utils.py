@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 import os
 import shutil
 
+from model_loader import load_user_model, get_builtin_model
+
+
 def train_model(model, trainset, valset=None, epochs=3, batch_size=64, class_names=None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
@@ -87,6 +90,51 @@ def get_class_labels(dataset):
 
     unique_labels = sorted(set(int(label) for label in targets))
     return unique_labels
+
+def save_model(model, profile_name, model_name):
+    os.makedirs("../saved_models", exist_ok=True)
+    model_path = os.path.join("saved_models", f"{profile_name}_{model_name}.pth")
+    torch.save(model.state_dict(), model_path)
+    print(f"[✔] Model saved to {model_path}")
+
+
+def load_model(profile_name, model_name, profile):
+    model_path = os.path.join("saved_models", f"{profile_name}_{model_name}.pth")
+
+    if not os.path.exists(model_path):
+        raise FileNotFoundError(f"[!] Model file not found at {model_path}. Make sure it was trained and saved.")
+
+    # Load the correct model architecture based on the profile
+    model = load_model_from_profile(profile)
+
+    # Load the saved weights
+    model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
+    model.eval()
+    print(f"[✔] Loaded model from {model_path}")
+
+    return model
+
+def load_model_from_profile(profile):
+    model_cfg = profile.get("model", {})
+    model_type = model_cfg.get("type", "builtin")
+    model_name = model_cfg.get("name")
+    num_classes = model_cfg.get("num_classes", 10)
+    input_shape = tuple(model_cfg.get("input_shape", [1, 28, 28]))
+    params = model_cfg.get("params", {})
+
+    if model_type == "custom":
+        return load_user_model("user_model.py")
+
+    elif model_type == "builtin":
+        return get_builtin_model(
+            name=model_name,
+            num_classes=num_classes,
+            input_shape=input_shape,
+            **params
+        )
+
+    else:
+        raise ValueError(f"Unknown model type: {model_type}")
 
 def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/data_poisoning/label_flipping/examples", class_names=None):
     if os.path.exists(output_dir):
