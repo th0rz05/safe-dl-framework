@@ -75,7 +75,7 @@ def apply_perturbation(image, method="overlay", epsilon=0.1, model=None, target_
         x_start = W - patch_size
         y_start = H - patch_size
 
-        alpha = 0.5
+        alpha = epsilon
         image[:, y_start:H, x_start:W] = (
             alpha * image[:, y_start:H, x_start:W] +
             (1 - alpha) * torch.ones_like(image[:, y_start:H, x_start:W])
@@ -199,17 +199,18 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
 
     fraction_poison = attack_cfg.get("fraction_poison", 0.05)
     target_class = attack_cfg.get("target_class")
+    target_class_name = class_names[target_class] if target_class is not None else None
     method = attack_cfg.get("perturbation_method", "overlay")
     max_iterations = attack_cfg.get("max_iterations", 100)
     epsilon = attack_cfg.get("epsilon", 0.1)
     source_selection = attack_cfg.get("source_selection", "random")
 
-    classes = get_class_labels(trainset)
-
     if target_class is not None:
         print(f"[*] Poisoning only class: {target_class} ({class_names[target_class]})")
     else:
         print("[*] Untargeted mode: poisoning across all classes")
+
+
 
     trained_model = load_model("clean_model", profile)
 
@@ -242,6 +243,7 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
         "perturbation_method": method,
         "fraction_poison": fraction_poison,
         "target_class": target_class,
+        "target_class_name": target_class_name,
         "max_iterations": max_iterations,
         "epsilon": epsilon,
         "source_selection": source_selection,

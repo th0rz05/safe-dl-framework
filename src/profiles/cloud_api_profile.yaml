@@ -4,8 +4,8 @@ attack_overrides:
       epsilon: 0.1
       fraction_poison: 0.15
       max_iterations: 100
-      perturbation_method: noise
-      source_selection: random
+      perturbation_method: feature_collision
+      source_selection: most_confident
       target_class: 9
 dataset:
   name: cifar10
