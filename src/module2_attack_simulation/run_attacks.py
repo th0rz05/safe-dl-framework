@@ -71,7 +71,7 @@ def train_clean_model(profile, trainset, testset, valset, class_names):
 
     clean_model = load_model_from_profile(profile)
 
-    train_model(clean_model, trainset, valset, epochs=3, class_names=class_names)
+    train_model(clean_model, trainset, valset, epochs=15, class_names=class_names)
     baseline_acc, per_class_acc = evaluate_model(clean_model, testset, class_names=class_names)
 
     os.makedirs("results", exist_ok=True)
@@ -116,8 +116,8 @@ def main():
     trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
 
     print("[*] Training clean model...")
-    #train_clean_model(profile, trainset, testset, valset, class_names)
-    
+    train_clean_model(profile, trainset, testset, valset, class_names)
+
     print("[*] Starting attack simulations...\n")
     run_attacks(profile,trainset, testset, valset, class_names)
 

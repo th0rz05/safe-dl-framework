@@ -7,8 +7,9 @@ from collections import defaultdict
 import torch
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
+import numpy as np
 
-from src.module2_attack_simulation.attacks.utils import (
+from attacks.utils import (
     train_model,
     evaluate_model,
     get_class_labels
@@ -18,10 +19,25 @@ from src.module2_attack_simulation.attacks.utils import (
 def save_poisoned_examples(dataset, poison_log, num_examples=5, class_names=None):
     os.makedirs("results/data_poisoning/clean_label/examples", exist_ok=True)
 
+    #delete existing images in the directory
+    for filename in os.listdir("results/data_poisoning/clean_label/examples"):
+        file_path = os.path.join("results/data_poisoning/clean_label/examples", filename)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
     for entry in poison_log[:num_examples]:
-        idx = entry["index"]
-        image, label = dataset[idx]
-        image_np = image.permute(1, 2, 0).cpu().numpy()
+        image = entry["tensor"]  # Now we use the tensor directly
+
+        if image.max() <= 1.0:
+            image = image * 255
+        image = image.to(torch.uint8)
+
+        if image.shape[0] in [1, 3]:  # CHW to HWC
+            image = image.permute(1, 2, 0)
+
+        image_np = image.numpy()
+        if image_np.shape[-1] == 1:
+            image_np = image_np.squeeze(-1)
 
         plt.imsave(entry["example_image_path"], image_np)
 
@@ -91,14 +107,20 @@ def poison_dataset(dataset, fraction_poison, target_class, method, epsilon, max_
     poisoned_indices = []
     poison_log = []
 
-    eligible_indices = [i for i in indices if targets[i] == target_class]
+    if target_class is None:
+        # Untargeted: allow poisoning of all classes
+        eligible_indices = indices
+    else:
+        # Targeted: poison only samples of the target class
+        eligible_indices = [i for i in indices if targets[i] == target_class]
+
     num_to_poison = int(len(eligible_indices) * fraction_poison)
     selected_indices = random.sample(eligible_indices, num_to_poison)
 
     for idx in selected_indices:
+
         original_image, label = poisoned_dataset.dataset[idx]
 
-        # Select random target image for feature collision
         target_image = None
         if method == "feature_collision":
             other_class_indices = [i for i in indices if targets[i] != label]
@@ -114,14 +136,13 @@ def poison_dataset(dataset, fraction_poison, target_class, method, epsilon, max_
             max_iterations=max_iterations
         )
 
-        poisoned_dataset.dataset[idx] = (perturbed_image, label)
-
         poison_log.append({
             "index": idx,
             "original_label": int(label),
             "original_label_name": class_names[int(label)],
             "perturbation_norm": float(torch.norm(perturbed_image - original_image, p=2).item()),
-            "example_image_path": f"results/data_poisoning/clean_label/examples/poison_{idx}_{class_names[int(label)]}.png"
+            "example_image_path": f"results/data_poisoning/clean_label/examples/poison_{idx}_{class_names[int(label)]}.png",
+            "tensor": perturbed_image.detach().cpu().clone()
         })
         poisoned_indices.append(idx)
         class_counts[class_names[int(label)]] += 1
@@ -142,10 +163,11 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
     source_selection = attack_cfg.get("source_selection", "random")
 
     classes = get_class_labels(trainset)
-    if target_class is None:
-        target_class = random.choice(classes)
 
-    print(f"[*] Poisoning samples of class: {target_class} ({class_names[target_class]})")
+    if target_class is not None:
+        print(f"[*] Poisoning only class: {target_class} ({class_names[target_class]})")
+    else:
+        print("[*] Untargeted mode: poisoning across all classes")
 
     poisoned_trainset, poison_log, poison_stats = poison_dataset(
         trainset,
@@ -160,7 +182,7 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
     )
 
     print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=3)
+    train_model(model, poisoned_trainset, valset, epochs=15)
 
     acc, per_class_accuracy = evaluate_model(model, testset, class_names=class_names)
 
