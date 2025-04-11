@@ -1,61 +1,62 @@
 {
   "attack_type": "clean_label",
-  "perturbation_method": "overlay",
+  "perturbation_method": "feature_collision",
   "fraction_poison": 0.15,
-  "target_class": 1,
+  "target_class": 9,
+  "target_class_name": "truck",
   "max_iterations": 100,
   "epsilon": 0.1,
-  "source_selection": "random",
-  "num_poisoned_samples": 673,
+  "source_selection": "most_confident",
+  "num_poisoned_samples": 675,
   "num_total_samples": 45000,
-  "accuracy_after_attack": 0.6235,
+  "accuracy_after_attack": 0.6276,
   "per_class_accuracy": {
-    "airplane": 0.627,
-    "automobile": 0.646,
-    "bird": 0.484,
-    "cat": 0.401,
-    "deer": 0.756,
-    "dog": 0.455,
-    "frog": 0.634,
-    "horse": 0.712,
-    "ship": 0.768,
-    "truck": 0.752
+    "airplane": 0.676,
+    "automobile": 0.797,
+    "bird": 0.536,
+    "cat": 0.43,
+    "deer": 0.512,
+    "dog": 0.567,
+    "frog": 0.665,
+    "horse": 0.621,
+    "ship": 0.749,
+    "truck": 0.723
   },
   "example_poisoned_samples": [
     {
-      "index": 40184,
-      "original_label": 1,
-      "original_label_name": "automobile",
-      "perturbation_norm": 2.2322769165039062,
-      "example_image_path": "results/data_poisoning/clean_label/examples/poison_40184_automobile.png"
+      "index": 5671,
+      "original_label": 9,
+      "original_label_name": "truck",
+      "perturbation_norm": 0.08851630985736847,
+      "example_image_path": "results/data_poisoning/clean_label/examples/poison_5671_truck.png"
     },
     {
-      "index": 17734,
-      "original_label": 1,
-      "original_label_name": "automobile",
-      "perturbation_norm": 4.3825225830078125,
-      "example_image_path": "results/data_poisoning/clean_label/examples/poison_17734_automobile.png"
+      "index": 40734,
+      "original_label": 9,
+      "original_label_name": "truck",
+      "perturbation_norm": 0.07370328903198242,
+      "example_image_path": "results/data_poisoning/clean_label/examples/poison_40734_truck.png"
     },
     {
-      "index": 38974,
-      "original_label": 1,
-      "original_label_name": "automobile",
-      "perturbation_norm": 0.614655077457428,
-      "example_image_path": "results/data_poisoning/clean_label/examples/poison_38974_automobile.png"
+      "index": 8125,
+      "original_label": 9,
+      "original_label_name": "truck",
+      "perturbation_norm": 0.08209826052188873,
+      "example_image_path": "results/data_poisoning/clean_label/examples/poison_8125_truck.png"
     },
     {
-      "index": 21890,
-      "original_label": 1,
-      "original_label_name": "automobile",
-      "perturbation_norm": 3.7684178352355957,
-      "example_image_path": "results/data_poisoning/clean_label/examples/poison_21890_automobile.png"
+      "index": 25708,
+      "original_label": 9,
+      "original_label_name": "truck",
+      "perturbation_norm": 0.0736929327249527,
+      "example_image_path": "results/data_poisoning/clean_label/examples/poison_25708_truck.png"
     },
     {
-      "index": 19947,
-      "original_label": 1,
-      "original_label_name": "automobile",
-      "perturbation_norm": 3.439075231552124,
-      "example_image_path": "results/data_poisoning/clean_label/examples/poison_19947_automobile.png"
+      "index": 35047,
+      "original_label": 9,
+      "original_label_name": "truck",
+      "perturbation_norm": 0.05329791083931923,
+      "example_image_path": "results/data_poisoning/clean_label/examples/poison_35047_truck.png"
     }
   ]
 }
