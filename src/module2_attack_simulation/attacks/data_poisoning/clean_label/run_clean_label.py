@@ -13,10 +13,12 @@ from tqdm import tqdm
 from attacks.utils import (
     train_model,
     evaluate_model,
-    get_class_labels
+    get_class_labels,
+    load_model
 )
 
 from attacks.data_poisoning.clean_label.generate_clean_label_report import generate_clean_label_report
+
 
 # === Helper function to save poisoned examples ===
 def save_poisoned_examples(dataset, poison_log, num_examples=5, class_names=None):
@@ -209,6 +211,8 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
     else:
         print("[*] Untargeted mode: poisoning across all classes")
 
+    trained_model = load_model("clean_model", profile)
+
     poisoned_trainset, poison_log, poison_stats = poison_dataset(
         trainset,
         fraction_poison,
@@ -218,7 +222,7 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
         max_iterations,
         source_selection,
         class_names,
-        model=model
+        model=trained_model
     )
 
     print("[*] Training model on poisoned dataset...")
