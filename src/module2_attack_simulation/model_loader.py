@@ -13,25 +13,25 @@ class SimpleCNN(nn.Module):
             nn.MaxPool2d(2)
         )
 
-        # Dynamically calculate flatten size
         with torch.no_grad():
             dummy_input = torch.zeros(1, input_channels, input_height, input_width)
             conv_out = self.conv(dummy_input)
-            flatten_size = conv_out.view(1, -1).shape[1]
+            self.flatten_size = conv_out.view(1, -1).shape[1]
 
         self.fc = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(flatten_size, hidden_size),
+            nn.Linear(self.flatten_size, hidden_size),
             nn.ReLU(),
             nn.Linear(hidden_size, num_classes)
         )
 
-    def forward(self, x):
+    def features(self, x):
         x = self.conv(x)
-        x = self.fc(x)
-        return x
+        return x.view(x.size(0), -1)
 
-
+    def forward(self, x):
+        x = self.features(x)
+        return self.fc[1:](x)
 
 
 class MLP(nn.Module):
@@ -40,17 +40,19 @@ class MLP(nn.Module):
         input_channels, height, width = input_shape
         input_size = input_channels * height * width
 
-        self.net = nn.Sequential(
-            nn.Flatten(),
-            nn.Linear(input_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, num_classes)
-        )
+        self.flatten = nn.Flatten()
+        self.hidden = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.output = nn.Linear(hidden_size, num_classes)
+
+    def features(self, x):
+        x = self.flatten(x)
+        x = self.hidden(x)
+        return self.relu(x)
 
     def forward(self, x):
-        return self.net(x)
-
-
+        x = self.features(x)
+        return self.output(x)
 
 
 def get_builtin_model(name="cnn", num_classes=10, input_shape=(1, 28, 28), **params):

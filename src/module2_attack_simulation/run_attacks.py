@@ -97,7 +97,13 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             run_label_flipping(trainset, testset, valset, label_flipping_model, profile, class_names)
 
         if "clean_label" in dp_attacks:
-            print("  - Executing Clean Label (not yet implemented)...")
+            print("  - Executing Clean Label...")
+            from attacks.data_poisoning.clean_label.run_clean_label import run_clean_label
+
+            clean_label_model = load_model_from_profile(profile)
+
+            run_clean_label(trainset,testset,valset,clean_label_model, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
