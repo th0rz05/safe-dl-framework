@@ -6,7 +6,7 @@ attack_overrides:
       max_iterations: 100
       perturbation_method: overlay
       source_selection: random
-      target_class: 8
+      target_class: 1
 dataset:
   name: cifar10
   type: builtin
@@ -15,8 +15,11 @@ model:
   - 3
   - 32
   - 32
-  name: resnet18
+  name: cnn
   num_classes: 10
+  params:
+    conv_filters: 32
+    hidden_size: 128
   type: builtin
 threat_model:
   attack_goal: untargeted

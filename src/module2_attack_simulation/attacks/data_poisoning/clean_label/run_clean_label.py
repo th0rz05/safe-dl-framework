@@ -15,6 +15,8 @@ from attacks.utils import (
     get_class_labels
 )
 
+from attacks.data_poisoning.clean_label.generate_clean_label_report import generate_clean_label_report
+
 # === Helper function to save poisoned examples ===
 def save_poisoned_examples(dataset, poison_log, num_examples=5, class_names=None):
     os.makedirs("results/data_poisoning/clean_label/examples", exist_ok=True)
@@ -182,12 +184,16 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
     )
 
     print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=15)
+    train_model(model, poisoned_trainset, valset, epochs=6)
 
     acc, per_class_accuracy = evaluate_model(model, testset, class_names=class_names)
 
     os.makedirs("results/data_poisoning/clean_label/examples", exist_ok=True)
     save_poisoned_examples(poisoned_trainset.dataset, poison_log, num_examples=5, class_names=class_names)
+
+    #remove tensor from poison_log to save space
+    for entry in poison_log:
+        del entry["tensor"]
 
     result = {
         "attack_type": "clean_label",
@@ -209,5 +215,9 @@ def run_clean_label(trainset, testset, valset, model, profile, class_names):
 
     print("[✔] Clean label attack metrics saved to results/data_poisoning/clean_label/clean_label_metrics.json")
 
-    # TODO: generate_clean_label_report(json_file, md_file)
-    print("[✔] (Placeholder) Clean label report generation")
+    generate_clean_label_report(
+        json_file="results/data_poisoning/clean_label/clean_label_metrics.json",
+        md_file="results/data_poisoning/clean_label/clean_label_report.md"
+    )
+
+    print("[✔] Clean label report generation")
