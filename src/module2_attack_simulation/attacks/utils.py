@@ -98,14 +98,15 @@ def save_model(model, profile_name, model_name):
     print(f"[✔] Model saved to {model_path}")
 
 
-def load_model(profile_name, model_name, profile):
+def load_model(model_name, profile):
+    profile_name = profile.get("name", "default")
     model_path = os.path.join("saved_models", f"{profile_name}_{model_name}.pth")
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"[!] Model file not found at {model_path}. Make sure it was trained and saved.")
 
     # Load the correct model architecture based on the profile
-    model = load_model_from_profile(profile)
+    model = load_model_cfg_from_profile(profile)
 
     # Load the saved weights
     model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
@@ -114,7 +115,7 @@ def load_model(profile_name, model_name, profile):
 
     return model
 
-def load_model_from_profile(profile):
+def load_model_cfg_from_profile(profile):
     model_cfg = profile.get("model", {})
     model_type = model_cfg.get("type", "builtin")
     model_name = model_cfg.get("name")

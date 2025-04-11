@@ -5,7 +5,7 @@ import json
 import questionary
 from torch.utils.data import DataLoader
 from dataset_loader import load_builtin_dataset, load_user_dataset
-from attacks.utils import evaluate_model, save_model, load_model_from_profile
+from attacks.utils import evaluate_model, save_model, load_model_cfg_from_profile, load_model
 
 
 def choose_profile():
@@ -45,7 +45,7 @@ def train_clean_model(profile, trainset, testset, valset, class_names):
     print("[*] Training baseline model (clean data)...")
     from attacks.utils import train_model
 
-    clean_model = load_model_from_profile(profile)
+    clean_model = load_model_cfg_from_profile(profile)
 
     train_model(clean_model, trainset, valset, epochs=15, class_names=class_names)
     save_model(clean_model,profile.get("name"), "clean_model")
@@ -70,7 +70,7 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             print("  - Executing Label Flipping...")
             from attacks.data_poisoning.label_flipping.run_label_flipping import run_label_flipping
 
-            label_flipping_model = load_model_from_profile(profile)
+            label_flipping_model = load_model_cfg_from_profile(profile)
 
             run_label_flipping(trainset, testset, valset, label_flipping_model, profile, class_names)
 
@@ -78,7 +78,7 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             print("  - Executing Clean Label...")
             from attacks.data_poisoning.clean_label.run_clean_label import run_clean_label
 
-            clean_label_model = load_model_from_profile(profile)
+            clean_label_model = load_model_cfg_from_profile(profile)
 
             run_clean_label(trainset,testset,valset,clean_label_model, profile, class_names)
 
@@ -94,7 +94,7 @@ def main():
     trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
 
     print("[*] Training clean model...")
-    train_clean_model(profile, trainset, testset, valset, class_names)
+    #train_clean_model(profile, trainset, testset, valset, class_names)
 
     print("[*] Starting attack simulations...\n")
     run_attacks(profile,trainset, testset, valset, class_names)

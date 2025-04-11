@@ -8,6 +8,7 @@ import torch
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
+from tqdm import tqdm
 
 from attacks.utils import (
     train_model,
@@ -120,20 +121,47 @@ def poison_dataset(dataset, fraction_poison, target_class, method, epsilon, max_
     poisoned_indices = []
     poison_log = []
 
+    # Decide which samples are eligible to be poisoned
     if target_class is None:
-        # Untargeted: allow poisoning of all classes
-        eligible_indices = indices
+        eligible_indices = indices  # Untargeted
     else:
-        # Targeted: poison only samples of the target class
-        eligible_indices = [i for i in indices if targets[i] == target_class]
+        eligible_indices = [i for i in indices if targets[i] == target_class]  # Targeted
 
-    num_to_poison = int(len(eligible_indices) * fraction_poison)
-    selected_indices = random.sample(eligible_indices, num_to_poison)
+    # If not feature_collision, source_selection should be random
+    if method in ["overlay", "noise"] and source_selection != "random":
+        print(f"[!] Warning: source_selection '{source_selection}' ignored for '{method}'. Using 'random' instead.")
+        source_selection = "random"
+
+    # For feature_collision, source selection based on confidence
+    if method == "feature_collision" and source_selection != "random":
+        if model is None:
+            raise ValueError("Model is required for source_selection other than 'random' with feature_collision.")
+
+        print(f"[*] Computing confidence scores for source selection: {source_selection}")
+        model.eval()
+        confidences = []
+
+        with torch.no_grad():
+            for idx in tqdm(eligible_indices, desc="Scoring confidence"):
+                x, _ = poisoned_dataset.dataset[idx]
+                x = x.unsqueeze(0)
+                logits = model(x)
+                prob = torch.softmax(logits, dim=1)
+                confidence = prob.max().item()
+                confidences.append((idx, confidence))
+
+        # Sort by confidence
+        confidences.sort(key=lambda x: x[1], reverse=(source_selection == "most_confident"))
+        selected_indices = [idx for idx, _ in confidences[:int(len(confidences) * fraction_poison)]]
+
+    else:
+        num_to_poison = int(len(eligible_indices) * fraction_poison)
+        selected_indices = random.sample(eligible_indices, num_to_poison)
 
     for idx in selected_indices:
-
         original_image, label = poisoned_dataset.dataset[idx]
 
+        # Feature collision needs a target image
         target_image = None
         if method == "feature_collision":
             other_class_indices = [i for i in indices if targets[i] != label]
@@ -161,7 +189,6 @@ def poison_dataset(dataset, fraction_poison, target_class, method, epsilon, max_
         class_counts[class_names[int(label)]] += 1
 
     return poisoned_dataset, poison_log, class_counts
-
 
 def run_clean_label(trainset, testset, valset, model, profile, class_names):
     print("[*] Running clean label attack from profile configuration...")
