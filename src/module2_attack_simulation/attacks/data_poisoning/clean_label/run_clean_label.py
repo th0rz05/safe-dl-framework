@@ -44,17 +44,23 @@ def save_poisoned_examples(dataset, poison_log, num_examples=5, class_names=None
         plt.imsave(entry["example_image_path"], image_np)
 
 
-# === Extract features depending on model compatibility ===
-def extract_features(model, x):
+def extract_features(model, x, no_grad=True):
     model.eval()
-    with torch.no_grad():
+    if no_grad:
+        with torch.no_grad():
+            if hasattr(model, "features"):
+                return model.features(x.unsqueeze(0)).squeeze(0)
+            elif hasattr(model, "forward_features"):
+                return model.forward_features(x.unsqueeze(0)).squeeze(0)
+            else:
+                return model(x.unsqueeze(0)).squeeze(0)
+    else:
         if hasattr(model, "features"):
             return model.features(x.unsqueeze(0)).squeeze(0)
         elif hasattr(model, "forward_features"):
             return model.forward_features(x.unsqueeze(0)).squeeze(0)
         else:
-            return model(x.unsqueeze(0)).squeeze(0)  # fallback to logits
-
+            return model(x.unsqueeze(0)).squeeze(0)
 
 # === Perturbation logic ===
 def apply_perturbation(image, method="overlay", epsilon=0.1, model=None, target_image=None, max_iterations=100):
@@ -81,14 +87,18 @@ def apply_perturbation(image, method="overlay", epsilon=0.1, model=None, target_
         if model is None or target_image is None:
             raise ValueError("Model and target_image required for feature_collision.")
 
-        x = image.clone().detach().requires_grad_(True)
-        target_features = extract_features(model, target_image).detach()
+        # Clone, detach and enable gradient tracking
+        x = image.clone().detach().requires_grad_()
+
+        # Compute fixed target features without tracking
+        target_features = extract_features(model, target_image, no_grad=True).detach()
+
         optimizer = torch.optim.SGD([x], lr=epsilon)
         loss_fn = torch.nn.MSELoss()
 
         for _ in range(max_iterations):
             optimizer.zero_grad()
-            features = extract_features(model, x)
+            features = extract_features(model, x, no_grad=False)  # forward pass with grad
             loss = loss_fn(features, target_features)
             loss.backward()
             optimizer.step()
@@ -98,6 +108,7 @@ def apply_perturbation(image, method="overlay", epsilon=0.1, model=None, target_
 
     else:
         raise ValueError(f"Unknown perturbation method: {method}")
+
 
 
 def poison_dataset(dataset, fraction_poison, target_class, method, epsilon, max_iterations, source_selection, class_names, model=None):
