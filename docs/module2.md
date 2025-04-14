@@ -369,7 +369,7 @@ Once a profile is configured, it can be reused across experiments without re-run
 -   Store results in a structured and comparable way.
     
 
-⚠️ **Important:** Any time the attack configuration or dataset/model is updated via the setup wizard, the new state is immediately saved to the profile YAML — ensuring consistency across runs.
+**Important:** Any time the attack configuration or dataset/model is updated via the setup wizard, the new state is immediately saved to the profile YAML — ensuring consistency across runs.
 
 ## 5. Attack Simulation Flow
 
