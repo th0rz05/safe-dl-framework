@@ -273,6 +273,7 @@ def configure_static_patch(profile_data, class_names):
     patch_size_ratio = 0.2 if data_source == "user_generated" else 0.15
     patch_type = "white_square"
     poison_fraction = 0.1 if data_source == "external_public" else 0.05
+    patch_position = "bottom_right"
 
     # === Show Suggestions ===
     print("Suggested configuration:")
@@ -280,6 +281,7 @@ def configure_static_patch(profile_data, class_names):
     print(f"  - Patch type: {patch_type}")
     print(f"  - Patch size (relative): {patch_size_ratio}")
     print(f"  - Poison fraction: {poison_fraction}")
+    print(f"  - Patch position: {patch_position}")
 
     if not questionary.confirm("Do you want to accept these suggestions?").ask():
         class_options = [f"{i} – {name}" for i, name in enumerate(class_names)]
@@ -296,12 +298,18 @@ def configure_static_patch(profile_data, class_names):
             choices=["white_square", "checkerboard", "random_noise"]
         ).ask()
 
+        patch_position = questionary.select(
+            "Select where to place the patch:",
+            choices=["bottom_right", "bottom_left", "top_right", "top_left", "center"]
+        ).ask()
+
         patch_size_ratio = float(questionary.text("Patch size (as ratio of image width, e.g., 0.2):", default=str(patch_size_ratio)).ask())
         poison_fraction = float(questionary.text("Poisoning fraction (e.g., 0.1):", default=str(poison_fraction)).ask())
 
     return {
         "target_class": target_class,
         "patch_type": patch_type,
+        "patch_position": patch_position,
         "patch_size_ratio": patch_size_ratio,
         "poison_fraction": poison_fraction
     }
