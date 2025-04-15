@@ -184,7 +184,7 @@ def configure_label_flipping(profile_data, class_names):
 
     return cfg
 
-def configure_clean_label(class_names, profile_data):
+def configure_clean_label(profile_data,class_names):
     print("\n=== Configuring Clean Label Attack ===\n")
 
     cfg = profile_data.get("threat_model", {})
@@ -253,6 +253,78 @@ def configure_clean_label(class_names, profile_data):
         "source_selection": source_selection
     }
 
+def configure_static_patch(profile_data, class_names):
+    print("\n=== Configuring Static Patch Backdoor Attack ===\n")
+
+    cfg = profile_data.get("threat_model", {})
+    goal = cfg.get("attack_goal", "targeted")
+    data_source = cfg.get("training_data_source", "internal_clean")
+    num_classes = profile_data.get("model", {}).get("num_classes", len(class_names))
+    classes = list(range(num_classes))
+
+
+    # === Default Suggestions ===
+    if goal == "targeted":
+        target_class = random.randint(0, num_classes - 1)
+    else:
+        target_class = random.randint(0, num_classes - 1)
+        print("[!] Warning: Static patch attack is designed for targeted scenarios. Running untargeted for testing purposes.")
+
+    patch_size_ratio = 0.2 if data_source == "user_generated" else 0.15
+    patch_type = "white_square"
+    poison_fraction = 0.1 if data_source == "external_public" else 0.05
+
+    # === Show Suggestions ===
+    print("Suggested configuration:")
+    print(f"  - Target class: {target_class} – {class_names[target_class]}")
+    print(f"  - Patch type: {patch_type}")
+    print(f"  - Patch size (relative): {patch_size_ratio}")
+    print(f"  - Poison fraction: {poison_fraction}")
+
+    if not questionary.confirm("Do you want to accept these suggestions?").ask():
+        class_options = [f"{i} – {name}" for i, name in enumerate(class_names)]
+
+        if questionary.confirm("Pick target class randomly?", default=True).ask():
+            target_class = random.choice(classes)
+        else:
+            target_class_str = questionary.select("Select target class (to misclassify as):",
+                                                  choices=class_options).ask()
+            target_class = int(target_class_str.split(" ")[0])
+
+        patch_type = questionary.select(
+            "Select the type of patch to apply:",
+            choices=["white_square", "checkerboard", "random_noise"]
+        ).ask()
+
+        patch_size_ratio = float(questionary.text("Patch size (as ratio of image width, e.g., 0.2):", default=str(patch_size_ratio)).ask())
+        poison_fraction = float(questionary.text("Poisoning fraction (e.g., 0.1):", default=str(poison_fraction)).ask())
+
+    return {
+        "target_class": target_class,
+        "patch_type": patch_type,
+        "patch_size_ratio": patch_size_ratio,
+        "poison_fraction": poison_fraction
+    }
+
+
+def configure_blended_backdoor(profile_data,class_names):
+    print("\n=== Configuring Blended Trigger Backdoor ===")
+    return {
+        "target_class": 0,
+        "poison_fraction": 0.1,
+        "blend_alpha": 0.2
+    }
+
+def configure_learned_trigger(profile_data,class_names):
+    print("\n=== Configuring Adversarially Learned Trigger ===")
+    return {
+        "target_class": 0,
+        "poison_fraction": 0.1,
+        "patch_size": 5,
+        "learning_rate": 0.1,
+        "epochs": 5
+    }
+
 
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
@@ -273,9 +345,9 @@ def run_setup():
 
     threat_categories = profile_data.get("threat_model", {}).get("threat_categories", [])
 
-    if "data_poisoning" not in threat_categories:
-        print("[*] Data poisoning not selected in threat model. Skipping...")
-    else:
+    if "data_poisoning" in threat_categories:
+        print("[*] Data poisoning enabled in threat model.")
+
         selected_attacks = questionary.checkbox(
             "Select the data poisoning attacks to simulate:",
             choices=[
@@ -289,10 +361,45 @@ def run_setup():
         if "label_flipping" in selected_attacks:
             data_poisoning_cfg["label_flipping"] = configure_label_flipping(profile_data,class_names)
         if "clean_label" in selected_attacks:
-            data_poisoning_cfg["clean_label"] = configure_clean_label(class_names, profile_data)
+            data_poisoning_cfg["clean_label"] = configure_clean_label(profile_data, class_names)
 
-        profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
-        profile_data["attack_overrides"]["data_poisoning"] = data_poisoning_cfg
+        # if none of the attacks are selected
+        if not data_poisoning_cfg:
+            print("[!] No data poisoning attacks selected.")
+        else:
+            print(f"[*] Data poisoning configuration: {data_poisoning_cfg}")
+            profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
+            profile_data["attack_overrides"]["data_poisoning"] = data_poisoning_cfg
+
+    if "backdoor_attacks" in threat_categories:
+        print("[*] Backdoor attacks enabled in threat model.")
+
+        selected_backdoors = questionary.checkbox(
+            "Select the backdoor attacks to simulate:",
+            choices=[
+                Choice("Static Patch Trigger", value="static_patch"),
+                Choice("Blended Trigger", value="blended"),
+                Choice("Adversarially Learned Trigger", value="learned")
+            ]
+        ).ask()
+
+        backdoor_cfg = {}
+
+        if "static_patch" in selected_backdoors:
+            backdoor_cfg["static_patch"] = configure_static_patch(profile_data, class_names)
+
+        if "blended" in selected_backdoors:
+            backdoor_cfg["blended"] = configure_blended_backdoor(profile_data, class_names)
+
+        if "learned" in selected_backdoors:
+            backdoor_cfg["learned"] = configure_learned_trigger(profile_data, class_names)
+
+        if not backdoor_cfg:
+            print("[!] No backdoor attacks selected.")
+        else:
+            print(f"[*] Backdoor configuration: {backdoor_cfg}")
+            profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
+            profile_data["attack_overrides"]["backdoor"] = backdoor_cfg
 
     with open(profile_path, "w") as f:
         yaml.dump(profile_data, f)

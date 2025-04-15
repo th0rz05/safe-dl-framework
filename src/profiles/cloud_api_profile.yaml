@@ -1,16 +1,13 @@
 attack_overrides:
-  data_poisoning:
-    clean_label:
-      epsilon: 0.1
-      fraction_poison: 0.15
-      max_iterations: 100
-      perturbation_method: feature_collision
-      source_selection: most_confident
-      target_class: 9
+  backdoor:
+    static_patch:
+      patch_size_ratio: 0.15
+      patch_type: white_square
+      poison_fraction: 0.1
+      target_class: 8
 dataset:
   name: cifar10
   type: builtin
-name: cloud_api_profile
 model:
   input_shape:
   - 3
@@ -22,6 +19,7 @@ model:
     conv_filters: 32
     hidden_size: 128
   type: builtin
+name: cloud_api_profile
 threat_model:
   attack_goal: untargeted
   data_sensitivity: high
