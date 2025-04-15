@@ -1,18 +1,19 @@
-# 🛡️ Safe-DL-Framework
+# Safe-DL-Framework
 
 A modular and extensible security framework for deep learning systems, focused on **threat modeling**, **attack simulation**, **defensive strategies**, and **secure deployment**.  
 Created as part of a master’s thesis at FEUP by Tiago Barbosa.
 
 ---
 
-## 📚 Documentation
+## Documentation
 
-- 📄 [Full Framework Overview](docs/framework.md)
-- 🧩 [Module 1 – Threat Modeling](docs/module1.md)
+- [Full Framework Overview](docs/framework.md)
+- [Module 1 – Threat Modeling](docs/module1.md)
+- [Module 2 – Attack Simulation](docs/module2.md)
 
 ---
 
-## 🔍 Key Features
+## Key Features
 
 - Structured **threat modeling** based on attacker goals, data sensitivity, and system architecture
 - Simulation of major attacks: **data poisoning**, **backdoors**, **adversarial examples**, **model stealing**, and more
@@ -22,7 +23,7 @@ Created as part of a master’s thesis at FEUP by Tiago Barbosa.
 
 ---
 
-## 🧱 Modules Overview
+## Modules Overview
 
 1. **Threat Modeling** – Define attacker capabilities and generate a threat profile  
 2. **Attack Simulation** – Launch realistic attacks based on selected threat categories  
@@ -34,7 +35,7 @@ Created as part of a master’s thesis at FEUP by Tiago Barbosa.
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 Clone the repository and install dependencies:
 
@@ -58,7 +59,7 @@ python run_framework.py --profile profiles/my_project.yaml
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 .
@@ -78,13 +79,13 @@ python run_framework.py --profile profiles/my_project.yaml
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 Created by **Tiago Barbosa**, M.Sc. Informatics and Computing Engineering @ FEUP  
 This framework is part of the master's thesis *"Enhancing Security in Deep Neural Networks Against Adversarial Attacks."*
 
 ---
 
-## 📖 License
+## License
 
 This project is licensed under the MIT License.
