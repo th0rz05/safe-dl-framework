@@ -22,24 +22,21 @@ def generate_static_patch_report(json_file, md_file):
 
     lines.append("## Performance Metrics\n")
     lines.append(f"- **Accuracy on Clean Test Set:** {results.get('accuracy_clean_testset'):.4f}")
-    lines.append(f"- **Accuracy on Patched Test Set:** {results.get('accuracy_patched_testset'):.4f}")
     lines.append("")
 
-    lines.append("### Per-Class Accuracy\n")
-    lines.append("| Class | Clean Accuracy | Patched Accuracy |")
-    lines.append("|--------|----------------|------------------|")
-
-    clean_acc = results.get("per_class_clean", {})
-    patched_acc = results.get("per_class_patched", {})
-
-    all_classes = sorted(set(clean_acc.keys()) | set(patched_acc.keys()))
-    for cls in all_classes:
-        acc_clean = clean_acc.get(cls, 0.0)
-        acc_patch = patched_acc.get(cls, 0.0)
-        lines.append(f"| {cls} | {acc_clean:.4f} | {acc_patch:.4f} |")
-
+    lines.append("## Attack Success Rate (ASR)\n")
+    lines.append(f"- **ASR:** {results.get('attack_success_rate'):.4f}")
+    lines.append(f"- **Successful Targeted Predictions:** {results.get('attack_success_numerator')} / {results.get('attack_success_denominator')}")
     lines.append("")
 
+    lines.append("### Per-Class Accuracy (Clean Test Set)\n")
+    lines.append("| Class | Accuracy |")
+    lines.append("|--------|----------|")
+    for cls, acc in results.get("per_class_clean", {}).items():
+        lines.append(f"| {cls} | {acc:.4f} |")
+    lines.append("")
+
+    # Example poisoned samples (images)
     if os.path.exists("results/backdoor/static_patch/examples"):
         example_imgs = [
             f for f in os.listdir("results/backdoor/static_patch/examples") if f.endswith(".png")

@@ -93,18 +93,23 @@ def apply_static_patch(image_tensor, patch_tensor, position="bottom_right"):
 
 def update_poisoned_sample(poisoned_dataset, index, patched_image, target_class):
     """
-    Atualiza uma imagem e label no dataset, independentemente se é built-in ou custom.
+    Atualiza uma imagem e label no dataset, suportando Subset ou Dataset direto.
 
     Args:
-        poisoned_dataset: Subset (com .indices e .dataset)
-        index: índice no subset (não no dataset base)
+        poisoned_dataset: Subset ou Dataset (com .targets e .data)
+        index: índice no subset ou dataset
         patched_image: tensor (C, H, W), valores [0, 1]
         target_class: nova label int
     """
-    dataset = poisoned_dataset.dataset
-    real_idx = poisoned_dataset.indices[index]
+    # Caso seja Subset
+    if hasattr(poisoned_dataset, "dataset") and hasattr(poisoned_dataset, "indices"):
+        dataset = poisoned_dataset.dataset
+        real_idx = poisoned_dataset.indices[index]
+    else:
+        dataset = poisoned_dataset
+        real_idx = index
 
-    # 1. Processar a imagem
+    # Processar imagem para atualizar no dataset
     image_np = patched_image.detach().cpu()
     if image_np.shape[0] in [1, 3]:  # CHW → HWC
         image_np = image_np.permute(1, 2, 0)
@@ -114,7 +119,7 @@ def update_poisoned_sample(poisoned_dataset, index, patched_image, target_class)
 
     image_np = image_np.byte().numpy()
 
-    # 2. Atualizar imagem
+    # Atualizar imagem
     if hasattr(dataset, "data") and isinstance(dataset.data, np.ndarray):
         dataset.data[real_idx] = image_np
     elif hasattr(dataset, "data") and isinstance(dataset.data, torch.Tensor):
@@ -127,11 +132,12 @@ def update_poisoned_sample(poisoned_dataset, index, patched_image, target_class)
     else:
         raise TypeError("Unsupported dataset type: cannot update poisoned sample.")
 
-    # 3. Atualizar label
+    # Atualizar label
     if hasattr(dataset, "targets"):
         if isinstance(dataset.targets, torch.Tensor):
             dataset.targets[real_idx] = target_class
         elif isinstance(dataset.targets, list):
             dataset.targets[real_idx] = target_class
+
 
 
