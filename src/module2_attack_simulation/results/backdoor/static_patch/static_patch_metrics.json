@@ -1,0 +1,62 @@
+{
+  "attack_type": "static_patch",
+  "patch_type": "random_noise",
+  "patch_size_ratio": 0.15,
+  "patch_position": "top_left",
+  "poison_fraction": 0.1,
+  "target_class": 7,
+  "target_class_name": "horse",
+  "accuracy_clean_testset": 0.6177,
+  "per_class_clean": {
+    "airplane": 0.627,
+    "automobile": 0.761,
+    "bird": 0.438,
+    "cat": 0.326,
+    "deer": 0.49,
+    "dog": 0.654,
+    "frog": 0.607,
+    "horse": 0.738,
+    "ship": 0.812,
+    "truck": 0.724
+  },
+  "attack_success_rate": 0.9671111111111111,
+  "attack_success_numerator": 8704,
+  "attack_success_denominator": 9000,
+  "example_poisoned_samples": [
+    {
+      "index": 43115,
+      "target_class": 7,
+      "target_class_name": "horse",
+      "perturbation_norm": 1.2409776449203491,
+      "example_image_path": "results/backdoor/static_patch/examples/poison_43115_horse.png"
+    },
+    {
+      "index": 31094,
+      "target_class": 7,
+      "target_class_name": "horse",
+      "perturbation_norm": 1.16720712184906,
+      "example_image_path": "results/backdoor/static_patch/examples/poison_31094_horse.png"
+    },
+    {
+      "index": 5598,
+      "target_class": 7,
+      "target_class_name": "horse",
+      "perturbation_norm": 1.584923505783081,
+      "example_image_path": "results/backdoor/static_patch/examples/poison_5598_horse.png"
+    },
+    {
+      "index": 6096,
+      "target_class": 7,
+      "target_class_name": "horse",
+      "perturbation_norm": 1.458009123802185,
+      "example_image_path": "results/backdoor/static_patch/examples/poison_6096_horse.png"
+    },
+    {
+      "index": 36180,
+      "target_class": 7,
+      "target_class_name": "horse",
+      "perturbation_norm": 1.37090265750885,
+      "example_image_path": "results/backdoor/static_patch/examples/poison_36180_horse.png"
+    }
+  ]
+}
