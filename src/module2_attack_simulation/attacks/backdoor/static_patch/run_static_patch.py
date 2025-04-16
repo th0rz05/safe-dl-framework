@@ -101,7 +101,6 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
     patched_testset = deepcopy(testset)
     asr_success = 0
     asr_total = 0
-    patched_images = []
 
     device = next(model.parameters()).device
     model.eval()
@@ -113,19 +112,10 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
             patch = generate_patch(patch_type, patch_size, image, patch_position)
         patched_img = apply_static_patch(image.clone(), patch.clone(), position=patch_position)
 
-        #show the patched image with plt
-        plt.figure(figsize=(2, 2))
-        plt.imshow(patched_img.permute(1, 2, 0).cpu().numpy())
-        plt.axis('off')
-        plt.title(f"Patched sample idx {idx}")
-        plt.show()  # mostra a imagem
-
         # ASR evaluation
         if label != target_class:
-            print(f"[+] Evaluating patched test sample {idx} (original label: {label})")
             with torch.no_grad():
                 pred = model(patched_img.unsqueeze(0).to(device)).argmax(dim=1).item()
-                print(f"[+] Predicted label: {pred} ({class_names[pred]})")
                 asr_total += 1
                 if pred == target_class:
                     asr_success += 1
