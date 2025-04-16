@@ -82,6 +82,17 @@ def run_attacks(profile,trainset, testset, valset, class_names):
 
             run_clean_label(trainset,testset,valset,clean_label_model, profile, class_names)
 
+    if "backdoor_attacks" in threat_categories:
+        print("[*] Running Backdoor attacks...")
+
+        backdoor_attacks = profile.get("attack_overrides", {}).get("backdoor", {})
+
+        if "static_patch" in backdoor_attacks:
+            print("  - Executing Static Patch...")
+            from attacks.backdoor.static_patch.run_static_patch import run_static_patch
+
+            static_patch_model = load_model_cfg_from_profile(profile)
+            run_static_patch(trainset, testset, valset, static_patch_model, profile, class_names)
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
