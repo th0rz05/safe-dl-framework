@@ -1,11 +1,13 @@
 attack_overrides:
   backdoor:
     static_patch:
-      patch_position: top_left
+      blend_alpha: 1.0
+      label_mode: corrupted
+      patch_position: bottom_right
       patch_size_ratio: 0.15
-      patch_type: random_noise
+      patch_type: white_square
       poison_fraction: 0.1
-      target_class: 7
+      target_class: 3
 dataset:
   name: cifar10
   type: builtin

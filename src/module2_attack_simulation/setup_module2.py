@@ -274,6 +274,8 @@ def configure_static_patch(profile_data, class_names):
     patch_type = "white_square"
     poison_fraction = 0.1 if data_source == "external_public" else 0.05
     patch_position = "bottom_right"
+    label_mode = "corrupted"
+    blend_alpha = 1.0  # full visibility
 
     # === Show Suggestions ===
     print("Suggested configuration:")
@@ -282,6 +284,8 @@ def configure_static_patch(profile_data, class_names):
     print(f"  - Patch size (relative): {patch_size_ratio}")
     print(f"  - Poison fraction: {poison_fraction}")
     print(f"  - Patch position: {patch_position}")
+    print(f"  - Label mode: {label_mode}")
+    print(f"  - Blend alpha: {blend_alpha}")
 
     if not questionary.confirm("Do you want to accept these suggestions?").ask():
         class_options = [f"{i} – {name}" for i, name in enumerate(class_names)]
@@ -306,21 +310,22 @@ def configure_static_patch(profile_data, class_names):
         patch_size_ratio = float(questionary.text("Patch size (as ratio of image width, e.g., 0.2):", default=str(patch_size_ratio)).ask())
         poison_fraction = float(questionary.text("Poisoning fraction (e.g., 0.1):", default=str(poison_fraction)).ask())
 
+        label_mode = questionary.select(
+            "Select label mode:",
+            choices=["corrupted", "clean"]
+        ).ask()
+
+        blend_alpha = float(questionary.text("Blending alpha (0.0 to 1.0):",
+                                             default=str(blend_alpha)).ask())
+
     return {
         "target_class": target_class,
         "patch_type": patch_type,
         "patch_position": patch_position,
         "patch_size_ratio": patch_size_ratio,
-        "poison_fraction": poison_fraction
-    }
-
-
-def configure_blended_backdoor(profile_data,class_names):
-    print("\n=== Configuring Blended Trigger Backdoor ===")
-    return {
-        "target_class": 0,
-        "poison_fraction": 0.1,
-        "blend_alpha": 0.2
+        "poison_fraction": poison_fraction,
+        "label_mode": label_mode,
+        "blend_alpha": blend_alpha
     }
 
 def configure_learned_trigger(profile_data,class_names):
@@ -386,7 +391,6 @@ def run_setup():
             "Select the backdoor attacks to simulate:",
             choices=[
                 Choice("Static Patch Trigger", value="static_patch"),
-                Choice("Blended Trigger", value="blended"),
                 Choice("Adversarially Learned Trigger", value="learned")
             ]
         ).ask()
@@ -395,9 +399,6 @@ def run_setup():
 
         if "static_patch" in selected_backdoors:
             backdoor_cfg["static_patch"] = configure_static_patch(profile_data, class_names)
-
-        if "blended" in selected_backdoors:
-            backdoor_cfg["blended"] = configure_blended_backdoor(profile_data, class_names)
 
         if "learned" in selected_backdoors:
             backdoor_cfg["learned"] = configure_learned_trigger(profile_data, class_names)
