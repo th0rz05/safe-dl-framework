@@ -8,7 +8,7 @@ import torch
 
 import matplotlib.pyplot as plt
 
-from attacks.backdoor.static_patch.patch_utils import generate_patch, apply_static_patch, update_poisoned_sample
+from attacks.backdoor.patch_utils import generate_patch, apply_static_patch, update_poisoned_sample
 from attacks.utils import train_model, evaluate_model, get_class_labels
 
 from attacks.backdoor.static_patch.generate_static_patch_report import generate_static_patch_report

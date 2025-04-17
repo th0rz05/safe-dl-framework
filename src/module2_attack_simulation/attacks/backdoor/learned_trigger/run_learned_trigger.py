@@ -6,7 +6,7 @@ from copy import deepcopy
 import matplotlib.pyplot as plt
 
 from attacks.utils import train_model, evaluate_model
-from attacks.backdoor.static_patch.patch_utils import initialize_learned_trigger, apply_learned_trigger,update_poisoned_sample
+from attacks.backdoor.patch_utils import initialize_learned_trigger, apply_learned_trigger,update_poisoned_sample
 
 
 def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
