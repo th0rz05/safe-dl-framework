@@ -328,15 +328,79 @@ def configure_static_patch(profile_data, class_names):
         "blend_alpha": blend_alpha
     }
 
-def configure_learned_trigger(profile_data,class_names):
-    print("\n=== Configuring Adversarially Learned Trigger ===")
+def configure_learned_trigger(profile_data, class_names):
+    print("\n=== Configuring Adversarially Learned Trigger ===\n")
+
+    cfg = profile_data.get("threat_model", {})
+    goal = cfg.get("attack_goal", "targeted")
+    data_source = cfg.get("training_data_source", "internal_clean")
+    num_classes = profile_data.get("model", {}).get("num_classes", len(class_names))
+    classes = list(range(num_classes))
+
+    # === Default Suggestions ===
+    if goal == "targeted":
+        target_class = random.randint(0, num_classes - 1)
+    else:
+        target_class = random.randint(0, num_classes - 1)
+        print("[!] Warning: Learned trigger attacks are typically used in targeted settings. Proceeding with untargeted as requested.")
+
+    patch_size_ratio = 0.1 if data_source == "user_generated" else 0.05
+    poison_fraction = 0.1 if data_source == "external_public" else 0.05
+    blend_alpha = 1.0  # full visibility by default
+    patch_position = "bottom_right"
+    learning_rate = 0.1
+    epochs = 5
+    label_mode = "corrupted"
+
+    # === Show Suggestions ===
+    print("Suggested configuration:")
+    print(f"  - Target class: {target_class} – {class_names[target_class]}")
+    print(f"  - Patch size ratio: {patch_size_ratio}")
+    print(f"  - Poison fraction: {poison_fraction}")
+    print(f"  - Patch position: {patch_position}")
+    print(f"  - Blend alpha: {blend_alpha}")
+    print(f"  - Label mode: {label_mode}")
+    print(f"  - Learning rate: {learning_rate}")
+    print(f"  - Epochs: {epochs}")
+
+    if not questionary.confirm("Do you want to accept these suggestions?").ask():
+        class_options = [f"{i} – {name}" for i, name in enumerate(class_names)]
+
+        if questionary.confirm("Pick target class randomly?", default=True).ask():
+            target_class = random.choice(classes)
+        else:
+            target_class_str = questionary.select("Select target class (to misclassify as):", choices=class_options).ask()
+            target_class = int(target_class_str.split(" ")[0])
+
+        patch_size_ratio = float(questionary.text("Patch size ratio (e.g., 0.1):", default=str(patch_size_ratio)).ask())
+        poison_fraction = float(questionary.text("Poisoning fraction (e.g., 0.1):", default=str(poison_fraction)).ask())
+
+        patch_position = questionary.select(
+            "Select patch position:",
+            choices=["bottom_right", "bottom_left", "top_right", "top_left", "center"]
+        ).ask()
+
+        blend_alpha = float(questionary.text("Blending alpha (0.0 to 1.0):", default=str(blend_alpha)).ask())
+
+        label_mode = questionary.select(
+            "Select label mode:",
+            choices=["corrupted", "clean"]
+        ).ask()
+
+        learning_rate = float(questionary.text("Learning rate for trigger optimization:", default=str(learning_rate)).ask())
+        epochs = int(questionary.text("Number of training epochs for the trigger:", default=str(epochs)).ask())
+
     return {
-        "target_class": 0,
-        "poison_fraction": 0.1,
-        "patch_size": 5,
-        "learning_rate": 0.1,
-        "epochs": 5
+        "target_class": target_class,
+        "patch_size_ratio": patch_size_ratio,
+        "poison_fraction": poison_fraction,
+        "patch_position": patch_position,
+        "blend_alpha": blend_alpha,
+        "label_mode": label_mode,
+        "learning_rate": learning_rate,
+        "epochs": epochs
     }
+
 
 
 def run_setup():
