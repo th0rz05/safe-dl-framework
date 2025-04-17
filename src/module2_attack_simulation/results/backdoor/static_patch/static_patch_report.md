@@ -3,42 +3,44 @@
 ## Overview
 
 - **Attack Type:** static_patch
-- **Patch Type:** random_noise
+- **Patch Type:** white_square
 - **Patch Size Ratio:** 0.15
-- **Patch Position:** top_left
-- **Poisoned Fraction:** 0.1
-- **Target Class:** 7 (horse)
+- **Patch Position:** bottom_right
+- **Poisoned Fraction:** 0.05
+- **Label Mode:** clean
+- **Blending Alpha:** 0.25
+- **Target Class:** 3 (cat)
 
 ## Performance Metrics
 
-- **Accuracy on Clean Test Set:** 0.6177
+- **Accuracy on Clean Test Set:** 0.6058
 
 ## Attack Success Rate (ASR)
 
-- **ASR:** 0.9671
-- **Successful Targeted Predictions:** 8704 / 9000
+- **ASR:** 0.7799
+- **Successful Targeted Predictions:** 7019 / 9000
 
 ### Per-Class Accuracy (Clean Test Set)
 
 | Class | Accuracy |
 |--------|----------|
-| airplane | 0.6270 |
-| automobile | 0.7610 |
-| bird | 0.4380 |
-| cat | 0.3260 |
-| deer | 0.4900 |
-| dog | 0.6540 |
-| frog | 0.6070 |
-| horse | 0.7380 |
-| ship | 0.8120 |
-| truck | 0.7240 |
+| airplane | 0.5940 |
+| automobile | 0.8360 |
+| bird | 0.4790 |
+| cat | 0.3350 |
+| deer | 0.5360 |
+| dog | 0.3650 |
+| frog | 0.8140 |
+| horse | 0.7480 |
+| ship | 0.8570 |
+| truck | 0.4940 |
 
 ## Example Poisoned Samples
 
 <div style="display: flex; gap: 10px;">
-<div style="text-align: center;"><small><strong>poison_43115_horse.png</strong></small><br><img src="examples/poison_43115_horse.png" alt="poison_43115_horse.png" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>poison_31094_horse.png</strong></small><br><img src="examples/poison_31094_horse.png" alt="poison_31094_horse.png" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>poison_36180_horse.png</strong></small><br><img src="examples/poison_36180_horse.png" alt="poison_36180_horse.png" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>poison_6096_horse.png</strong></small><br><img src="examples/poison_6096_horse.png" alt="poison_6096_horse.png" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>poison_5598_horse.png</strong></small><br><img src="examples/poison_5598_horse.png" alt="poison_5598_horse.png" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>poison_11996_cat.png</strong></small><br><img src="examples/poison_11996_cat.png" alt="poison_11996_cat.png" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>poison_31950_cat.png</strong></small><br><img src="examples/poison_31950_cat.png" alt="poison_31950_cat.png" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>poison_12137_cat.png</strong></small><br><img src="examples/poison_12137_cat.png" alt="poison_12137_cat.png" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>poison_43958_cat.png</strong></small><br><img src="examples/poison_43958_cat.png" alt="poison_43958_cat.png" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>poison_5934_cat.png</strong></small><br><img src="examples/poison_5934_cat.png" alt="poison_5934_cat.png" style="width: 120px;"></div>
 </div>
