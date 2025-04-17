@@ -15,6 +15,8 @@ def generate_static_patch_report(json_file, md_file):
     lines.append(f"- **Patch Size Ratio:** {results.get('patch_size_ratio')}")
     lines.append(f"- **Patch Position:** {results.get('patch_position')}")
     lines.append(f"- **Poisoned Fraction:** {results.get('poison_fraction')}")
+    lines.append(f"- **Label Mode:** {results.get('label_mode')}")
+    lines.append(f"- **Blending Alpha:** {results.get('blend_alpha')}")
     lines.append(f"- **Target Class:** {results.get('target_class')} ({results.get('target_class_name')})")
     if "avg_perturbation_norm" in results:
         lines.append(f"- **Average Perturbation Norm:** {results.get('avg_perturbation_norm'):.4f}")

@@ -24,6 +24,8 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
     poison_fraction = attack_cfg.get("poison_fraction", 0.1)
     target_class = attack_cfg.get("target_class")
     patch_position = attack_cfg.get("patch_position", "bottom_right")
+    label_mode = attack_cfg.get("label_mode", "corrupted")
+    blend_alpha = attack_cfg.get("blend_alpha", 1.0)
 
     input_shape = profile.get("model", {}).get("input_shape", [3, 32, 32])
     _, H, W = input_shape
@@ -41,8 +43,14 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
 
     # === Poison the training set ===
     poisoned_trainset = deepcopy(trainset)
+    if label_mode == "clean":
+        eligible_indices = [i for i in range(len(poisoned_trainset)) if poisoned_trainset[i][1] == target_class]
+    else:
+        eligible_indices = list(range(len(poisoned_trainset)))
+
     total_poison = int(len(poisoned_trainset) * poison_fraction)
-    poison_indices = random.sample(range(len(poisoned_trainset)), total_poison)
+    poison_indices = random.sample(eligible_indices, min(total_poison, len(eligible_indices)))
+
     count = 0
 
     # Delete examples from the previous runs
@@ -57,14 +65,16 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
 
 
     for idx in poison_indices:
+        image, label = poisoned_trainset[idx]
+
         if patch_type == "random_noise":
             # Generate a random noise patch for each image in poisoned set
-            image, _ = poisoned_trainset[idx]
             patch = generate_patch(patch_type, patch_size, image, patch_position)
 
-        image, _ = poisoned_trainset[idx]
-        patched_img = apply_static_patch(image.clone(), patch.clone(), position=patch_position)
-        update_poisoned_sample(poisoned_trainset, idx, patched_img, target_class)
+        patched_img = apply_static_patch(image.clone(), patch.clone(), position=patch_position, blend_alpha=blend_alpha)
+
+        new_label = label if label_mode == "clean" else target_class
+        update_poisoned_sample(poisoned_trainset, idx, patched_img, new_label)
 
         perturbation_norm = torch.norm((patched_img - image).flatten(), p=2).item()
 
@@ -86,7 +96,10 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
 
         count += 1
 
-    print(f"[+] Inserted patch in {total_poison} training samples. All relabeled to class {target_class} ({class_names[target_class]}).")
+    if label_mode == "corrupted":
+        print(f"[+] Inserted patch in {total_poison} training samples. All relabeled to class {target_class} "f"({class_names[target_class]}).")
+    else:
+        print(f"[+] Inserted patch in {total_poison} training samples. Labels remain unchanged.")
 
     # === Train the poisoned model ===
     print("[*] Training model on poisoned dataset...")
@@ -131,6 +144,8 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
         "patch_size_ratio": patch_size_ratio,
         "patch_position": patch_position,
         "poison_fraction": poison_fraction,
+        "label_mode": label_mode,
+        "blend_alpha": blend_alpha,
         "target_class": target_class,
         "target_class_name": class_names[target_class],
         "accuracy_clean_testset": clean_acc,

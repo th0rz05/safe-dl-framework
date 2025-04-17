@@ -53,7 +53,7 @@ def generate_patch(patch_type, size, image_tensor=None, position="bottom_right")
         raise ValueError(f"Unknown patch type: {patch_type}")
 
 
-def apply_static_patch(image_tensor, patch_tensor, position="bottom_right"):
+def apply_static_patch(image_tensor, patch_tensor, position="bottom_right",blend_alpha=None):
     """
     Applies the given patch to the image tensor at the specified position.
 
@@ -61,6 +61,7 @@ def apply_static_patch(image_tensor, patch_tensor, position="bottom_right"):
         image_tensor (Tensor): shape (C, H, W)
         patch_tensor (Tensor): shape (C, h, w)
         position (str): one of ["bottom_right", "bottom_left", "top_right", "top_left", "center"]
+        blend_alpha (float): blending factor for alpha blending (optional)
 
     Returns:
         Tensor: image with patch applied
@@ -86,9 +87,17 @@ def apply_static_patch(image_tensor, patch_tensor, position="bottom_right"):
     else:
         raise ValueError(f"Unknown patch position: {position}")
 
-    # Apply patch
-    image_tensor[:, y_start:y_start + h, x_start:x_start + w] = patch_tensor
-    return image_tensor
+    patched_image = image_tensor.clone()
+
+    # === Blending logic ===
+    if blend_alpha is not None and 0.0 < blend_alpha < 1.0:
+        region = patched_image[:, y_start:y_start + h, x_start:x_start + w]
+        blended = (1 - blend_alpha) * region + blend_alpha * patch_tensor
+        patched_image[:, y_start:y_start + h, x_start:x_start + w] = blended
+    else:
+        patched_image[:, y_start:y_start + h, x_start:x_start + w] = patch_tensor
+
+    return patched_image
 
 
 def update_poisoned_sample(poisoned_dataset, index, patched_image, target_class):
