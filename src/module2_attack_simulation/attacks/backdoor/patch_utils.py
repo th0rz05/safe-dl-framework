@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import torch.nn as nn
 
 def generate_patch(patch_type, size, image_tensor=None, position="bottom_right"):
     """
@@ -147,6 +148,70 @@ def update_poisoned_sample(poisoned_dataset, index, patched_image, target_class)
             dataset.targets[real_idx] = target_class
         elif isinstance(dataset.targets, list):
             dataset.targets[real_idx] = target_class
+
+
+def initialize_learned_trigger(input_shape, patch_size_ratio=0.15):
+    """
+    Initializes a learnable trigger and mask based on a relative patch size.
+
+    Args:
+        input_shape (list or tuple): The input shape of the images, e.g., [3, 32, 32]
+        patch_size_ratio (float): Ratio of the width/height the patch should occupy
+
+    Returns:
+        trigger (nn.Parameter): learnable trigger tensor
+        mask (nn.Parameter): learnable mask tensor
+    """
+    C, H, W = input_shape
+    patch_H, patch_W = int(H * patch_size_ratio), int(W * patch_size_ratio)
+
+    # Create a trigger and mask with same spatial size, and enable gradients
+    trigger = nn.Parameter(torch.rand((C, patch_H, patch_W)))
+    mask = nn.Parameter(torch.full((1, patch_H, patch_W), 0.5))  # grayscale mask [0,1]
+
+    return trigger, mask
+
+
+def apply_learned_trigger(image, trigger, mask, position="bottom_right", blend_alpha=1.0):
+    """
+    Applies the learned trigger and mask to a given image at the specified position.
+
+    Args:
+        image (Tensor): input image (C, H, W)
+        trigger (Tensor): learned trigger (C, h, w)
+        mask (Tensor): mask tensor (1, h, w), values in [0, 1]
+        position (str): where to apply the patch ("bottom_right", etc.)
+        blend_alpha (float): how much of the trigger to blend (0 = invisible, 1 = full)
+
+    Returns:
+        Tensor: Patched image
+    """
+    C, H, W = image.shape
+    _, h, w = trigger.shape
+
+    if position == "bottom_right":
+        x_start = W - w
+        y_start = H - h
+    elif position == "bottom_left":
+        x_start = 0
+        y_start = H - h
+    elif position == "top_right":
+        x_start = W - w
+        y_start = 0
+    elif position == "top_left":
+        x_start = 0
+        y_start = 0
+    elif position == "center":
+        x_start = (W - w) // 2
+        y_start = (H - h) // 2
+    else:
+        raise ValueError(f"Unknown patch position: {position}")
+
+    patched = image.clone()
+    region = patched[:, y_start:y_start + h, x_start:x_start + w]
+    blended = (1 - mask) * region + mask * trigger
+    patched[:, y_start:y_start + h, x_start:x_start + w] = blend_alpha * blended + (1 - blend_alpha) * region
+    return patched
 
 
 
