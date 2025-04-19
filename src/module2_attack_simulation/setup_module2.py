@@ -328,78 +328,110 @@ def configure_static_patch(profile_data, class_names):
         "blend_alpha": blend_alpha
     }
 
+import random
+import questionary
+
 def configure_learned_trigger(profile_data, class_names):
     print("\n=== Configuring Adversarially Learned Trigger ===\n")
 
+    # Load threat-model context
     cfg = profile_data.get("threat_model", {})
-    goal = cfg.get("attack_goal", "targeted")
     data_source = cfg.get("training_data_source", "internal_clean")
+
+    # Determine number of classes
     num_classes = profile_data.get("model", {}).get("num_classes", len(class_names))
-    classes = list(range(num_classes))
 
     # === Default Suggestions ===
-    if goal == "targeted":
-        target_class = random.randint(0, num_classes - 1)
-    else:
-        target_class = random.randint(0, num_classes - 1)
-        print("[!] Warning: Learned trigger attacks are typically used in targeted settings. Proceeding with untargeted as requested.")
-
+    target_class     = random.randint(0, num_classes - 1)
     patch_size_ratio = 0.1 if data_source == "user_generated" else 0.05
-    poison_fraction = 0.1 if data_source == "external_public" else 0.05
-    blend_alpha = 1.0  # full visibility by default
-    patch_position = "bottom_right"
-    learning_rate = 0.1
-    epochs = 5
-    label_mode = "corrupted"
+    poison_fraction  = 0.05
+    learning_rate    = 0.1
+    epochs           = 30
+    lambda_mask      = 0.001
+    lambda_tv        = 0.01
+    label_mode       = "corrupted"  # forced
 
-    # === Show Suggestions ===
+    # === Show Defaults ===
     print("Suggested configuration:")
-    print(f"  - Target class: {target_class} – {class_names[target_class]}")
-    print(f"  - Patch size ratio: {patch_size_ratio}")
-    print(f"  - Poison fraction: {poison_fraction}")
-    print(f"  - Patch position: {patch_position}")
-    print(f"  - Blend alpha: {blend_alpha}")
-    print(f"  - Label mode: {label_mode}")
-    print(f"  - Learning rate: {learning_rate}")
-    print(f"  - Epochs: {epochs}")
+    print(f"  • Target class       : {target_class} – {class_names[target_class]}")
+    print(f"  • Patch size ratio   : {patch_size_ratio}")
+    print(f"  • Poison fraction    : {poison_fraction}")
+    print(f"  • Label mode         : {label_mode} (fixed)")
+    print(f"  • Learning rate      : {learning_rate}")
+    print(f"  • Optimization epochs: {epochs}")
+    print(f"  • Mask L1 weight     : {lambda_mask}")
+    print(f"  • TV regularization  : {lambda_tv}")
 
-    if not questionary.confirm("Do you want to accept these suggestions?").ask():
-        class_options = [f"{i} – {name}" for i, name in enumerate(class_names)]
+    # Ask for confirmation
+    if not questionary.confirm("Do you want to accept these defaults?").ask():
+        # Target class selection
+        target_class = int(
+            questionary.select(
+                "Select target class (to misclassify as):",
+                choices=[f"{i} – {name}" for i, name in enumerate(class_names)],
+                default=f"{target_class} – {class_names[target_class]}"
+            ).ask().split(" ")[0]
+        )
 
-        if questionary.confirm("Pick target class randomly?", default=True).ask():
-            target_class = random.choice(classes)
-        else:
-            target_class_str = questionary.select("Select target class (to misclassify as):", choices=class_options).ask()
-            target_class = int(target_class_str.split(" ")[0])
+        # Patch size ratio
+        patch_size_ratio = float(
+            questionary.text(
+                "Patch size ratio (fraction of image, e.g. 0.05):",
+                default=str(patch_size_ratio)
+            ).ask()
+        )
 
-        patch_size_ratio = float(questionary.text("Patch size ratio (e.g., 0.1):", default=str(patch_size_ratio)).ask())
-        poison_fraction = float(questionary.text("Poisoning fraction (e.g., 0.1):", default=str(poison_fraction)).ask())
+        # Poison fraction
+        poison_fraction = float(
+            questionary.text(
+                "Poisoning fraction (e.g. 0.05):",
+                default=str(poison_fraction)
+            ).ask()
+        )
 
-        patch_position = questionary.select(
-            "Select patch position:",
-            choices=["bottom_right", "bottom_left", "top_right", "top_left", "center"]
-        ).ask()
+        # Learning rate
+        learning_rate = float(
+            questionary.text(
+                "Learning rate for trigger optimization:",
+                default=str(learning_rate)
+            ).ask()
+        )
 
-        blend_alpha = float(questionary.text("Blending alpha (0.0 to 1.0):", default=str(blend_alpha)).ask())
+        # Epochs
+        epochs = int(
+            questionary.text(
+                "Number of optimization epochs:",
+                default=str(epochs)
+            ).ask()
+        )
 
-        label_mode = questionary.select(
-            "Select label mode:",
-            choices=["corrupted", "clean"]
-        ).ask()
+        # Mask regularization weight
+        lambda_mask = float(
+            questionary.text(
+                "L1 weight for mask regularization:",
+                default=str(lambda_mask)
+            ).ask()
+        )
 
-        learning_rate = float(questionary.text("Learning rate for trigger optimization:", default=str(learning_rate)).ask())
-        epochs = int(questionary.text("Number of training epochs for the trigger:", default=str(epochs)).ask())
+        # TV regularization weight
+        lambda_tv = float(
+            questionary.text(
+                "Weight for total variation regularization:",
+                default=str(lambda_tv)
+            ).ask()
+        )
 
     return {
-        "target_class": target_class,
-        "patch_size_ratio": patch_size_ratio,
-        "poison_fraction": poison_fraction,
-        "patch_position": patch_position,
-        "blend_alpha": blend_alpha,
-        "label_mode": label_mode,
-        "learning_rate": learning_rate,
-        "epochs": epochs
+        "target_class"      : target_class,
+        "patch_size_ratio"  : patch_size_ratio,
+        "poison_fraction"   : poison_fraction,
+        "label_mode"        : label_mode,
+        "learning_rate"     : learning_rate,
+        "epochs"            : epochs,
+        "lambda_mask"       : lambda_mask,
+        "lambda_tv"         : lambda_tv
     }
+
 
 
 

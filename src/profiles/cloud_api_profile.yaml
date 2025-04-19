@@ -1,14 +1,14 @@
 attack_overrides:
   backdoor:
     learned:
-      blend_alpha: 1.0
-      epochs: 5
+      epochs: 30
       label_mode: corrupted
+      lambda_mask: 0.001
+      lambda_tv: 0.01
       learning_rate: 0.1
-      patch_position: bottom_right
       patch_size_ratio: 0.1
       poison_fraction: 0.1
-      target_class: 7
+      target_class: 8
 dataset:
   name: cifar10
   type: builtin
