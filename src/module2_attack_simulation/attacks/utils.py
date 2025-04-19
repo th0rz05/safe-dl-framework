@@ -7,74 +7,115 @@ import shutil
 
 from model_loader import load_user_model, get_builtin_model
 
+from tqdm.auto import tqdm
 
-def train_model(model, trainset, valset=None, epochs=3, batch_size=64, class_names=None):
+
+def train_model(model,
+                trainset,
+                valset=None,
+                epochs=3,
+                batch_size=64,
+                class_names=None,
+                lr=1e-2,
+                silent=False):
+    """
+    Standard training loop with tqdm progress bars.
+
+    Args
+    ----
+    model : nn.Module
+    trainset / valset : torch.utils.data.Dataset
+    epochs : int
+    batch_size : int
+    lr : float            Adam learning‑rate
+    silent : bool         True → suppress progress bars (for unit tests)
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = nn.CrossEntropyLoss()
 
     train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(valset, batch_size=batch_size) if valset else None
+    val_loader   = DataLoader(valset,   batch_size=batch_size) if valset else None
 
-    for epoch in range(epochs):
+    # epoch loop
+    for ep in range(1, epochs + 1):
         model.train()
         running_loss = 0.0
-        for x, y in train_loader:
+
+        it = train_loader if silent else tqdm(train_loader,
+                                              desc=f"[Train] Epoch {ep}/{epochs}",
+                                              leave=False)
+        for x, y in it:
             x, y = x.to(device), y.to(device)
+
             optimizer.zero_grad()
             loss = criterion(model(x), y)
             loss.backward()
             optimizer.step()
+
             running_loss += loss.item()
-        
-        print(f"Epoch {epoch+1}: Train loss = {running_loss:.4f}")
 
+        print(f"Epoch {ep:02d}: Train loss = {running_loss:.4f}")
+
+        # optional validation
         if val_loader:
-            acc, per_class_accuracy = evaluate_model(model, valset, class_names=class_names)
-            print(f"Epoch {epoch+1}: Validation accuracy = {acc:.4f}")
+            acc, _ = evaluate_model(model,
+                                    valset,
+                                    class_names=class_names,
+                                    silent=silent,
+                                    prefix=f"[Val]   Epoch {ep}/{epochs}")
+            print(f"Epoch {ep:02d}: Validation accuracy = {acc:.4f}")
 
-def evaluate_model(model, dataset, class_names=None):
-    
+def evaluate_model(model,
+                   dataset,
+                   class_names=None,
+                   batch_size=64,
+                   silent=False,
+                   prefix="[Eval]"):
+    """
+    Evaluate accuracy + per‑class accuracy with tqdm.
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-    model.eval()
-    loader = DataLoader(dataset, batch_size=64)
+    model.to(device).eval()
 
-    total = 0
-    correct = 0
+    loader = DataLoader(dataset, batch_size=batch_size)
+
+    total = correct = 0
     class_correct = {}
-    class_total = {}
+    class_total   = {}
+
+    iterator = loader if silent else tqdm(loader, desc=prefix, leave=False)
 
     with torch.no_grad():
-        for x, y in loader:
+        for x, y in iterator:
             x, y = x.to(device), y.to(device)
+
             preds = model(x).argmax(1)
 
-            total += y.size(0)
+            total   += y.size(0)
             correct += (preds == y).sum().item()
 
-            for label, prediction in zip(y, preds):
+            for label, pred in zip(y, preds):
                 label = int(label)
-                pred = int(prediction)
-
-                class_total[label] = class_total.get(label, 0) + 1
-                if label == pred:
+                class_total[label]   = class_total.get(label, 0) + 1
+                if pred == label:
                     class_correct[label] = class_correct.get(label, 0) + 1
 
     overall_acc = correct / total
-    print(f"[+] Overall accuracy: {overall_acc:.4f}")
+    print(f"{prefix} Overall accuracy: {overall_acc:.4f}")
 
-    per_class_accuracy = {}
-    for cls in sorted(class_total.keys()):
-        total_c = class_total[cls]
-        correct_c = class_correct.get(cls, 0)
-        acc = correct_c / total_c if total_c > 0 else 0.0
+    per_class_acc = {}
+    for cls in sorted(class_total):
+        tot = class_total[cls]
+        cor = class_correct.get(cls, 0)
+        acc = cor / tot if tot else 0.0
         name = class_names[cls] if class_names else str(cls)
-        per_class_accuracy[name] = round(acc, 4)
-        print(f"  - {name} (class {cls}): {acc:.4f} ({correct_c}/{total_c})")
+        per_class_acc[name] = round(acc, 4)
+        print(f"  - {name:>10} : {acc:.4f} ({cor}/{tot})")
 
-    return overall_acc, per_class_accuracy
+    return overall_acc, per_class_acc
 
 
 
