@@ -1,11 +1,11 @@
 attack_overrides:
   backdoor:
     learned:
-      epochs: 30
+      epochs: 15
       label_mode: corrupted
       lambda_mask: 0.001
       lambda_tv: 0.01
-      learning_rate: 0.1
+      learning_rate: 0.01
       patch_size_ratio: 0.1
       poison_fraction: 0.1
       target_class: 8
