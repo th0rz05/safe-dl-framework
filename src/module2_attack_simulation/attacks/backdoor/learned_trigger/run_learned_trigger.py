@@ -1,19 +1,14 @@
 import os
 import json
-from itertools import count
-from tqdm import tqdm
-from copy import deepcopy
-import matplotlib.pyplot as plt
-"""
+
 from attacks.utils import train_model, evaluate_model, load_model
-from attacks.backdoor.patch_utils import initialize_trigger_and_mask, apply_learned_trigger,update_poisoned_sample, visualize_trigger_mask_patch
-"""
+from attacks.backdoor.patch_utils import apply_trigger, mask_l1_loss, total_variation_loss, save_trigger_visualization
 
 import random
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
-from ..patch_utils import apply_trigger, mask_l1_loss, total_variation_loss
+from torch.utils.data import DataLoader, Dataset
+from tqdm.auto import tqdm
 
 
 def select_poison_indices(trainset, poison_fraction, class_names, target_class):
@@ -57,9 +52,9 @@ def optimize_trigger(trainset, model, T, M,
 
     loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
 
-    for epoch in range(epochs):
+    for epoch in tqdm(range(epochs), desc="Trigger Epochs"):
         epoch_loss = 0.0
-        for x, _ in loader:
+        for x, _ in tqdm(loader, desc=f"Epoch {epoch+1}/{epochs}", leave=False):
             x = x.to(device)
             # apply current trigger+mask
             x_p = apply_trigger(x, T, M)
@@ -78,185 +73,128 @@ def optimize_trigger(trainset, model, T, M,
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
-        print(f"[LearnedTrigger] Epoch {epoch+1}/{epochs} loss={epoch_loss:.4f}")
+
+        tqdm.write(f"[LearnedTrigger] Epoch {epoch+1}/{epochs} loss={epoch_loss:.4f}")
 
     return T.detach().cpu(), M.detach().cpu()
 
-# Test for optimize_trigger
-def test_optimize_trigger():
-    # Dummy dataset of 10 random RGB 8x8 images
-    class DummyDataset(torch.utils.data.Dataset):
-        def __init__(self):
-            self.data = torch.randn(10, 3, 8, 8)
-            self.targets = [0]*10
-        def __getitem__(self, idx):
-            return self.data[idx], self.targets[idx]
+def create_poisoned_dataset(trainset, poison_indices, T, M, label_mode, target_class):
+    """
+    Wrap trainset to apply trigger T with mask M on specified indices.
+    label_mode: "corrupted" replaces label to target_class; "clean" keeps original.
+    """
+    class PoisonedDataset(Dataset):
+        def __init__(self, base_dataset, poison_idx_set, T, M, label_mode, target_class):
+            self.base = base_dataset
+            self.poison_idx_set = set(poison_idx_set)
+            # Pre-move trigger/mask to CPU; apply_trigger will cast to device of x
+            self.T = T
+            self.M = M
+            self.label_mode = label_mode
+            self.target_class = target_class
+
         def __len__(self):
-            return len(self.data)
+            return len(self.base)
 
-    trainset = DummyDataset()
-    # Simple linear model: 3*8*8 -> 5 classes
-    model = nn.Sequential(nn.Flatten(), nn.Linear(3*8*8, 5))
-    # init small trigger and mask
-    T = torch.zeros(3, 4, 5)
-    M = torch.zeros(1, 4, 5)
+        def __getitem__(self, idx):
+            x, y = self.base[idx]
+            if idx in self.poison_idx_set:
+                # apply trigger
+                x = x.unsqueeze(0)  # [1,C,H,W]
+                x = apply_trigger(x, self.T, self.M)[0]
+                # corrupt label?
+                if self.label_mode == "corrupted":
+                    y = self.target_class
+            return x, y
 
+    return PoisonedDataset(trainset, poison_indices, T, M, label_mode, target_class)
+
+
+def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
+    # 1) Load hyperparams from profile
+    cfg = profile["attack_overrides"]["backdoor"]["learned"]
+    target_class     = cfg["target_class"]
+    poison_fraction  = cfg["poison_fraction"]
+    patch_size_ratio = cfg["patch_size_ratio"]
+    label_mode       = cfg["label_mode"]
+    lr_trigger       = cfg["learning_rate"]
+    epochs_trigger   = cfg["epochs"]
+    mask_weight      = cfg["lambda_mask"]
+    tv_weight        = cfg["lambda_tv"]
+
+    # optional retrain params
+    train_epochs     = 5
+    train_batch      = 64
+
+    # 2) init small T, M
+    x0, _ = trainset[0]
+    C, H, W = x0.shape
+    ph = max(1, int(H * patch_size_ratio))
+    pw = max(1, int(W * patch_size_ratio))
+    T_init = torch.zeros(C, ph, pw)
+    M_init = torch.zeros(1, ph, pw)
+
+    # 3) pick which indices to poison
+    poison_idx = select_poison_indices(trainset, poison_fraction, class_names, target_class)
+
+    trained_model = load_model("clean_model",profile)
+
+    # 4) learn T & M
     T_opt, M_opt = optimize_trigger(
-        trainset, model, T, M,
-        mask_weight=0.01, tv_weight=0.01,
-        learning_rate=0.05, epochs=1,
-        batch_size=4, target_class=2
+        trainset, trained_model, T_init, M_init,
+        mask_weight=mask_weight,
+        tv_weight=tv_weight,
+        learning_rate=lr_trigger,
+        epochs=epochs_trigger,
+        batch_size=cfg.get("batch_size", 32),
+        target_class=target_class
     )
-    assert T_opt.shape == T.shape, f"T shape mismatch: {T_opt.shape}"
-    assert M_opt.shape == M.shape, f"M shape mismatch: {M_opt.shape}"
-    print("✅ optimize_trigger shape test passed.")
 
-if __name__ == "__main__":
-    test_optimize_trigger()
+    # 5) save artifacts + viz
+    out_dir = os.path.join("results", "backdoor", "learned_trigger")
+    os.makedirs(out_dir, exist_ok=True)
+    torch.save(T_opt, os.path.join(out_dir, "trigger.pt"))
+    torch.save(M_opt, os.path.join(out_dir, "mask.pt"))
+    save_trigger_visualization(T_opt, M_opt, out_dir)
 
-
-"""def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
-    print("[*] Running Adversarially Learned Trigger Backdoor Attack...")
-
-    # === Load configuration ===
-    attack_cfg = profile.get("attack_overrides", {}).get("backdoor", {}).get("learned", {})
-    target_class = attack_cfg.get("target_class")
-    poison_fraction = attack_cfg.get("poison_fraction", 0.1)
-    patch_size_ratio = attack_cfg.get("patch_size_ratio", 0.15)
-    learning_rate = attack_cfg.get("learning_rate", 0.1)
-    epochs = attack_cfg.get("epochs", 5)
-    patch_position = attack_cfg.get("patch_position", "bottom_right")
-    label_mode = attack_cfg.get("label_mode", "corrupted")
-
-    input_shape = profile.get("model", {}).get("input_shape", [3, 32, 32])
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
-
-    trained_model = load_model("clean_model", profile)
-
-    C, H, W = input_shape
-    patch_size = (int(H * patch_size_ratio), int(W * patch_size_ratio))  # (h, w)
-
-    trigger, mask = initialize_trigger_and_mask((C, H, W), patch_size,device)
-
-    optimizer = torch.optim.Adam([trigger, mask], lr=learning_rate)
-    loss_fn = torch.nn.CrossEntropyLoss()
-
-    poisoned_trainset = deepcopy(trainset)
-    eligible_indices = (
-        [i for i in range(len(poisoned_trainset)) if poisoned_trainset[i][1] == target_class]
-        if label_mode == "clean"
-        else list(range(len(poisoned_trainset)))
+    # 6) build poisoned training set
+    poisoned_train = create_poisoned_dataset(
+        trainset, poison_idx, T_opt, M_opt, label_mode, target_class
     )
-    total_poison = int(len(poisoned_trainset) * poison_fraction)
-    poison_indices = torch.tensor(eligible_indices)[:total_poison].tolist()
 
-    print(f"[*] Optimizing trigger using {len(poison_indices)} poisoned samples...")
+    # 7) re‑init and train new model on poisoned data
+    train_model(model, poisoned_train, valset=valset,
+                epochs=train_epochs, batch_size=train_batch,
+                class_names=class_names)
 
-    trained_model.eval()
-    for param in trained_model.parameters():
-        param.requires_grad = False
+    # 8) CDA on clean test set
+    cda, per_class_cda = evaluate_model(model, testset, class_names=class_names)
 
-    for epoch in range(epochs):
+    # 9) ASR: force–poison all test samples
+    all_idxs = list(range(len(testset)))
+    poisoned_test = create_poisoned_dataset(
+        testset, all_idxs, T_opt, M_opt, "corrupted", target_class
+    )
+    asr, _ = evaluate_model(model, poisoned_test, class_names=class_names)
 
-        total_loss = 0
-
-        for idx in tqdm(poison_indices, desc=f"Epoch {epoch+1}/{epochs}"):
-            image, label = poisoned_trainset[idx]
-            image = image.to(device)
-
-            patched_img = apply_learned_trigger(image, trigger, mask, position=patch_position)
-            target = torch.tensor([target_class], dtype=torch.long).to(device) if label_mode == "corrupted" else torch.tensor([label]).to(device)
-
-            output = trained_model(patched_img.unsqueeze(0))
-            loss = loss_fn(output, target)
-
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-
-            total_loss += loss.item()
-
-        print(f"[Epoch {epoch + 1}] Loss: {total_loss / len(poison_indices):.4f}")
-        print("Trigger grad mean:", trigger.grad.abs().mean().item())
-        print("Mask grad mean:", mask.grad.abs().mean().item())
-        print("Trigger mean:", trigger.mean().item())
-        print("Mask mean:", mask.mean().item())
-
-
-    count = 0
-
-    # === Apply trigger to poison the training set ===
-    print("[*] Finalizing poisoned training set...")
-    for idx in poison_indices:
-        image, label = poisoned_trainset[idx]
-        image = image.to(device)
-        patched_img = apply_learned_trigger(image, trigger, mask, position=patch_position).cpu()
-        new_label = label if label_mode == "clean" else target_class
-        update_poisoned_sample(poisoned_trainset, idx, patched_img, new_label)
-
-        if count < 5:
-            # Visualize with plt.show
-            patched_img_np = patched_img.detach().permute(1, 2, 0).cpu().numpy()
-            if patched_img_np.shape[2] == 1:  # Grayscale
-                patched_img_np = patched_img_np.squeeze(2)
-            plt.imshow(patched_img_np)
-            plt.title(f"Poisoned Image {idx} - Label: {new_label}")
-            plt.axis("off")
-            plt.show()
-
-        count += 1
-
-    # === Save the learned trigger ===
-    os.makedirs("results/backdoor/learned_trigger", exist_ok=True)
-    torch.save(trigger.detach().cpu(), "results/backdoor/learned_trigger/trigger.pt")
-    torch.save(mask.detach().cpu(), "results/backdoor/learned_trigger/mask.pt")
-
-    # Save visualization
-    vis = apply_learned_trigger(torch.zeros(input_shape).to(device), trigger, mask, position=patch_position).detach().cpu()
-    vis = torch.clamp(vis, 0.0, 1.0)  # <-- garante valores válidos
-
-    vis_np = vis.permute(1, 2, 0).numpy()
-    plt.imsave("results/backdoor/learned_trigger/trigger_visualization.png", vis_np)
-
-    print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=5, class_names=class_names)
-
-    print("[*] Evaluating on clean test set...")
-    clean_acc, clean_per_class = evaluate_model(model, testset, class_names=class_names)
-
-    print("[*] Evaluating on patched test set (ASR)...")
-    asr_success, asr_total = 0, 0
-    model.eval()
-    with torch.no_grad():
-        for img, label in testset:
-            if label == target_class:
-                continue
-            patched = apply_learned_trigger(img.unsqueeze(0).to(device), trigger, mask, position=patch_position)
-            pred = model(patched).argmax(dim=1).item()
-            asr_total += 1
-            if pred == target_class:
-                asr_success += 1
-
-    asr = asr_success / asr_total if asr_total else 0.0
-    print(f"[✔] Attack Success Rate (ASR): {asr:.4f} ({asr_success}/{asr_total})")
-
-    # === Save metrics ===
+    # 10) dump metrics + report
     metrics = {
-        "attack_type": "learned_trigger",
+        "attack": "learned",
         "target_class": target_class,
+        "poison_fraction": poison_fraction,
         "patch_size_ratio": patch_size_ratio,
         "label_mode": label_mode,
-        "learning_rate": learning_rate,
-        "epochs": epochs,
-        "accuracy_clean_testset": clean_acc,
-        "per_class_clean": clean_per_class,
-        "attack_success_rate": asr,
-        "attack_success_numerator": asr_success,
-        "attack_success_denominator": asr_total
+        "learning_rate": lr_trigger,
+        "epochs_trigger": epochs_trigger,
+        "mask_weight": mask_weight,
+        "tv_weight": tv_weight,
+        "train_epochs": train_epochs,
+        "train_batch_size": train_batch,
+        "CDA": cda,
+        "ASR": asr,
+        "per_class_CDA": per_class_cda,
     }
-    with open("results/backdoor/learned_trigger/learned_trigger_metrics.json", "w") as f:
+    with open(os.path.join(out_dir, "learned_trigger_metrics.json"), "w") as f:
         json.dump(metrics, f, indent=2)
 
-    print("[✔] Metrics and trigger saved in results/backdoor/learned_trigger/")
-"""
+
