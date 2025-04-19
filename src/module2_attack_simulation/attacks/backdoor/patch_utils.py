@@ -1,6 +1,10 @@
 import torch
 import numpy as np
 import torch.nn as nn
+import torch.nn.functional as F
+import matplotlib.pyplot as plt
+import os
+import matplotlib.image as mpimg
 
 def generate_patch(patch_type, size, image_tensor=None, position="bottom_right"):
     """
@@ -150,68 +154,103 @@ def update_poisoned_sample(poisoned_dataset, index, patched_image, target_class)
             dataset.targets[real_idx] = target_class
 
 
-def initialize_learned_trigger(input_shape, patch_size_ratio=0.15):
+def initialize_trigger_and_mask(in_shape, patch_ratio):
     """
-    Initializes a learnable trigger and mask based on a relative patch size.
-
-    Args:
-        input_shape (list or tuple): The input shape of the images, e.g., [3, 32, 32]
-        patch_size_ratio (float): Ratio of the width/height the patch should occupy
-
+    Create a trigger T and mask M for a given input shape.
+    - in_shape: (C, H, W)
+    - patch_ratio: float between 0 and 1 ⇒ patch height = H*ratio, width = W*ratio
     Returns:
-        trigger (nn.Parameter): learnable trigger tensor
-        mask (nn.Parameter): learnable mask tensor
+        T: Tensor[C, h, w], requires_grad=True
+        M: Tensor[1, h, w], requires_grad=True
     """
-    C, H, W = input_shape
-    patch_H, patch_W = int(H * patch_size_ratio), int(W * patch_size_ratio)
+    C, H, W = in_shape
+    h = max(1, int(H * patch_ratio))
+    w = max(1, int(W * patch_ratio))
+    # Trigger: small random init
+    T = torch.randn(C, h, w, requires_grad=True)
+    # Mask: zeros => sigmoid(M)=0.5 initial
+    M = torch.zeros(1, h, w, requires_grad=True)
+    return T, M
 
-    # Create a trigger and mask with same spatial size, and enable gradients
-    trigger = nn.Parameter(torch.rand((C, patch_H, patch_W)))
-    mask = nn.Parameter(torch.full((1, patch_H, patch_W), 0.5))  # grayscale mask [0,1]
-
-    return trigger, mask
-
-
-def apply_learned_trigger(image, trigger, mask, position="bottom_right", blend_alpha=1.0):
+def apply_trigger(x, T, M):
     """
-    Applies the learned trigger and mask to a given image at the specified position.
-
-    Args:
-        image (Tensor): input image (C, H, W)
-        trigger (Tensor): learned trigger (C, h, w)
-        mask (Tensor): mask tensor (1, h, w), values in [0, 1]
-        position (str): where to apply the patch ("bottom_right", etc.)
-        blend_alpha (float): how much of the trigger to blend (0 = invisible, 1 = full)
-
-    Returns:
-        Tensor: Patched image
+    Apply learned trigger T and mask M to a batch of images x.
+    x: Tensor[B, C, H, W]
+    T: Tensor[C, h, w]
+    M: Tensor[1, h, w]
+    Returns: x_poisoned: Tensor[B, C, H, W]
     """
-    C, H, W = image.shape
-    _, h, w = trigger.shape
+    sigM = torch.sigmoid(M)              # shape [1, h, w]
+    B, C, H, W = x.shape
+    _, _, h, w = (1, *T.shape)  # use T.shape for h,w
+    # Create zero‐padded copies at top‐left
+    padded_M = torch.zeros(B, 1, H, W, device=x.device)
+    padded_T = torch.zeros(B, C, H, W, device=x.device)
+    padded_M[:, :, :h, :w] = sigM
+    padded_T[:, :, :h, :w] = T
 
-    if position == "bottom_right":
-        x_start = W - w
-        y_start = H - h
-    elif position == "bottom_left":
-        x_start = 0
-        y_start = H - h
-    elif position == "top_right":
-        x_start = W - w
-        y_start = 0
-    elif position == "top_left":
-        x_start = 0
-        y_start = 0
-    elif position == "center":
-        x_start = (W - w) // 2
-        y_start = (H - h) // 2
+    return (1 - padded_M) * x + padded_M * padded_T
+
+def mask_l1_loss(M):
+    """
+    Compute L1 norm of the soft mask.
+    M: Tensor[1, h, w]
+    Returns: scalar Tensor = sum(|sigmoid(M)|)
+    """
+    return torch.abs(torch.sigmoid(M)).sum()
+
+def total_variation_loss(T):
+    """
+    Compute isotropic total variation loss on trigger tensor T.
+    T: Tensor[C, h, w]
+    Returns: scalar Tensor = sum(|T[:, i+1, j] - T[:, i, j]| + |T[:, i, j+1] - T[:, i, j]|)
+    """
+    dh = torch.abs(T[:, 1:, :] - T[:, :-1, :]).sum()
+    dw = torch.abs(T[:, :, 1:] - T[:, :, :-1]).sum()
+    return dh + dw
+
+def save_trigger_visualization(T, M, out_dir):
+    """
+    Save visualizations to out_dir:
+      - mask.png   : sigmoid(M) as grayscale
+      - trigger.png: patch T normalized
+      - overlay.png: trigger overlaid on a mid-gray canvas
+    """
+    os.makedirs(out_dir, exist_ok=True)
+
+    # Normalize T to [0,1]
+    T_min, T_max = T.min(), T.max()
+    T_norm = (T - T_min) / (T_max - T_min + 1e-8)
+
+    # Mask image
+    mask_img = torch.sigmoid(M)[0].cpu().numpy()
+    plt.imsave(os.path.join(out_dir, "mask.png"), mask_img, cmap="gray")
+
+    # Trigger image
+    if T_norm.shape[0] == 3:
+        trig_img = T_norm.permute(1, 2, 0).cpu().numpy()  # H,W,C
+        trig_img = np.clip(trig_img, 0.0, 1.0)
+        plt.imsave(os.path.join(out_dir, "trigger.png"), trig_img)
     else:
-        raise ValueError(f"Unknown patch position: {position}")
+        trig_img = T_norm[0].cpu().numpy()
+        trig_img = np.clip(trig_img, 0.0, 1.0)
+        plt.imsave(os.path.join(out_dir, "trigger.png"), trig_img, cmap="gray")
 
-    patched = image.clone()
-    region = patched[:, y_start:y_start + h, x_start:x_start + w]
-    blended = (1 - mask) * region + mask * trigger
-    patched[:, y_start:y_start + h, x_start:x_start + w] = blend_alpha * blended + (1 - blend_alpha) * region
-    return patched
+    # Overlay on mid-gray canvas
+    B, C, h, w = 1, T.shape[0], T.shape[1], T.shape[2]
+    canvas = 0.5 * torch.ones((B, C, h, w))
+    overlay = apply_trigger(canvas, T, M)[0].cpu().numpy()  # [C,H,W] or [H,W]
+
+    # Clamp overlay
+    overlay = np.clip(overlay, 0.0, 1.0)
+
+    if C == 3:
+        overlay = overlay.transpose(1, 2, 0)  # H,W,C
+        plt.imsave(os.path.join(out_dir, "overlay.png"), overlay)
+    else:
+        overlay = overlay.mean(0)
+        plt.imsave(os.path.join(out_dir, "overlay.png"), overlay, cmap="gray")
+
 
 
 
