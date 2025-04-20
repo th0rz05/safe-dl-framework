@@ -11,7 +11,7 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
 
-from attacks.backdoor.static_patch.generate_learned_trigger_report import generate_learned_trigger_report
+from attacks.backdoor.learned_trigger.generate_learned_trigger_report import generate_learned_trigger_report
 
 def select_poison_indices(trainset,
                           poison_fraction,
