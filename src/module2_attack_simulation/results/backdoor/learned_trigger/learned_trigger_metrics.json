@@ -9,57 +9,57 @@
   "epochs_trigger": 10,
   "mask_weight": 0.001,
   "tv_weight": 0.01,
-  "accuracy_clean_testset": 0.4726,
+  "accuracy_clean_testset": 0.5422,
   "per_class_clean": {
-    "airplane": 0.562,
-    "automobile": 0.572,
-    "bird": 0.303,
-    "cat": 0.444,
-    "deer": 0.374,
-    "dog": 0.379,
-    "frog": 0.425,
-    "horse": 0.532,
-    "ship": 0.562,
-    "truck": 0.573
+    "airplane": 0.577,
+    "automobile": 0.654,
+    "bird": 0.495,
+    "cat": 0.352,
+    "deer": 0.514,
+    "dog": 0.385,
+    "frog": 0.75,
+    "horse": 0.5,
+    "ship": 0.56,
+    "truck": 0.635
   },
   "attack_success_rate": 1.0,
   "attack_success_numerator": 9000,
   "attack_success_denominator": 9000,
   "example_poisoned_samples": [
     {
-      "index": 27513,
+      "index": 29336,
       "target_class": 4,
       "target_class_name": "deer",
-      "perturbation_norm": 32.76625442504883,
-      "example_image_path": "examples/poison_27513_deer.png"
+      "perturbation_norm": 22.696964263916016,
+      "example_image_path": "examples/poison_29336_deer.png"
     },
     {
-      "index": 153,
+      "index": 16208,
       "target_class": 4,
       "target_class_name": "deer",
-      "perturbation_norm": 31.744892120361328,
-      "example_image_path": "examples/poison_153_deer.png"
+      "perturbation_norm": 20.910947799682617,
+      "example_image_path": "examples/poison_16208_deer.png"
     },
     {
-      "index": 2032,
+      "index": 6087,
       "target_class": 4,
       "target_class_name": "deer",
-      "perturbation_norm": 31.913681030273438,
-      "example_image_path": "examples/poison_2032_deer.png"
+      "perturbation_norm": 22.42719841003418,
+      "example_image_path": "examples/poison_6087_deer.png"
     },
     {
-      "index": 22654,
+      "index": 31002,
       "target_class": 4,
       "target_class_name": "deer",
-      "perturbation_norm": 30.040864944458008,
-      "example_image_path": "examples/poison_22654_deer.png"
+      "perturbation_norm": 21.72789764404297,
+      "example_image_path": "examples/poison_31002_deer.png"
     },
     {
-      "index": 28520,
+      "index": 11921,
       "target_class": 4,
       "target_class_name": "deer",
-      "perturbation_norm": 31.4075927734375,
-      "example_image_path": "examples/poison_28520_deer.png"
+      "perturbation_norm": 22.423091888427734,
+      "example_image_path": "examples/poison_11921_deer.png"
     }
   ]
 }
