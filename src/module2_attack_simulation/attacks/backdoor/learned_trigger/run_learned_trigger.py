@@ -189,21 +189,21 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
         # apply the learned trigger
         patched = apply_trigger(img.unsqueeze(0), T_opt.to(device), M_opt.to(device))[0]
 
-        # compute perturbation norm
-        perturb_norm = torch.norm((patched - img).view(-1), p=2).item()
+        # ---- PREPARE A SAFE COPY FOR SAVING --------------------
+        vis = patched.detach().cpu().clone()
+        if vis.shape[0] in (3, 4):
+            vis = vis.permute(1, 2, 0)      # CHW ➜ HWC
 
-        # convert to numpy HxWxC
-        np_img = patched.detach().cpu().numpy()
-        if np_img.shape[0] in (3, 4):
-            np_img = np_img.transpose(1, 2, 0)
-        # scale into [0,255] if needed
-        if np_img.max() <= 1.0:
-            np_img = (np_img * 255).astype("uint8")
+        vis = torch.clamp(vis, 0.0, 1.0)     # force into [0,1]
+        vis = (vis * 255).to(torch.uint8).numpy()
 
-        # save
         save_name = f"poison_{idx}_{class_names[target_class]}.png"
         save_path = os.path.join(examples_dir, save_name)
-        plt.imsave(save_path, np_img, format="png")
+        plt.imsave(save_path, vis, format="png")
+        # ---------------------------------------------------------
+
+        # compute perturbation norm
+        perturb_norm = torch.norm((patched - img).view(-1), p=2).item()
 
         example_log.append({
             "index": idx,
