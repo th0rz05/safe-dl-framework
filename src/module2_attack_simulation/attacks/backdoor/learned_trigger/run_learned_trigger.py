@@ -11,6 +11,7 @@ from torch.utils.data import DataLoader, Dataset
 from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
 
+from attacks.backdoor.static_patch.generate_learned_trigger_report import generate_learned_trigger_report
 
 def select_poison_indices(trainset,
                           poison_fraction,
@@ -150,6 +151,10 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
 
     trained_model = load_model("clean_model",profile)
 
+    #freeze model
+    for param in trained_model.parameters():
+        param.requires_grad = False
+
     # 4) learn T & M
     T_opt, M_opt = optimize_trigger(
         trainset, trained_model, T_init, M_init,
@@ -160,6 +165,10 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
         batch_size=cfg.get("batch_size", 32),
         target_class=target_class
     )
+
+    #unfreeze model
+    for param in trained_model.parameters():
+        param.requires_grad = True
 
     # 5) save artifacts + viz
     out_dir = os.path.join("results", "backdoor", "learned_trigger")
@@ -219,12 +228,12 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
     )
 
     # 7) re‑init and train new model on poisoned data
-    train_model(model, poisoned_train, valset=valset,
+    train_model(trained_model, poisoned_train, valset=valset,
                 epochs=train_epochs, batch_size=train_batch,
                 class_names=class_names)
 
     # 8) CDA on clean test set
-    clean_acc, clean_per_class = evaluate_model(model, testset, class_names=class_names)
+    clean_acc, clean_per_class = evaluate_model(trained_model, testset, class_names=class_names)
 
     # 9) ASR
     asr_success = 0
@@ -237,7 +246,7 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
                                 T_opt.to(device),
                                 M_opt.to(device)  # returns [1,C,H,W]
                                 ).to(device)  # <-- already batched
-        pred = model(patched).argmax(1).item()
+        pred = trained_model(patched).argmax(1).item()
         asr_total += 1
         if pred == target_class:
             asr_success += 1
@@ -272,5 +281,11 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
     with open("results/backdoor/learned_trigger/learned_trigger_metrics.json", "w") as f:
         json.dump(result, f, indent=2)
 
+    generate_learned_trigger_report(
+        json_file="results/backdoor/learned_trigger/learned_trigger_metrics.json",
+        md_file="results/backdoor/learned_trigger/learned_trigger_report.md"
+    )
+
+    print("[✔] Report generated at results/backdoor/learned_trigger/learned_trigger_report.md")
 
 
