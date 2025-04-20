@@ -12,29 +12,36 @@ from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
 
 
-def select_poison_indices(trainset, poison_fraction, class_names, target_class):
+def select_poison_indices(trainset,
+                          poison_fraction,
+                          class_names,
+                          target_class):
     """
-    Given trainset (with .targets), pick a list of indices to poison.
-    - poison_fraction: float in (0,1]
-    - If label_mode=="clean", only pick from samples whose original label == target_class
-      (but we’ll enforce label_mode outside)
-    Returns: a list of indices (ints)
+    Pick indices **local to `trainset`** that will be poisoned.
+    Works for torch.utils.data.Dataset or torch.utils.data.Subset.
     """
-    # Extract labels
-    if hasattr(trainset, "dataset") and hasattr(trainset.dataset, "targets"):
-        all_targets = trainset.dataset.targets
-        all_indices = trainset.indices if hasattr(trainset, "indices") else list(range(len(all_targets)))
-    elif hasattr(trainset, "targets"):
-        all_targets = trainset.targets
-        all_indices = list(range(len(all_targets)))
+    # ---------- get label list ----------
+    if isinstance(trainset, torch.utils.data.Subset):
+        # Subset → iterate via local indices and pull label via __getitem__
+        all_indices = list(range(len(trainset)))          # 0 … N‑1  (local)
+        def _label(i):    # helper to fetch label for subset index i
+            return trainset[i][1]
     else:
-        raise ValueError("Trainset must expose .targets or .dataset.targets")
+        # Plain dataset with .targets / .dataset.targets
+        if hasattr(trainset, "targets"):
+            labels = trainset.targets
+        elif hasattr(trainset, "dataset") and hasattr(trainset.dataset, "targets"):
+            labels = trainset.dataset.targets
+        else:
+            raise ValueError("Trainset must expose `.targets` attribute")
+        all_indices = list(range(len(trainset)))
+        def _label(i):   # direct indexing into .targets
+            return int(labels[i])
 
-    N = len(all_indices)
-    n_poison = max(1, int(poison_fraction * N))
-
-    # Pick uniformly at random over all N
+    # ---------- sample ----------
+    n_poison = max(1, int(len(all_indices) * poison_fraction))
     return random.sample(all_indices, n_poison)
+
 
 def optimize_trigger(trainset, model, T, M,
                      mask_weight, tv_weight, learning_rate, epochs,
@@ -124,7 +131,7 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
     lambda_tv        = cfg["lambda_tv"]
 
     # optional retrain params
-    train_epochs     = 5
+    train_epochs     = 10
     train_batch      = 64
 
     # device
@@ -163,6 +170,14 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
 
     examples_dir = os.path.join(out_dir, "examples")
     os.makedirs(examples_dir, exist_ok=True)
+
+    # Delete examples from the previous runs
+    if os.path.exists(examples_dir):
+        for file in os.listdir(examples_dir):
+            file_path = os.path.join(examples_dir, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+
     example_log = []
 
     # Only keep the first 5 indices
@@ -218,13 +233,18 @@ def run_learned_trigger(trainset, testset, valset, model, profile, class_names):
         img, label = testset[idx]
         if label == target_class:
             continue  # skip original “horse” images
-        patched = apply_trigger(img, T_opt, M_opt).unsqueeze(0).to(device)
+        patched = apply_trigger(img.unsqueeze(0),  # ➜ shape [1,C,H,W]
+                                T_opt.to(device),
+                                M_opt.to(device)  # returns [1,C,H,W]
+                                ).to(device)  # <-- already batched
         pred = model(patched).argmax(1).item()
         asr_total += 1
         if pred == target_class:
             asr_success += 1
 
     asr = asr_success / asr_total
+
+    print(f"[+] ASR: {asr:.4f} ({asr_success}/{asr_total})")
 
     # 10) dump metrics + report
     result = {

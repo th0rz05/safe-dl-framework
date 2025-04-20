@@ -1,7 +1,7 @@
 attack_overrides:
   backdoor:
     learned:
-      epochs: 15
+      epochs: 13
       label_mode: corrupted
       lambda_mask: 0.001
       lambda_tv: 0.01
