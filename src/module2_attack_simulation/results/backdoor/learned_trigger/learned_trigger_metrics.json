@@ -1,0 +1,65 @@
+{
+  "attack_type": "learned_trigger",
+  "patch_size_ratio": 0.15,
+  "poison_fraction": 0.1,
+  "label_mode": "corrupted",
+  "target_class": 4,
+  "target_class_name": "deer",
+  "learning_rate": 0.01,
+  "epochs_trigger": 10,
+  "mask_weight": 0.001,
+  "tv_weight": 0.01,
+  "accuracy_clean_testset": 0.4726,
+  "per_class_clean": {
+    "airplane": 0.562,
+    "automobile": 0.572,
+    "bird": 0.303,
+    "cat": 0.444,
+    "deer": 0.374,
+    "dog": 0.379,
+    "frog": 0.425,
+    "horse": 0.532,
+    "ship": 0.562,
+    "truck": 0.573
+  },
+  "attack_success_rate": 1.0,
+  "attack_success_numerator": 9000,
+  "attack_success_denominator": 9000,
+  "example_poisoned_samples": [
+    {
+      "index": 27513,
+      "target_class": 4,
+      "target_class_name": "deer",
+      "perturbation_norm": 32.76625442504883,
+      "example_image_path": "examples/poison_27513_deer.png"
+    },
+    {
+      "index": 153,
+      "target_class": 4,
+      "target_class_name": "deer",
+      "perturbation_norm": 31.744892120361328,
+      "example_image_path": "examples/poison_153_deer.png"
+    },
+    {
+      "index": 2032,
+      "target_class": 4,
+      "target_class_name": "deer",
+      "perturbation_norm": 31.913681030273438,
+      "example_image_path": "examples/poison_2032_deer.png"
+    },
+    {
+      "index": 22654,
+      "target_class": 4,
+      "target_class_name": "deer",
+      "perturbation_norm": 30.040864944458008,
+      "example_image_path": "examples/poison_22654_deer.png"
+    },
+    {
+      "index": 28520,
+      "target_class": 4,
+      "target_class_name": "deer",
+      "perturbation_norm": 31.4075927734375,
+      "example_image_path": "examples/poison_28520_deer.png"
+    }
+  ]
+}
