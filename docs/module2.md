@@ -1,67 +1,126 @@
-# Module 2: Attack Simulation
+﻿# Module 2: Attack Simulation
 
 ## Table of Contents
 
-- [Module 2: Attack Simulation](#module-2-attack-simulation)
-   * [1. What is Module 2: Attack Simulation?](#1-what-is-module-2-attack-simulation)
-   * [2. Workflow Overview](#2-workflow-overview)
-      + [Step 1: Dataset and Model Selection](#step-1-dataset-and-model-selection)
-      + [Step 2: Threat Profile Selection](#step-2-threat-profile-selection)
-      + [Step 3: Submodule Execution and Setup](#step-3-submodule-execution-and-setup)
-      + [Step 4: Clean Baseline Evaluation](#step-4-clean-baseline-evaluation)
-      + [Step 5: Attack Execution](#step-5-attack-execution)
-      + [Step 6: Reporting](#step-6-reporting)
-   * [3. Dataset and Model Customization Rules](#3-dataset-and-model-customization-rules)
-      + [3.1 Custom Datasets (`user_dataset.py`)](#31-custom-datasets-user_datasetpy)
-      + [3.2 Custom Models (`user_model.py`)](#32-custom-models-user_modelpy)
-      + [3.3 Built-In Compatibility](#33-built-in-compatibility)
-   * [4. The Role of the Profile YAML](#4-the-role-of-the-profile-yaml)
-      + [4.1 What Is Stored in the Profile?](#41-what-is-stored-in-the-profile)
-      + [4.2 Updating the Profile from the Setup Wizard](#42-updating-the-profile-from-the-setup-wizard)
-      + [4.3 Reusability and Reproducibility](#43-reusability-and-reproducibility)
-   * [5. Attack Simulation Flow](#5-attack-simulation-flow)
-      + [5.1 Overview of the Execution Pipeline](#51-overview-of-the-execution-pipeline)
-      + [5.2 Modular Architecture](#52-modular-architecture)
-      + [5.3 Clean Execution Environment](#53-clean-execution-environment)
-   * [6. Built-in and Custom Components](#6-built-in-and-custom-components)
-      + [6.1 Built-in Datasets](#61-built-in-datasets)
-      + [6.2 Built-in Models](#62-built-in-models)
-      + [6.3 Custom Datasets](#63-custom-datasets)
-      + [6.4 Custom Models](#64-custom-models)
-      + [6.5 Summary](#65-summary)
-   * [7. Profile YAML Specification](#7-profile-yaml-specification)
-      + [7.1 Profile Structure](#71-profile-structure)
-      + [7.2 Fields Explained](#72-fields-explained)
-      + [7.3 Updating the Profile](#73-updating-the-profile)
-      + [7.4 Benefits](#74-benefits)
-   * [8. Execution Flow](#8-execution-flow)
-      + [8.1 High-Level Steps](#81-high-level-steps)
-      + [8.2 Summary Diagram](#82-summary-diagram)
-      + [8.3 Automatic Decisions](#83-automatic-decisions)
-      + [8.4 Notes on Reusability](#84-notes-on-reusability)
-   * [9. Reporting and Outputs](#9-reporting-and-outputs)
-      + [9.1 Output Directory](#91-output-directory)
-      + [9.2 `baseline_accuracy.json`](#92-baseline_accuracyjson)
-      + [9.3 Attack-Specific Reports](#93-attack-specific-reports)
-      + [9.4 Visual Examples Folder](#94-visual-examples-folder)
-      + [9.5 Customization Notes](#95-customization-notes)
-   * [10. Submodule 2.1 — Data Poisoning Attacks](#10-submodule-21-data-poisoning-attacks)
-      + [10.1 Overview](#101-overview)
-      + [10.2 Configuration via Setup Script](#102-configuration-via-setup-script)
-      + [10.3 Label Flipping Attack](#103-label-flipping-attack)
-         - [10.3.1 Objective](#1031-objective)
-         - [10.3.2 Available Strategies](#1032-available-strategies)
-         - [10.3.3 Configuration Parameters](#1033-configuration-parameters)
-         - [10.3.4 YAML Integration](#1034-yaml-integration)
-         - [10.3.5 Reporting and Metrics](#1035-reporting-and-metrics)
-         - [10.3.6 Design Considerations](#1036-design-considerations)
-      + [10.4 Clean Label Poisoning](#104-clean-label-poisoning)
-         - [10.4.1 Objective](#1041-objective)
-         - [10.4.2 Perturbation Methods](#1042-perturbation-methods)
-         - [10.4.3 Configuration via Setup Script](#1043-configuration-via-setup-script)
-         - [10.4.4 YAML Integration](#1044-yaml-integration)
-         - [10.4.5 Reporting and Metrics](#1045-reporting-and-metrics)
-         - [10.4.6 Design Considerations](#1046-design-considerations)
+- [Module 2: Attack Simulation](#module-2:-attack-simulation)
+  - [Table of Contents](#table-of-contents)
+  - [1. What is Module 2: Attack Simulation?](#1.-what-is-module-2:-attack-simulation?)
+  - [2. Workflow Overview](#2.-workflow-overview)
+    - [Step 1: Dataset and Model Selection](#step-1:-dataset-and-model-selection)
+    - [Step 2: Threat Profile Selection](#step-2:-threat-profile-selection)
+    - [Step 3: Submodule Execution and Setup](#step-3:-submodule-execution-and-setup)
+    - [Step 4: Clean Baseline Evaluation](#step-4:-clean-baseline-evaluation)
+    - [Step 5: Attack Execution](#step-5:-attack-execution)
+    - [Step 6: Reporting](#step-6:-reporting)
+  - [3. Dataset and Model Customization Rules](#3.-dataset-and-model-customization-rules)
+    - [3.1 Custom Datasets (`user_dataset.py`)](#3.1-custom-datasets-(`user_dataset.py`))
+      - [Example:](#example:)
+    - [3.2 Custom Models (`user_model.py`)](#3.2-custom-models-(`user_model.py`))
+      - [Example:](#example:)
+    - [3.3 Built-In Compatibility](#3.3-built-in-compatibility)
+  - [4. The Role of the Profile YAML](#4.-the-role-of-the-profile-yaml)
+    - [4.1 What Is Stored in the Profile?](#4.1-what-is-stored-in-the-profile?)
+    - [4.2 Updating the Profile from the Setup Wizard](#4.2-updating-the-profile-from-the-setup-wizard)
+    - [4.3 Reusability and Reproducibility](#4.3-reusability-and-reproducibility)
+  - [5. Attack Simulation Flow](#5.-attack-simulation-flow)
+    - [5.1 Overview of the Execution Pipeline](#5.1-overview-of-the-execution-pipeline)
+    - [5.2 Modular Architecture](#5.2-modular-architecture)
+    - [5.3 Clean Execution Environment](#5.3-clean-execution-environment)
+  - [6. Built-in and Custom Components](#6.-built-in-and-custom-components)
+    - [6.1 Built-in Datasets](#6.1-built-in-datasets)
+    - [6.2 Built-in Models](#6.2-built-in-models)
+    - [6.3 Custom Datasets](#6.3-custom-datasets)
+    - [6.4 Custom Models](#6.4-custom-models)
+    - [6.5 Summary](#6.5-summary)
+  - [7. Profile YAML Specification](#7.-profile-yaml-specification)
+    - [7.1 Profile Structure](#7.1-profile-structure)
+    - [7.2 Fields Explained](#7.2-fields-explained)
+    - [7.3 Updating the Profile](#7.3-updating-the-profile)
+    - [7.4 Benefits](#7.4-benefits)
+  - [8. Execution Flow](#8.-execution-flow)
+    - [8.1 High-Level Steps](#8.1-high-level-steps)
+    - [8.2 Summary Diagram](#8.2-summary-diagram)
+    - [8.3 Automatic Decisions](#8.3-automatic-decisions)
+    - [8.4 Notes on Reusability](#8.4-notes-on-reusability)
+  - [9. Reporting and Outputs](#9.-reporting-and-outputs)
+    - [9.1 Output Directory](#9.1-output-directory)
+    - [9.2 `baseline_accuracy.json`](#9.2-`baseline_accuracy.json`)
+    - [9.3 Attack-Specific Reports](#9.3-attack-specific-reports)
+    - [9.4 Visual Examples Folder](#9.4-visual-examples-folder)
+    - [9.5 Customization Notes](#9.5-customization-notes)
+  - [10. Submodule 2.1 — Data Poisoning Attacks](#10.-submodule-2.1-—-data-poisoning-attacks)
+    - [10.1 Overview](#10.1-overview)
+    - [10.2 Configuration via Setup Script](#10.2-configuration-via-setup-script)
+    - [10.3 Label Flipping Attack](#10.3-label-flipping-attack)
+      - [10.3.1 Objective](#10.3.1-objective)
+      - [10.3.2 Available Strategies](#10.3.2-available-strategies)
+      - [10.3.3 Configuration Parameters](#10.3.3-configuration-parameters)
+      - [Suggested Defaults Based on Threat Profile](#suggested-defaults-based-on-threat-profile)
+      - [Manual Configuration Options](#manual-configuration-options)
+      - [Example CLI Interaction](#example-cli-interaction)
+      - [10.3.4 YAML Integration](#10.3.4-yaml-integration)
+      - [10.3.5 Reporting and Metrics](#10.3.5-reporting-and-metrics)
+      - [Files Generated](#files-generated)
+      - [`label_flipping_metrics.json`](#`label_flipping_metrics.json`)
+        - [Example structure:](#example-structure:)
+      - [`label_flipping_report.md`](#`label_flipping_report.md`)
+      - [`examples/` Folder](#`examples/`-folder)
+      - [10.3.6 Design Considerations](#10.3.6-design-considerations)
+    - [10.4 Clean Label Poisoning](#10.4-clean-label-poisoning)
+      - [10.4.1 Objective](#10.4.1-objective)
+      - [10.4.2 Perturbation Methods](#10.4.2-perturbation-methods)
+      - [10.4.3 Configuration via Setup Script](#10.4.3-configuration-via-setup-script)
+      - [Suggested Defaults Based on Threat Profile](#suggested-defaults-based-on-threat-profile)
+      - [Manual Configuration Options](#manual-configuration-options)
+      - [Example CLI Interaction](#example-cli-interaction)
+      - [10.4.4 YAML Integration](#10.4.4-yaml-integration)
+      - [10.4.5 Reporting and Metrics](#10.4.5-reporting-and-metrics)
+      - [Files Generated](#files-generated)
+      - [`clean_label_metrics.json`](#`clean_label_metrics.json`)
+        - [Example excerpt:](#example-excerpt:)
+      - [`clean_label_report.md`](#`clean_label_report.md`)
+      - [`examples/` Folder](#`examples/`-folder)
+      - [10.4.6 Design Considerations](#10.4.6-design-considerations)
+  - [11. Submodule 2.2 — Backdoor Attacks](#11.-submodule-2.2-—-backdoor-attacks)
+    - [11.1 Overview](#11.1-overview)
+    - [11.2 Configuration via Setup Script](#11.2-configuration-via-setup-script)
+    - [11.3 Static Patch Attack](#11.3-static-patch-attack)
+      - [11.3.1 Objective](#11.3.1-objective)
+      - [11.3.2 Patch Variants](#11.3.2-patch-variants)
+      - [11.3.3 Clean-Label vs Corrupted-Label Modes](#11.3.3-clean-label-vs-corrupted-label-modes)
+      - [11.3.4 Configuration Parameters](#11.3.4-configuration-parameters)
+        - [Suggested Defaults Based on Threat Profile](#suggested-defaults-based-on-threat-profile)
+        - [Manual Configuration Options](#manual-configuration-options)
+        - [Example CLI Interaction](#example-cli-interaction)
+      - [11.3.5 YAML Integration](#11.3.5-yaml-integration)
+        - [Example](#example)
+      - [11.3.6 Reporting and Metrics](#11.3.6-reporting-and-metrics)
+        - [Files Generated](#files-generated)
+        - [`static_patch_metrics.json`](#`static_patch_metrics.json`)
+          - [Example excerpt](#example-excerpt)
+        - [`static_patch_report.md`](#`static_patch_report.md`)
+        - [`examples/` Folder](#`examples/`-folder)
+    - [11.3.7 Design Considerations](#11.3.7-design-considerations)
+      - [Support for Multiple Modes (Clean vs. Corrupted Labels)](#support-for-multiple-modes-(clean-vs.-corrupted-labels))
+      - [Configurable Patch Characteristics](#configurable-patch-characteristics)
+      - [Blending Factor (Stealthiness Control)](#blending-factor-(stealthiness-control))
+      - [Reproducible Selection and Logging](#reproducible-selection-and-logging)
+      - [Compatibility and Extensibility](#compatibility-and-extensibility)
+      - [Performance-Aware Implementation](#performance-aware-implementation)
+    - [11.4 Adversarially Learned Trigger](#11.4-adversarially-learned-trigger)
+      - [11.4.1 Objective](#11.4.1-objective)
+      - [11.4.2 Learned Trigger Mechanics](#11.4.2-learned-trigger-mechanics)
+        - [Trigger Optimization](#trigger-optimization)
+        - [Loss Components](#loss-components)
+        - [Final Optimization Objective](#final-optimization-objective)
+      - [11.4.3 Configuration Parameters](#11.4.3-configuration-parameters)
+        - [Suggested Defaults Based on Threat Profile](#suggested-defaults-based-on-threat-profile)
+      - [11.4.4 YAML Integration](#11.4.4-yaml-integration)
+      - [11.4.5 Reporting and Metrics](#11.4.5-reporting-and-metrics)
+        - [JSON Report Structure (`learned_trigger_metrics.json`)](#json-report-structure-(`learned_trigger_metrics.json`))
+        - [Markdown Report (`learned_trigger_report.md`)](#markdown-report-(`learned_trigger_report.md`))
+      - [11.4.6 Example Visualizations](#11.4.6-example-visualizations)
+      - [11.4.7 Design Considerations](#11.4.7-design-considerations)
 
 ## 1. What is Module 2: Attack Simulation?
 
@@ -369,7 +428,7 @@ Once a profile is configured, it can be reused across experiments without re-run
 -   Store results in a structured and comparable way.
     
 
-**Important:** Any time the attack configuration or dataset/model is updated via the setup wizard, the new state is immediately saved to the profile YAML — ensuring consistency across runs.
+⚠️ **Important:** Any time the attack configuration or dataset/model is updated via the setup wizard, the new state is immediately saved to the profile YAML — ensuring consistency across runs.
 
 ## 5. Attack Simulation Flow
 
@@ -1465,3 +1524,869 @@ The clean label attack implementation in Safe-DL was designed to be flexible, ex
     
 -   **Modular Implementation:**  
     The submodule is structured to allow future integration of more complex clean label variants (e.g., adversarial patch optimization, stealth-aware perturbations, or poisoning during fine-tuning).
+
+## 11. Submodule 2.2 — Backdoor Attacks
+
+This submodule implements and evaluates _backdoor attacks_, where adversaries embed hidden behaviors into the model during training. When triggered by a specific pattern (or _trigger_), the model misbehaves in a targeted way — for instance, misclassifying all trigger-bearing inputs as a specific class. These attacks are highly stealthy, especially under clean-label settings where no label inconsistencies are introduced.
+
+----------
+
+### 11.1 Overview
+
+
+Backdoor attacks exploit the training process by embedding malicious behaviors that are only activated in the presence of specific input patterns, known as **triggers**. These attacks are particularly dangerous because they preserve high accuracy on clean data while enabling attacker control at inference time — all without being detectable by conventional validation or testing.
+
+In **Submodule 2.2**, we simulate backdoor attacks by inserting visual triggers into a subset of training images and optionally modifying their labels. The goal is to cause the trained model to misclassify any input containing the same trigger as a specific target class, while maintaining high performance on unmodified data.
+
+This submodule supports two types of trigger generation:
+
+-   **Static Triggers:** Fixed patterns like white squares, checkerboards, or random noise applied to a fixed position in the image.
+    
+-   **Adversarially Learned Triggers:** Patterns and masks that are learned through optimization to maximize attack effectiveness while maintaining stealth. These triggers are jointly optimized against a fixed model to mislead predictions on poisoned inputs.
+    
+
+In addition, each attack can operate in one of two **label modes**:
+
+-   **Corrupted-Label Mode:** The attacker inserts the trigger _and_ changes the label to the desired target class. This setting is easier to execute but less stealthy.
+    
+-   **Clean-Label Mode:** The trigger is added, but the label is kept unchanged. This makes detection harder and better reflects real-world insider attacks. _(Only supported by static patch attacks in current implementation)_
+    
+
+All attacks are fully configurable using the framework’s setup script, and simulation results are automatically saved as reports, including evaluation metrics and visual examples of poisoned data. This allows reproducible experimentation and detailed analysis of model vulnerability to backdoor threats.
+
+---
+
+### 11.2 Configuration via Setup Script
+
+
+All backdoor attacks are configured interactively using the `setup_module2.py` script. When the threat profile indicates that backdoor threats are enabled, the user is prompted to select one or more sub-attack types, including:
+
+-   **Static Patch Trigger**
+    
+-   **Adversarially Learned Trigger**
+    
+
+Each selected attack opens its own CLI questionnaire, guiding the user through a series of configuration options. These include:
+
+-   Target class to misclassify inputs as
+    
+-   Trigger type and visibility
+    
+-   Poisoning fraction
+    
+-   Label mode (corrupted vs. clean, if supported)
+    
+-   Optimization hyperparameters (for learned triggers)
+
+Once defined, all settings are stored under the `attack_overrides` section of the `.yaml` profile, ensuring that the setup is reproducible and can be reused across experiments.
+
+```yaml
+attack_overrides:
+  backdoor:
+    static_patch:
+      ...
+    learned:
+      ...
+```
+
+The configuration process for each attack is independent and modular, and the user can select one, both, or neither of the available backdoor attacks during setup.
+
+---
+
+### 11.3 Static Patch Attack
+
+The _Static Patch_ backdoor attack simulates a scenario where a fixed, visible trigger (such as a small white square or noise pattern) is applied to input images. When the model encounters this trigger at inference time, it misclassifies the image as a specific attacker-defined target class.
+
+This attack is simple to implement and highly effective, particularly in controlled environments. It also serves as the baseline for evaluating the effectiveness of more advanced or stealthy backdoor techniques.
+
+----------
+
+#### 11.3.1 Objective
+
+The primary goal of this attack is to measure the vulnerability of a model to fixed-pattern backdoor triggers. It tests whether a model can learn to associate a specific pixel pattern — independent of the actual content of the image — with a target class, even when the pattern is small or partially blended.
+
+This scenario mimics real-world threats such as physical-world triggers (e.g., stickers, patches) or pixel-level manipulations that are consistently embedded into attacker-controlled inputs.
+
+----------
+
+#### 11.3.2 Patch Variants
+
+The static patch can be generated using several visual strategies:
+
+-   **White Square (`white_square`)**  
+    A small opaque square with all pixel values set to 1.0 (white). Simple and high contrast.
+    
+-   **Checkerboard (`checkerboard`)**  
+    Alternating black-and-white squares to create a high-frequency pattern. Helps bypass simple detection methods.
+    
+-   **Random Noise (`random_noise`)**  
+    Random pixel values sampled from a uniform distribution. Makes the patch appear as a noisy artifact, reducing its visibility.
+    
+
+The position of the patch can also be controlled:
+
+-   `bottom_right`
+    
+-   `bottom_left`
+    
+-   `top_right`
+    
+-   `top_left`
+    
+-   `center`
+    
+
+Additionally, a **blending factor** `alpha` is used to control the visibility of the patch. When `alpha=1.0`, the patch is fully visible (i.e., fully pasted). When `alpha < 1.0`, the patch is blended into the image, increasing stealthiness.
+
+----------
+
+#### 11.3.3 Clean-Label vs Corrupted-Label Modes
+
+The static patch attack supports two label modes:
+
+-   **Corrupted Label:**  
+    The label of poisoned training samples is modified to match the attacker’s target class. This maximizes attack success but may be easier to detect due to label inconsistencies.
+    
+-   **Clean Label:**  
+    The labels are not changed — the poisoned images remain labeled with their original class. The attacker relies solely on the trigger to control model behavior. This makes the attack significantly harder to detect and more realistic in restricted settings.
+    
+
+----------
+
+#### 11.3.4 Configuration Parameters
+
+The static patch attack is configured via the `setup_module2.py` script. The user is guided through a CLI questionnaire where they can either accept automatically suggested values or override them manually.
+
+#####  Suggested Defaults Based on Threat Profile
+
+The framework inspects the threat profile and derives suggestions based on two key fields:
+
+-   **Training Data Source (`training_data_source`)**
+    
+-   **Attack Goal (`attack_goal`)**
+    
+
+From this, the following logic is applied:
+
+|Profile Condition|Suggested Value
+|--|--
+|`training_data_source == user_generated`|`patch_size_ratio: 0.20` (larger patch)
+|`training_data_source == external_public`|`poison_fraction: 0.10` (more samples)
+|All other cases (default)|`patch_size_ratio: 0.15`, `poison_fraction: 0.05`
+|Patch Type|`"white_square"` (default)
+|Patch Position|`"bottom_right"` (default)
+|Label Mode|`"corrupted"` (default)
+|Blend Alpha|`1.0` (fully visible patch)
+|Target Class|Randomly selected
+
+#####  Manual Configuration Options
+
+If the user chooses not to accept the suggested values, they are prompted to configure each of the following:
+
+-   **Target Class:** Class index to which the model should misclassify trigger-bearing images.
+    
+-   **Patch Type:** One of:
+    
+    -   `white_square`
+        
+    -   `checkerboard`
+        
+    -   `random_noise`
+        
+-   **Patch Position:**
+    
+    -   `bottom_right`, `bottom_left`, `top_right`, `top_left`, `center`
+        
+-   **Patch Size Ratio:** Float between `0.0` and `1.0` relative to image width (e.g., `0.15`)
+    
+-   **Poison Fraction:** Float between `0.0` and `1.0` indicating fraction of training set to poison
+    
+-   **Label Mode:**
+    
+    -   `corrupted`: patch-bearing images are relabeled to the target class
+        
+    -   `clean`: labels remain unchanged; patch must bias the model covertly
+        
+-   **Blend Alpha:** Float between `0.0` and `1.0`; controls patch opacity during blending
+    
+
+#####  Example CLI Interaction
+
+```
+Suggested configuration:
+  - Target class: 3 – cat
+  - Patch type: white_square
+  - Patch size (relative): 0.15
+  - Poison fraction: 0.05
+  - Patch position: bottom_right
+  - Label mode: corrupted
+  - Blend alpha: 1.0
+
+Do you want to accept these suggestions? No
+
+Select target class: 8 – ship  
+Select patch type: checkerboard  
+Select patch position: center  
+Patch size ratio: 0.10  
+Poison fraction: 0.08  
+Label mode: clean  
+Blend alpha: 0.3
+
+```
+
+----------
+
+
+#### 11.3.5 YAML Integration
+
+After configuration, all selected values for the static patch attack are stored inside the YAML profile under the `attack_overrides → backdoor → static_patch` section. This allows the framework to:
+
+-   Reproduce the attack in future runs
+    
+-   Automatically use the same configuration in reports
+    
+-   Maintain traceability between attack settings and evaluation outcomes
+    
+
+The saved configuration reflects the exact values selected during setup — whether suggested or manually customized.
+
+##### Example
+
+```yaml
+attack_overrides:
+  backdoor:
+    static_patch:
+      target_class: 3
+      patch_type: checkerboard
+      patch_position: center
+      patch_size_ratio: 0.10
+      poison_fraction: 0.08
+      label_mode: clean
+      blend_alpha: 0.3
+
+```
+
+This config indicates that:
+
+-   The trigger is a **checkerboard patch** placed at the **center**
+    
+-   The patch affects **8% of the training set**
+    
+-   Only images from class 3 ("cat") are poisoned
+    
+-   Labels are **not modified** (clean-label mode)
+    
+-   The patch is **blended** with the original image using `alpha = 0.3`
+    
+
+During the simulation, this configuration is parsed and used to apply the patch, control how labels are handled, and track the effects of stealth and attack success.
+
+----------
+
+#### 11.3.6 Reporting and Metrics
+
+After executing the static patch backdoor attack, the framework generates structured artifacts that capture the full configuration, attack behavior, and impact on model performance. These include a JSON file with metrics, a Markdown summary report, and visual examples of poisoned images.
+
+These outputs provide both **quantitative** and **qualitative** perspectives on the effectiveness and stealthiness of the backdoor.
+
+----------
+
+##### Files Generated
+
+```
+results/backdoor/static_patch/
+├── static_patch_metrics.json
+├── static_patch_report.md
+└── examples/
+    ├── poison_1359_cat.png
+    ├── poison_2638_cat.png
+    ├── ...
+
+```
+
+----------
+
+##### `static_patch_metrics.json`
+
+This JSON file records all key details of the attack and its effects. It includes:
+
+-   **Configuration Summary**
+    
+    -   `patch_type`, `patch_position`, `patch_size_ratio`
+        
+    -   `poison_fraction`, `blend_alpha`, `label_mode`
+        
+    -   `target_class` and `target_class_name`
+        
+-   **Performance Metrics**
+    
+    -   `accuracy_clean_testset`: Accuracy on unmodified test data
+        
+    -   `per_class_clean`: Per-class accuracy on clean test set
+        
+    -   `attack_success_rate`: ASR (proportion of patched test images misclassified into the target class)
+        
+    -   `attack_success_numerator` and `attack_success_denominator`: For reproducibility and debugging
+        
+-   **Example Log**
+    
+    -   Up to 5 examples of poisoned training samples
+        
+    -   Each includes the dataset index, target class, perturbation norm, and file path to the saved image
+        
+
+######  Example excerpt
+
+```json
+{
+  "attack_type": "static_patch",
+  "patch_type": "white_square",
+  "patch_position": "bottom_right",
+  "patch_size_ratio": 0.1,
+  "poison_fraction": 0.1,
+  "label_mode": "clean",
+  "blend_alpha": 0.15,
+  "target_class": 3,
+  "target_class_name": "cat",
+  "accuracy_clean_testset": 0.6204,
+  "per_class_clean": {
+    "airplane": 0.657,
+    "cat": 0.131,
+    ...
+  },
+  "attack_success_rate": 0.8676,
+  "attack_success_numerator": 7808,
+  "attack_success_denominator": 9000,
+  "example_poisoned_samples": [
+    {
+      "index": 1359,
+      "target_class": 3,
+      "target_class_name": "cat",
+      "perturbation_norm": 0.3917,
+      "example_image_path": "results/backdoor/static_patch/examples/poison_1359_cat.png"
+    },
+    ...
+  ]
+}
+
+```
+
+----------
+
+##### `static_patch_report.md`
+
+This Markdown report offers a human-readable summary of the attack and outcomes. It includes:
+
+-   Overview of the attack parameters
+    
+-   Final accuracy and ASR
+    
+-   Per-class accuracy before the attack
+    
+-   Embedded images of patched training samples
+    
+
+It is intended to support comparisons across experiments and provide clarity for presentations or documentation.
+
+----------
+
+#####  `examples/` Folder
+
+The `examples/` folder contains visualizations of the poisoned training samples. These files are saved as:
+
+```
+poison_<index>_<class>.png
+
+```
+
+Each image includes the applied patch, blended (if `alpha < 1`), and corresponds to a poisoned training sample used in model training. These examples help verify:
+
+-   Correct trigger application
+    
+-   Visibility of the patch
+    
+-   Stealthiness under blending or clean-label modes
+
+----------
+
+### 11.3.7 Design Considerations
+
+The static patch backdoor implementation in Safe-DL was designed with **modularity**, **flexibility**, and **realism** in mind. It supports a wide range of experimental configurations while maintaining compatibility with various datasets and models.
+
+Key design choices and their motivations are outlined below.
+
+----------
+
+#### Support for Multiple Modes (Clean vs. Corrupted Labels)
+
+By default, static patch attacks are performed in **corrupted-label** mode: poisoned images are relabeled to the target class. However, the framework also supports **clean-label** mode — a stealthier variant where the label remains unchanged and only the input image is modified.
+
+This dual-mode design allows researchers to:
+
+-   Simulate both obvious and covert attack scenarios.
+    
+-   Evaluate how a model trained with seemingly clean labels may still develop backdoor vulnerabilities.
+    
+
+----------
+
+#### Configurable Patch Characteristics
+
+The user can customize the patch in several ways:
+
+-   **Type**: Choose from predefined patterns (`white_square`, `checkerboard`, `random_noise`)
+    
+-   **Size**: Relative to image dimensions (`patch_size_ratio`)
+    
+-   **Position**: Select from `top_left`, `top_right`, `bottom_left`, `bottom_right`, or `center`
+    
+
+This enables controlled experimentation with trigger visibility and salience across datasets.
+
+----------
+
+#### Blending Factor (Stealthiness Control)
+
+To improve stealth, the framework allows **blending** the patch into the image using a configurable `blend_alpha`. This simulates real-world adversarial scenarios where the trigger is subtle and not overtly visible.
+
+-   `blend_alpha = 1.0`: The patch is pasted directly (full opacity).
+    
+-   `blend_alpha < 1.0`: The patch is softly blended with the original image.
+    
+
+This functionality extends naturally to all patch types, including random noise.
+
+----------
+
+#### Reproducible Selection and Logging
+
+All poisoned indices and attack parameters are logged in the output files. This ensures that results are:
+
+-   **Traceable** — Every poisoned image can be traced by its index and visualized.
+    
+-   **Reproducible** — The same profile file yields the same attack configuration.
+    
+
+Example logs include perturbation norms, dataset indices, and paths to saved visualizations.
+
+----------
+
+#### Compatibility and Extensibility
+
+-   Compatible with both **built-in** and **custom datasets**, as long as they implement the required structure (`targets`, `data`, etc.).
+    
+-   Supports **built-in and user-defined models**, assuming they follow the expected training/evaluation interface.
+    
+-   Structured to allow future enhancements such as:
+    
+    -   **Learned or adaptive triggers**
+        
+    -   **Multiple triggers or dynamic positioning**
+        
+    -   **Time-based or conditional triggers**
+        
+
+----------
+
+#### Performance-Aware Implementation
+
+-   Patch application and poisoning use in-place tensor operations for speed.
+    
+-   Clean test set and patched test set are evaluated independently.
+    
+-   ASR (Attack Success Rate) is calculated precisely using patched test images and excludes already-targeted class samples.
+    
+----------
+
+### 11.4 Adversarially Learned Trigger
+
+The _Adversarially Learned Trigger_ attack represents a more advanced and stealthy variant of backdoor attacks. Unlike static patch attacks that use pre-defined visual patterns, this approach **learns both the trigger and its spatial mask through an optimization process**. The trigger is trained adversarially to maximize the likelihood that any input bearing it will be classified as a specific **target class**, regardless of its true content. This method allows for the creation of highly effective and potentially less detectable backdoors, as the trigger is optimized directly with respect to the model's internal behavior.
+
+This submodule supports **corrupted-label** backdoor attacks, where poisoned samples are relabeled to the attacker-defined target class. It enables fine-grained control over the optimization process, including regularization weights, learning rates, and blending via a learned spatial mask. After learning the trigger and mask, the framework poisons part of the training set, retrains a model, and evaluates both clean and triggered behavior. All results and visualizations are exported automatically.
+
+----------
+
+#### 11.4.1 Objective
+
+The objective of the adversarially learned trigger attack is to inject a backdoor into the model by **learning a custom trigger and spatial mask** that, when applied to any input image, causes it to be misclassified into a chosen target class. This is achieved via an adversarial optimization loop that updates both the trigger pattern and its corresponding blending mask to minimize classification loss while enforcing stealthiness through regularization. The attack aims to achieve:
+
+-   **High Attack Success Rate (ASR)** on inputs with the trigger applied.
+    
+-   **Minimal performance degradation** on clean inputs.
+    
+-   **High stealth**, by producing a trigger and mask that are compact and hard to detect visually or statistically.
+    
+
+This technique simulates more sophisticated attack scenarios, such as insider threats or adaptive adversaries, and provides a realistic benchmark for evaluating model robustness under advanced backdoor threats.
+
+----------
+
+#### 11.4.2 Learned Trigger Mechanics
+
+The adversarially learned trigger attack relies on a dedicated **optimization procedure** to jointly learn two components:
+
+-   A **trigger pattern** `T` — a small patch of learnable pixels
+    
+-   A **spatial mask** `M` — a matrix that controls where and how strongly the trigger is applied to the image
+    
+
+Together, these components form the final poisoned input as:
+
+```text
+x_poisoned = (1 - M) * x + M * T
+```
+
+Where `x` is the original input, and `*` denotes element-wise multiplication. This formulation enables smooth blending of the trigger into the image, rather than applying a hard patch, improving stealthiness.
+
+----------
+
+##### Trigger Optimization
+
+The optimization is performed using gradient-based methods (typically Adam), treating both the trigger `T` and mask `M` as learnable tensors. During each iteration:
+
+1.  A batch of clean training samples is selected
+    
+2.  The trigger and mask are applied to the samples
+    
+3.  All poisoned inputs are assigned the **target class label**
+    
+4.  The model's predictions are evaluated on these poisoned inputs
+    
+5.  A total loss is computed (see below), and gradients are backpropagated to update `T` and `M`
+    
+
+This process is repeated over multiple epochs until convergence. The trigger learns to "hijack" the model’s decision boundary in favor of the target class, while the mask is encouraged to remain small and smooth.
+
+----------
+
+##### Loss Components
+
+To ensure that the learned trigger is both **effective** and **stealthy**, the total loss used in optimization combines the following components:
+
+-   **Cross-Entropy Loss (`L_attack`)**  
+    The main classification loss that encourages the model to predict the **target class** for all poisoned inputs:
+    
+    ```text
+    L_attack = CrossEntropy(f(x_poisoned), y_target)
+    ```
+    
+-   **Mask L1 Regularization (`L_mask`)**  
+    Encourages **sparsity** in the spatial mask `M`, so that the trigger only affects a minimal region of the image:
+    
+    ```text
+    L_mask = lambda_mask * ||M||_1
+    ```
+    
+-   **Total Variation Regularization (`L_tv`)**  
+    Promotes **smoothness** in the trigger pattern `T`, reducing noise or high-frequency artifacts:
+    
+    ```text
+    L_tv = lambda_tv * TV(T)
+    ```
+   
+----------
+
+##### Final Optimization Objective
+
+The complete loss minimized during training is:
+
+```text
+L_total = L_attack + L_mask + L_tv
+```
+
+The weights `lambda_mask` and `lambda_tv` are hyperparameters controlling the trade-off between attack success and trigger stealthiness. These are configurable through the attack setup interface and stored in the profile YAML.
+
+----------
+       
+
+#### 11.4.3 Configuration Parameters
+
+The adversarially learned trigger attack is fully configurable through the interactive `setup_module2.py` script. During setup, the user is guided through a series of questions to define the attack’s behavior and hyperparameters. Each parameter directly influences the outcome of the attack, including its stealthiness and success rate.
+
+Below are the main parameters available:
+
+-   **`target_class`**:  
+    The class that the poisoned model will incorrectly predict whenever the trigger is present. This class is selected randomly by default but can be overridden by the user.
+    
+-   **`poison_fraction`**:  
+    The fraction of the training dataset to be poisoned with the learned trigger. A low value (e.g., 5%) is typically sufficient due to the power of adversarial optimization.
+    
+-   **`patch_size_ratio`**:  
+    A float between 0 and 1 that controls the relative size of the trigger patch compared to the input image dimensions. This ratio determines the height and width of the patch.
+    
+-   **`learning_rate`**:  
+    The learning rate used in the optimization of the trigger and mask. A higher value speeds up convergence, but may lead to unstable training.
+    
+-   **`epochs`**:  
+    The number of epochs for which the trigger and mask are optimized. More epochs can improve ASR but increase computational cost.
+    
+-   **`lambda_mask`** and **`lambda_tv`**:  
+    These control the strength of the regularizers:
+    
+    -   `lambda_mask` encourages the mask to be sparse (via L1 regularization)
+        
+    -   `lambda_tv` promotes smoothness in the trigger (via Total Variation regularization)
+        
+-   **`label_mode`**:  
+    Specifies whether the poisoned images have their labels changed or not. This implementation currently supports only `corrupted` mode — meaning the poisoned samples are assigned the `target_class`.
+    
+
+----------
+
+##### Suggested Defaults Based on Threat Profile
+
+To streamline the setup, the framework proposes reasonable default values depending on the selected threat model, especially the **training data source**. These defaults can always be modified manually during setup:
+
+```text
+Suggested configuration:
+  • Target class       : 4 – deer
+  • Patch size ratio   : 0.1
+  • Poison fraction    : 0.05
+  • Label mode         : corrupted (fixed)
+  • Learning rate      : 0.1
+  • Optimization epochs: 30
+  • Mask L1 weight     : 0.001
+  • TV regularization  : 0.01
+
+```
+
+The logic behind the default suggestions is as follows:
+
+-   **Target Class**: Randomly sampled from the list of available class indices.
+    
+-   **Patch Size Ratio**:
+    
+    -   `0.1` for `user_generated` data (assumes attacker has more control)
+        
+    -   `0.05` for `external_public` data (stealthier trigger by default)
+        
+-   **Poison Fraction**: Set to `0.05` by default — enough for high ASR in most cases while maintaining stealth.
+    
+-   **Label Mode**: Currently fixed to `corrupted` mode due to the difficulty of achieving high ASR in clean-label settings with learned triggers.
+    
+-   **Regularization Weights**:
+    
+    -   `lambda_mask = 0.001`
+        
+    -   `lambda_tv = 0.01`  
+        These were chosen to balance attack effectiveness with stealthiness and visual quality of the trigger.
+        
+
+
+All selected values are stored inside the `attack_overrides → backdoor → learned` section of the YAML profile. This ensures full reproducibility and traceability across simulation runs.
+    
+----------
+
+#### 11.4.4 YAML Integration
+
+Once the configuration is completed through the setup script, all parameters for the adversarially learned trigger attack are stored under the following path in the profile YAML file:
+
+```yaml
+attack_overrides:
+  backdoor:
+    learned:
+			epochs: 10  
+			label_mode: corrupted  
+			lambda_mask: 0.001  
+			lambda_tv: 0.01  
+			learning_rate: 0.01  
+			patch_size_ratio: 0.15  
+			poison_fraction: 0.1  
+			target_class: 4
+
+```
+
+This configuration serves as the **single source of truth** for executing the learned trigger attack during simulation. It ensures that:
+
+-   The same attack can be reproduced exactly at any time.
+    
+-   Parameters are automatically parsed and passed to the attack module.
+    
+-   Reporting scripts can reference this block to include configuration details in summaries.
+    
+
+By keeping the configuration centralized in the profile, the framework maintains consistency between the **attack logic**, **training procedure**, and **generated reports**, facilitating both experimentation and documentation.
+
+
+Claro! Aqui vai a versão bem estruturada e explicada da secção:
+
+----------
+
+#### 11.4.5 Reporting and Metrics
+
+After executing the learned trigger backdoor attack, the framework automatically generates two key report files:
+
+-   `learned_trigger_metrics.json`: a structured file containing all relevant metrics, parameters, and poisoned sample logs.
+    
+-   `learned_trigger_report.md`: a human-readable Markdown report with summarized tables and visual examples, including the learned trigger and mask.
+    
+
+These reports are saved under:
+
+```
+results/backdoor/learned/
+├── learned_trigger_metrics.json
+├── learned_trigger_report.md
+├── trigger.png
+├── mask.png
+├── overlay.png
+└── examples/
+    ├── poison_29336_deer.png
+    ├── poison_16208_deer.png
+    ...
+
+```
+
+----------
+
+##### JSON Report Structure (`learned_trigger_metrics.json`)
+
+This file stores:
+
+-   **Attack configuration parameters**: including patch size, poison fraction, label mode, learning rate, regularization weights, etc.
+    
+-   **Evaluation metrics**:
+    
+    -   `accuracy_clean_testset`: Clean Data Accuracy (CDA) after poisoning.
+        
+    -   `attack_success_rate`: the proportion of test samples with the trigger that were misclassified into the target class.
+        
+-   **Per-class clean accuracy**: For diagnostic comparison of model performance after the attack.
+    
+-   **Example poisoned samples**: Includes indices, perturbation norms, target class, and paths to saved images.
+    
+
+Example excerpt:
+
+```json
+{
+  "attack_type": "learned_trigger",
+  "patch_size_ratio": 0.15,
+  "poison_fraction": 0.1,
+  "label_mode": "corrupted",
+  "target_class": 4,
+  "target_class_name": "deer",
+  "learning_rate": 0.01,
+  "epochs_trigger": 10,
+  "mask_weight": 0.001,
+  "tv_weight": 0.01,
+  "accuracy_clean_testset": 0.5422,
+  "per_class_clean": {
+    "airplane": 0.577,
+    "automobile": 0.654,
+    ...
+  },
+  "attack_success_rate": 1.0,
+  "attack_success_numerator": 9000,
+  "attack_success_denominator": 9000,
+  "example_poisoned_samples": [
+    {
+      "index": 29336,
+      "target_class": 4,
+      "perturbation_norm": 22.70,
+      "example_image_path": "examples/poison_29336_deer.png"
+    },
+    ...
+  ]
+}
+
+```
+
+----------
+
+##### Markdown Report (`learned_trigger_report.md`)
+
+The Markdown report offers a clean visual summary of the attack and includes:
+
+-   Attack configuration (patch size, learning rate, regularization weights, label mode, etc.)
+    
+-   Clean accuracy (CDA)
+    
+-   Attack success rate (ASR)
+    
+-   Per-class accuracy table
+    
+-   Visualizations:
+    
+    -   The learned trigger, mask, and overlay
+        
+    -   A set of poisoned training samples
+        
+    -   Average perturbation norm of displayed examples
+
+----------
+
+This reporting structure offers a complete and reproducible summary of the attack, which is valuable both for analysis and inclusion in publications or thesis documentation.
+
+----------
+
+#### 11.4.6 Example Visualizations
+
+To support visual inspection and qualitative evaluation of the learned backdoor attack, the framework automatically generates several visual artifacts during the simulation. These files are saved under the corresponding subfolder:
+
+```
+results/backdoor/learned/
+├── trigger.png
+├── mask.png
+├── overlay.png
+└── examples/
+    ├── poison_29336_deer.png
+    ├── poison_16208_deer.png
+    ...
+
+```
+
+The following visualizations are included:
+
+-   **`trigger.png`**  
+    Shows the learned trigger pattern `T`, optimized to induce the targeted misclassification when applied to any input image. This image reveals the structure the model has associated with the target class.
+    
+-   **`mask.png`**  
+    Displays the learned spatial mask `M`, which defines how strongly and where the trigger should be blended into the input image. Values closer to white indicate regions with higher influence.
+    
+-   **`overlay.png`**
+    Combines the trigger and mask over a sample clean image to show the final poisoned version. This visualization helps evaluate the **stealthiness** and **blending behavior** of the learned trigger.
+    
+-   **`examples/` folder**  
+    Contains a set of poisoned training samples generated during the attack. Each image reflects the result of applying the optimized `(T, M)` pair to a clean image, saved with the format:
+    
+    ```
+    poison_<index>_<class>.png
+    ```
+    
+
+These visual outputs serve as important diagnostic tools and are also embedded into the Markdown report for easy reference.
+
+----------
+
+#### 11.4.7 Design Considerations
+
+The implementation of the adversarially learned trigger attack in the Safe-DL Framework was designed with flexibility, realism, and reproducibility in mind. Below are the key architectural and usability decisions that guided its development:
+
+-   **Compatibility with Custom Components**  
+    The attack is fully compatible with both **built-in** and **custom datasets or models**, as long as they follow the standard API (e.g., return tensors of the form `(image, label)`). This allows researchers to test the attack in domain-specific scenarios.
+    
+-   **Isolated Trigger Training**  
+    The trigger (`T`) and mask (`M`) are optimized **against a clean version of the model** (`f_base`), ensuring that the backdoor is trained independently from any previous attack steps. This isolation improves modularity and allows consistent evaluation across runs.
+    
+-   **Stealth-Preserving Regularization**  
+    Two regularizers are included by default:
+    
+    -   **L1 norm on the mask** promotes **sparsity**, encouraging minimal spatial coverage.
+        
+    -   **Total Variation (TV) loss** encourages **smoothness**, reducing high-frequency artifacts.
+        
+    
+    These components work together to generate **less perceptible** and **more stealthy** triggers.
+    
+-   **YAML-Based Reproducibility**  
+    All configuration parameters — including learning rate, patch size, regularization weights, and target class — are saved in the `attack_overrides → backdoor → learned` section of the profile YAML. This guarantees that experiments can be:
+    
+    -   Reproduced exactly in future runs
+        
+    -   Compared consistently across different setups
+        
+    -   Easily shared or extended by other users
+        
+
+This thoughtful balance between control, realism, and transparency makes the learned trigger submodule both **experimentally rigorous** and **practically useful** for studying advanced backdoor threats.
