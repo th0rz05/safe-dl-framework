@@ -1,3 +1,18 @@
+attack_overrides:
+  evasion_attacks:
+    fgsm:
+      epsilon: 0.03
+dataset:
+  name: cifar10
+  type: builtin
+model:
+  input_shape:
+  - 3
+  - 32
+  - 32
+  name: resnet18
+  num_classes: 10
+  type: builtin
 name: test
 threat_model:
   attack_goal: targeted
