@@ -142,11 +142,11 @@ The attacker's access level is one of the most fundamental factors in determinin
 
 #### Attacks influenced by this field
 
-| Access Level | Common Attacks Enabled                                       |
-|--------------|--------------------------------------------------------------|
-| white-box    | Adversarial examples (PGD, Carlini-Wagner), Backdoor insertion, Gradient-based model stealing |
-| gray-box     | Transfer attacks, Backdoor analysis, Partial model stealing  |
-| black-box    | Model stealing (query-based), Membership inference, Score-based adversarial attacks |
+| Access Level | Common Attacks Enabled                                                                   |
+|--------------|------------------------------------------------------------------------------------------|
+| white-box    | Evasion attacks (PGD, Carlini-Wagner), Backdoor insertion, Gradient-based model stealing |
+| gray-box     | Transfer attacks, Backdoor analysis, Partial model stealing                              |
+| black-box    | Model stealing (query-based), Membership inference, Score-based adversarial attacks      |
 
 (Refs: Akhtar et al., 2021; Wang et al., 2022; Li et al., 2021)
 
@@ -369,12 +369,12 @@ The architecture type influences the **attack surface and the effectiveness of c
 
 #### Attacks influenced by this field
 
-| Model Type   | Common Attack Vectors                                                  |
-|--------------|------------------------------------------------------------------------|
-| cnn          | Adversarial examples (FGSM, PGD), Backdoors (trigger localization)     |
-| transformer  | Transferability attacks, Feature inversion, Gradient masking bypass    |
-| mlp          | Gradient-based attacks, Label flipping, Weight perturbations           |
-| other        | Architecture-specific vulnerabilities (e.g., time-series poisoning)    |
+| Model Type   | Common Attack Vectors                                               |
+|--------------|---------------------------------------------------------------------|
+| cnn          | Evasion attacks (FGSM, PGD), Backdoors (trigger localization)       |
+| transformer  | Transferability attacks, Feature inversion, Gradient masking bypass |
+| mlp          | Gradient-based attacks, Label flipping, Weight perturbations        |
+| other        | Architecture-specific vulnerabilities (e.g., time-series poisoning) |
 
 (Refs: Akhtar et al., 2021; Costa et al., 2024; Li et al., 2021)
 

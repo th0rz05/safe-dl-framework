@@ -117,7 +117,7 @@ def run_questionnaire():
         suggested_threats.update(["model_stealing", "membership_inference"])
 
     if deployment_scenario in ["mobile", "edge", "api_public"]:
-        suggested_threats.add("adversarial_examples")
+        suggested_threats.add("evasion_attacks")
 
     if model_access in ["white-box", "gray-box"]:
         suggested_threats.add("backdoor_attacks")
@@ -134,7 +134,7 @@ def run_questionnaire():
     threat_category_explanations = {
         "data_poisoning": "Malicious data inserted in training to corrupt the model.",
         "backdoor_attacks": "Triggers planted during training to cause misclassification when activated.",
-        "adversarial_examples": "Inputs crafted to cause errors at inference time.",
+        "evasion_attacks": "Inputs crafted to cause errors at inference time.",
         "model_stealing": "Cloning the model by observing its outputs.",
         "membership_inference": "Determining if a specific input was in the training data.",
         "model_inversion": "Reconstructing private inputs using model predictions."
