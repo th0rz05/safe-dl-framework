@@ -7,10 +7,17 @@ import torch
 class SimpleCNN(nn.Module):
     def __init__(self, input_channels=1, conv_filters=32, hidden_size=128, num_classes=10, input_height=28, input_width=28):
         super().__init__()
+
         self.conv = nn.Sequential(
-            nn.Conv2d(input_channels, conv_filters, kernel_size=3, stride=1),
+            nn.Conv2d(input_channels, conv_filters, kernel_size=3, padding=1),
+            nn.BatchNorm2d(conv_filters),
             nn.ReLU(),
-            nn.MaxPool2d(2)
+
+            nn.Conv2d(conv_filters, conv_filters * 2, kernel_size=3, padding=1),
+            nn.BatchNorm2d(conv_filters * 2),
+            nn.ReLU(),
+
+            nn.MaxPool2d(2),
         )
 
         with torch.no_grad():

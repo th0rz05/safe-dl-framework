@@ -16,7 +16,7 @@ def train_model(model,
                 epochs=3,
                 batch_size=64,
                 class_names=None,
-                lr=1e-2,
+                lr=1e-3,
                 silent=False):
     """
     Standard training loop with tqdm progress bars.
@@ -33,7 +33,7 @@ def train_model(model,
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-4)
     criterion = nn.CrossEntropyLoss()
 
     train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)

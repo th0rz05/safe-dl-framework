@@ -10,8 +10,11 @@ model:
   - 3
   - 32
   - 32
-  name: resnet18
+  name: cnn
   num_classes: 10
+  params:
+    conv_filters: 32
+    hidden_size: 128
   type: builtin
 name: test
 threat_model:
