@@ -38,6 +38,18 @@ def run_fgsm(testset, profile, class_names):
     per_class_total = [0] * len(class_names)
     per_class_adv = [0] * len(class_names)
 
+    out_dir = os.path.join("results", "evasion", "fgsm")
+    os.makedirs(out_dir, exist_ok=True)
+    examples_dir = os.path.join(out_dir, "examples")
+    os.makedirs(examples_dir, exist_ok=True)
+
+    # Delete examples from the previous runs
+    if os.path.exists(examples_dir):
+        for file in os.listdir(examples_dir):
+            file_path = os.path.join(examples_dir, file)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+
     example_log = []
 
     for idx, (x, y) in enumerate(tqdm(testloader, desc="FGSM Attack")):
@@ -67,10 +79,9 @@ def run_fgsm(testset, profile, class_names):
             vis = torch.clamp(vis, 0.0, 1.0)
             vis = (vis * 255).to(torch.uint8).numpy()
 
-            os.makedirs("results/evasion/fgsm/examples", exist_ok=True)
-            #name of type fgsm_<index>_<true_label>.png
+
             fname = f"fgsm_{idx}_{class_names[y.item()]}_{pred_adv.item()}.png"
-            path = os.path.join("results/evasion/fgsm/examples", fname)
+            path = os.path.join(examples_dir, fname)
             plt.imsave(path, vis, format="png")
 
             example_log.append({
