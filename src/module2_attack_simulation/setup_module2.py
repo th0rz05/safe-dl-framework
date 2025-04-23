@@ -432,6 +432,17 @@ def configure_learned_trigger(profile_data, class_names):
         "lambda_tv"         : lambda_tv
     }
 
+def configure_fgsm(profile_data):
+    print("\n=== Configuring FGSM Attack ===\n")
+    epsilon = 0.03  # default suggestion
+
+    print(f"Suggested epsilon: {epsilon}")
+    if not questionary.confirm("Do you want to accept this suggestion?").ask():
+        epsilon = float(questionary.text("Epsilon (perturbation strength, e.g. 0.03):", default=str(epsilon)).ask())
+
+    return {
+        "epsilon": epsilon
+    }
 
 
 
@@ -505,6 +516,26 @@ def run_setup():
             print(f"[*] Backdoor configuration: {backdoor_cfg}")
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
             profile_data["attack_overrides"]["backdoor"] = backdoor_cfg
+
+    if "evasion_attacks" in threat_categories:
+        print("[*] Evasion attacks enabled in threat model.")
+
+        selected_evasions = questionary.checkbox(
+            "Select the evasion attacks to simulate:",
+            choices=[
+                Choice("FGSM", value="fgsm"),
+                # (mais tarde adicionas os outros aqui)
+            ]
+        ).ask()
+
+        evasion_cfg = {}
+        if "fgsm" in selected_evasions:
+            evasion_cfg["fgsm"] = configure_fgsm(profile_data)
+
+        if evasion_cfg:
+            profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
+            profile_data["attack_overrides"]["evasion_attacks"] = evasion_cfg
+
 
     with open(profile_path, "w") as f:
         yaml.dump(profile_data, f)
