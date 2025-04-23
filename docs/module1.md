@@ -461,7 +461,7 @@ This is a multi-selection field. Each value represents a distinct threat categor
 
 - `data_poisoning`: Insertion of malicious data into the training set to compromise model behavior.
 - `backdoor_attacks`: Implanting hidden triggers that cause misclassification only under specific conditions.
-- `adversarial_examples`: Inputs crafted at inference time to manipulate predictions.
+- `evasion_attacks`: Inputs crafted at inference time to manipulate predictions.
 - `model_stealing`: Cloning a model by querying it and analyzing outputs.
 - `membership_inference`: Determining if a specific input was part of the training data.
 - `model_inversion`: Reconstructing training data based on model predictions.
@@ -473,7 +473,7 @@ A set of heuristic rules is applied based on earlier responses. For example:
 - Using external or user-generated training data → `data_poisoning`
 - Public API exposure → `model_stealing`, `membership_inference`
 - High data sensitivity → `model_inversion`
-- Edge/mobile deployment → `adversarial_examples`
+- Edge/mobile deployment → `evasion_attacks`
 
 These suggestions can be overridden by the user during the questionnaire.
 
@@ -489,7 +489,7 @@ Downstream modules (Module 4 and 5) filter recommended defenses and robustness e
 
 #### Example
 
-- If a user selects `data_poisoning` and `adversarial_examples`, only those attacks will be simulated, and defenses will be tailored accordingly.
+- If a user selects `data_poisoning` and `evasion_attacks`, only those attacks will be simulated, and defenses will be tailored accordingly.
 
 This field ensures **customization and modularity** in the framework, avoiding unnecessary computation and focusing efforts on threats that are realistically relevant to the use case.
 
@@ -517,7 +517,7 @@ The logic relies on a small set of deterministic rules. These rules were derived
 |-----------------------------------------------------------|-------------------------------------|-------------------------------------------------------------|
 | `training_data_source` ∈ [external_public, user_generated]| `data_poisoning`                   | Hu & Hu (2020): increased risk of poisoning/backdoors       |
 | `interface_exposed` = api                                 | `model_stealing`, `membership_inference` | Liu et al. (2021); Wang et al. (2022): query-based attacks |
-| `deployment_scenario` ∈ [mobile, edge, api_public]        | `adversarial_examples`             | Khamaiseh et al. (2022): edge devices are vulnerable        |
+| `deployment_scenario` ∈ [mobile, edge, api_public]        | `evasion_attacks`             | Khamaiseh et al. (2022): edge devices are vulnerable        |
 | `model_access` ∈ [white-box, gray-box]                    | `backdoor_attacks`                 | Li et al. (2021): white-box access enables stealthy triggers|
 | `data_sensitivity` = high                                 | `model_inversion`                  | Liu et al. (2021): inversion attacks leak sensitive inputs  |
 
@@ -560,7 +560,7 @@ threat_model:
   interface_exposed: sdk
   threat_categories:
     - data_poisoning
-    - adversarial_examples
+    - evasion_attacks
 ```
 
 **Explanation:**
@@ -592,7 +592,7 @@ threat_model:
   interface_exposed: api
   threat_categories:
     - data_poisoning
-    - adversarial_examples
+    - evasion_attacks
     - model_stealing
     - membership_inference
     - model_inversion
