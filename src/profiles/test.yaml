@@ -1,0 +1,16 @@
+name: test
+threat_model:
+  attack_goal: targeted
+  data_sensitivity: high
+  deployment_scenario: cloud
+  interface_exposed: api
+  model_access: white-box
+  model_type: cnn
+  threat_categories:
+  - data_poisoning
+  - backdoor_attacks
+  - evasion_attacks
+  - model_stealing
+  - membership_inference
+  - model_inversion
+  training_data_source: internal_clean
