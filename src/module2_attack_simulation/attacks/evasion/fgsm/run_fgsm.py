@@ -80,7 +80,7 @@ def run_fgsm(testset, profile, class_names):
             vis = (vis * 255).to(torch.uint8).numpy()
 
 
-            fname = f"fgsm_{idx}_{class_names[y.item()]}_{pred_adv.item()}.png"
+            fname = f"fgsm_{idx}_{class_names[y.item()]}_{class_names[pred_adv.item()]}.png"
             path = os.path.join(examples_dir, fname)
             plt.imsave(path, vis, format="png")
 
