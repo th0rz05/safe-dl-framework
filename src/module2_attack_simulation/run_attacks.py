@@ -51,11 +51,11 @@ def train_clean_model(profile, trainset, testset, valset, class_names):
     save_model(clean_model,profile.get("name"), "clean_model")
     baseline_acc, per_class_acc = evaluate_model(clean_model, testset, class_names=class_names)
 
+    baseline_results = {"overall_accuracy": baseline_acc, "per_class_accuracy": per_class_acc}
+
     os.makedirs("results", exist_ok=True)
     with open("results/baseline_accuracy.json", "w") as f:
-        json.dump({"accuracy": baseline_acc, "per_class_accuracy": per_class_acc}, f)
-
-
+        json.dump(baseline_results, f, indent=4)
 
 def run_attacks(profile,trainset, testset, valset, class_names):
 
@@ -100,6 +100,17 @@ def run_attacks(profile,trainset, testset, valset, class_names):
 
             learned_trigger_model = load_model_cfg_from_profile(profile)
             run_learned_trigger(trainset, testset, valset, learned_trigger_model, profile, class_names)
+
+    if "evasion_attacks" in threat_categories:
+        print("[*] Running Evasion attacks...")
+
+        evasion_attacks = profile.get("attack_overrides", {}).get("evasion_attacks", {})
+
+        if "fgsm" in evasion_attacks:
+            print("  - Executing FGSM...")
+            from attacks.evasion.fgsm.run_fgsm import run_fgsm
+            run_fgsm(testset, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
