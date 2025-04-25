@@ -111,6 +111,11 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             from attacks.evasion.fgsm.run_fgsm import run_fgsm
             run_fgsm(testset, profile, class_names)
 
+        if "pgd" in evasion_attacks:
+            print("  - Executing PGD...")
+            from attacks.evasion.pgd.run_pgd import run_pgd
+            run_pgd(testset, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
