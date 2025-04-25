@@ -487,6 +487,60 @@ def configure_pgd(profile_data):
     }
 
 
+def configure_cw(profile_data):
+    print("\n=== Configuring Carlini & Wagner (C&W) Attack ===\n")
+
+    cfg = profile_data.get("threat_model", {})
+    data_sensitivity = cfg.get("data_sensitivity", "medium")
+    deployment = cfg.get("deployment_scenario", "cloud")
+
+    # Default suggestions
+    confidence = 0.1 if data_sensitivity == "high" else 0.5
+    binary_search_steps = 9 if deployment == "cloud" else 5
+    max_iterations = 1000 if deployment == "cloud" else 500
+    learning_rate = 0.01
+    initial_const = 0.001
+
+    print("Suggested configuration:")
+    print(f"  • Confidence (kappa)        : {confidence}")
+    print(f"  • Binary search steps       : {binary_search_steps}")
+    print(f"  • Max optimization iterations: {max_iterations}")
+    print(f"  • Learning rate              : {learning_rate}")
+    print(f"  • Initial constant (c)       : {initial_const}")
+
+    if not questionary.confirm("Do you want to accept these defaults?").ask():
+        confidence = float(questionary.text(
+            "Confidence (kappa) - e.g., 0.0 to 1.0 (higher = stronger attack):",
+            default=str(confidence)
+        ).ask())
+
+        binary_search_steps = int(questionary.text(
+            "Binary search steps (higher = better L2/performance tradeoff):",
+            default=str(binary_search_steps)
+        ).ask())
+
+        max_iterations = int(questionary.text(
+            "Maximum optimization iterations:",
+            default=str(max_iterations)
+        ).ask())
+
+        learning_rate = float(questionary.text(
+            "Learning rate for Adam optimizer:",
+            default=str(learning_rate)
+        ).ask())
+
+        initial_const = float(questionary.text(
+            "Initial constant 'c' for balancing loss terms:",
+            default=str(initial_const)
+        ).ask())
+
+    return {
+        "confidence": confidence,
+        "binary_search_steps": binary_search_steps,
+        "max_iterations": max_iterations,
+        "learning_rate": learning_rate,
+        "initial_const": initial_const
+    }
 
 
 def run_setup():
@@ -568,6 +622,7 @@ def run_setup():
             choices=[
                 Choice("FGSM", value="fgsm"),
                 Choice("PGD", value="pgd"),
+                Choice("Carlini & Wagner (C&W)", value="cw")
             ]
         ).ask()
 
@@ -577,6 +632,9 @@ def run_setup():
 
         if "pgd" in selected_evasions:
             evasion_cfg["pgd"] = configure_pgd(profile_data)
+
+        if "cw" in selected_evasions:
+            evasion_cfg["cw"] = configure_cw(profile_data)
 
         if evasion_cfg:
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
