@@ -121,6 +121,11 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             from attacks.evasion.cw.run_cw import run_cw
             run_cw(testset, profile, class_names)
 
+        if "deepfool" in evasion_attacks:
+            print("  - Executing DeepFool...")
+            from attacks.evasion.deepfool.run_deepfool import run_deepfool
+            run_deepfool(testset, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
