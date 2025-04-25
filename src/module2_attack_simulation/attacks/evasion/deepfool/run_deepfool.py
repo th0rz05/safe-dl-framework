@@ -12,6 +12,8 @@ from attacks.evasion.deepfool.generate_deepfool_report import generate_deepfool_
 def deepfool_attack(model, x, num_classes, max_iter=50, overshoot=0.02):
     device = x.device
     x_adv = x.clone().detach().requires_grad_(True)
+    x_adv.retain_grad()  # <=== adicionar isto
+
     model.eval()
 
     with torch.no_grad():
@@ -22,6 +24,8 @@ def deepfool_attack(model, x, num_classes, max_iter=50, overshoot=0.02):
 
     for _ in range(max_iter):
         perturbed.requires_grad_(True)
+        perturbed.retain_grad()  # <=== adicionar isto
+
         outputs = model(perturbed)
         pred_label = outputs.argmax(1)
 
@@ -38,7 +42,9 @@ def deepfool_attack(model, x, num_classes, max_iter=50, overshoot=0.02):
             if k == label.item():
                 continue
 
-            perturbed.grad.zero_()
+            if perturbed.grad is not None:  # <=== corrigir
+                perturbed.grad.zero_()
+
             outputs[0, k].backward(retain_graph=True)
             grad_k = perturbed.grad.data.clone()
 
@@ -55,6 +61,7 @@ def deepfool_attack(model, x, num_classes, max_iter=50, overshoot=0.02):
         perturbed = torch.clamp(perturbed, 0, 1)
 
     return perturbed.detach()
+
 
 def run_deepfool(testset, profile, class_names):
     # === Load DeepFool config ===
