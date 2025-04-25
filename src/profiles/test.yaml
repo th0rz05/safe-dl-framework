@@ -1,7 +1,10 @@
 attack_overrides:
   evasion_attacks:
-    fgsm:
+    pgd:
+      alpha: 0.01
       epsilon: 0.03
+      num_iter: 50
+      random_start: true
 dataset:
   name: cifar10
   type: builtin

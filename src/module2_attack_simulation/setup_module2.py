@@ -444,6 +444,49 @@ def configure_fgsm(profile_data):
         "epsilon": epsilon
     }
 
+def configure_pgd(profile_data):
+    print("\n=== Configuring PGD Attack ===\n")
+
+    cfg = profile_data.get("threat_model", {})
+    goal = cfg.get("attack_goal", "untargeted")
+    data_source = cfg.get("training_data_source", "internal_clean")
+
+    # ======= DEFAULT SUGGESTION =======
+    if data_source == "user_generated":
+        epsilon = 0.02
+        alpha = 0.005
+        num_iter = 30
+    else:
+        epsilon = 0.03
+        alpha = 0.01
+        num_iter = 40
+
+    if goal == "targeted":
+        num_iter += 10  # increase iterations for targeted attacks
+
+    random_start = True  # always beneficial in PGD
+
+    # ======= SHOW SUGGESTION =======
+    print("Suggested configuration:")
+    print(f"- Epsilon      : {epsilon}")
+    print(f"- Alpha        : {alpha}")
+    print(f"- Num Iterations: {num_iter}")
+    print(f"- Random Start : {random_start}")
+
+    if not questionary.confirm("Do you want to accept these suggestions?").ask():
+        epsilon = float(questionary.text("Epsilon (maximum perturbation, e.g., 0.03):", default=str(epsilon)).ask())
+        alpha = float(questionary.text("Alpha (step size per iteration, e.g., 0.01):", default=str(alpha)).ask())
+        num_iter = int(questionary.text("Number of PGD iterations (e.g., 40):", default=str(num_iter)).ask())
+        random_start = questionary.confirm("Use random start?", default=random_start).ask()
+
+    return {
+        "epsilon": epsilon,
+        "alpha": alpha,
+        "num_iter": num_iter,
+        "random_start": random_start
+    }
+
+
 
 
 def run_setup():
@@ -524,13 +567,16 @@ def run_setup():
             "Select the evasion attacks to simulate:",
             choices=[
                 Choice("FGSM", value="fgsm"),
-                # (mais tarde adicionas os outros aqui)
+                Choice("PGD", value="pgd"),
             ]
         ).ask()
 
         evasion_cfg = {}
         if "fgsm" in selected_evasions:
             evasion_cfg["fgsm"] = configure_fgsm(profile_data)
+
+        if "pgd" in selected_evasions:
+            evasion_cfg["pgd"] = configure_pgd(profile_data)
 
         if evasion_cfg:
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
