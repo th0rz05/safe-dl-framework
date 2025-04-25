@@ -542,6 +542,43 @@ def configure_cw(profile_data):
         "initial_const": initial_const
     }
 
+def configure_deepfool(profile_data):
+    print("\n=== Configuring DeepFool Attack ===\n")
+
+    cfg = profile_data.get("threat_model", {})
+    model_type = cfg.get("model_type", "cnn")
+    deployment = cfg.get("deployment_scenario", "cloud")
+
+    # === Default suggestions based on context ===
+    if model_type == "cnn":
+        max_iter = 50
+    else:
+        max_iter = 30
+
+    overshoot = 0.02 if deployment == "cloud" else 0.03
+
+    # === Show suggested parameters ===
+    print("Suggested configuration:")
+    print(f"  • Max Iterations : {max_iter}")
+    print(f"  • Overshoot      : {overshoot}")
+
+    if not questionary.confirm("Do you want to accept these suggestions?").ask():
+        max_iter = int(questionary.text(
+            "Maximum number of iterations (e.g., 30–50):",
+            default=str(max_iter)
+        ).ask())
+
+        overshoot = float(questionary.text(
+            "Overshoot factor (e.g., 0.02 or 0.03):",
+            default=str(overshoot)
+        ).ask())
+
+    return {
+        "max_iter": max_iter,
+        "overshoot": overshoot
+    }
+
+
 
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
@@ -622,7 +659,8 @@ def run_setup():
             choices=[
                 Choice("FGSM", value="fgsm"),
                 Choice("PGD", value="pgd"),
-                Choice("Carlini & Wagner (C&W)", value="cw")
+                Choice("Carlini & Wagner (C&W)", value="cw"),
+                Choice("DeepFool", value="deepfool")
             ]
         ).ask()
 
@@ -635,6 +673,9 @@ def run_setup():
 
         if "cw" in selected_evasions:
             evasion_cfg["cw"] = configure_cw(profile_data)
+
+        if "deepfool" in selected_evasions:
+            evasion_cfg["deepfool"] = configure_deepfool(profile_data)
 
         if evasion_cfg:
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
