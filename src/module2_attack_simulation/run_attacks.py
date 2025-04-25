@@ -116,6 +116,11 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             from attacks.evasion.pgd.run_pgd import run_pgd
             run_pgd(testset, profile, class_names)
 
+        if "cw" in evasion_attacks:
+            print("  - Executing C&W...")
+            from attacks.evasion.cw.run_cw import run_cw
+            run_cw(testset, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")

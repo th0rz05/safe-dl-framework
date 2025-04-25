@@ -1,11 +1,11 @@
 attack_overrides:
   evasion_attacks:
     cw:
-      binary_search_steps: 9
+      binary_search_steps: 3
       confidence: 0.1
       initial_const: 0.001
       learning_rate: 0.01
-      max_iterations: 1000
+      max_iterations: 300
 dataset:
   name: cifar10
   type: builtin
