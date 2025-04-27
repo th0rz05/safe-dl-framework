@@ -700,6 +700,130 @@ def configure_spsa(profile_data):
         "max_samples": suggested_max_samples
     }
 
+def configure_transfer_attack(profile_data):
+    print("\n=== Configuring Transfer-Based Attack ===\n")
+
+    # === Read target model information ===
+    model_info = profile_data.get("model", {})
+    model_name = model_info.get("name", "")
+    model_type = model_info.get("type", "builtin")
+    model_params = model_info.get("params", {})
+
+    substitute_suggestion = {}
+    warning = None
+
+    # === Suggest substitute based on target model ===
+    if model_type == "custom" or "user_model" in model_name:
+        warning = "[!] Cannot infer smaller model automatically from user_model.py. Suggesting simple CNN substitute."
+        substitute_suggestion = {
+            "name": "cnn",
+            "params": {
+                "conv_filters": 16,
+                "hidden_size": 64
+            }
+        }
+    elif model_name == "cnn":
+        original_filters = model_params.get("conv_filters", 32)
+        original_hidden = model_params.get("hidden_size", 128)
+        substitute_suggestion = {
+            "name": "cnn",
+            "params": {
+                "conv_filters": max(8, original_filters // 2),
+                "hidden_size": max(32, original_hidden // 2)
+            }
+        }
+    elif model_name in ["resnet18", "resnet50"]:
+        substitute_suggestion = {
+            "name": "cnn",
+            "params": {
+                "conv_filters": 16,
+                "hidden_size": 64
+            }
+        }
+    elif model_name == "vit":
+        substitute_suggestion = {
+            "name": "mlp",
+            "params": {
+                "hidden_size": 64,
+                "input_size": 784
+            }
+        }
+    elif model_name == "mlp":
+        original_hidden = model_params.get("hidden_size", 128)
+        substitute_suggestion = {
+            "name": "mlp",
+            "params": {
+                "hidden_size": max(32, original_hidden // 2),
+                "input_size": model_params.get("input_size", 784)
+            }
+        }
+    else:
+        warning = "[!] Unknown model type. Using simple CNN substitute."
+        substitute_suggestion = {
+            "name": "cnn",
+            "params": {
+                "conv_filters": 16,
+                "hidden_size": 64
+            }
+        }
+
+    # === Suggest attack method ===
+    suggested_attack = "fgsm"
+
+    # === Show full suggestion ===
+    print("\n[*] Suggested Substitute Model:")
+    print(f"  • Model: {substitute_suggestion['name']}")
+    for k, v in substitute_suggestion.get("params", {}).items():
+        print(f"    - {k}: {v}")
+
+    print(f"\n[*] Suggested attack to generate adversarial examples: {suggested_attack.upper()}")
+
+    if warning:
+        print(f"\n{warning}")
+
+    # === Accept suggestion or not ===
+    if questionary.confirm("\nDo you want to accept this suggested configuration?").ask():
+        substitute = substitute_suggestion
+        attack_method = suggested_attack
+    else:
+        # Manual selection
+        print("\n[*] Manual Substitute Model Selection")
+        model_choices = ["cnn", "mlp", "resnet18", "user_model.py"]
+        selected = questionary.select("Select substitute model:", choices=model_choices).ask()
+
+        substitute = {"name": selected, "params": {}}
+
+        if selected == "cnn":
+            conv_filters = int(questionary.text("Number of conv filters (e.g., 16):", default="16").ask())
+            hidden_size = int(questionary.text("Hidden layer size (e.g., 64):", default="64").ask())
+            substitute["params"] = {
+                "conv_filters": conv_filters,
+                "hidden_size": hidden_size
+            }
+        elif selected == "mlp":
+            hidden_size = int(questionary.text("Hidden size (e.g., 64):", default="64").ask())
+            input_size = int(questionary.text("Input size (e.g., 784):", default="784").ask())
+            substitute["params"] = {
+                "hidden_size": hidden_size,
+                "input_size": input_size
+            }
+        elif selected == "resnet18":
+            substitute["params"] = {}
+        elif selected == "user_model.py":
+            print("[!] Reminder: You must ensure substitute is compatible manually.")
+
+        # Choose attack manually too
+        attack_method = questionary.select(
+            "Select attack to use for generating adversarial examples:",
+            choices=["fgsm", "pgd"]
+        ).ask()
+
+    # === Return final configuration ===
+    return {
+        "substitute_model": substitute,
+        "attack_method": attack_method
+    }
+
 
 def run_setup():
     print("\n=== Safe-DL Framework — Module 2 Setup Wizard ===\n")
@@ -784,6 +908,7 @@ def run_setup():
                 Choice("DeepFool", value="deepfool"),
                 Choice("Natural Evolution Strategies (NES)", value="nes"),
                 Choice("Simultaneous Perturbation Stochastic Approximation (SPSA)", value="spsa"),
+                Choice("Transfer-based Attack", value="transfer")
             ]
         ).ask()
 
@@ -805,6 +930,9 @@ def run_setup():
 
         if "spsa" in selected_evasions:
             evasion_cfg["spsa"] = configure_spsa(profile_data)
+
+        if "transfer" in selected_evasions:
+            evasion_cfg["transfer"] = configure_transfer_attack(profile_data)
 
         if evasion_cfg:
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})

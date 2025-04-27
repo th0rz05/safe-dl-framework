@@ -1,12 +1,12 @@
 attack_overrides:
   evasion_attacks:
-    spsa:
-      batch_size: 32
-      delta: 0.01
-      epsilon: 0.03
-      learning_rate: 0.01
-      max_samples: 500
-      num_steps: 50
+    transfer:
+      attack_method: fgsm
+      substitute_model:
+        name: cnn
+        params:
+          conv_filters: 16
+          hidden_size: 64
 dataset:
   name: cifar10
   type: builtin
