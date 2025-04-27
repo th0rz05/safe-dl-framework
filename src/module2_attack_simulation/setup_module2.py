@@ -642,6 +642,58 @@ def configure_nes(profile_data):
         "batch_size": batch_size
     }
 
+def configure_spsa(profile_data):
+    print("\n=== Configuring SPSA Attack ===\n")
+
+    # === Get Threat Model Context ===
+    threat_cfg = profile_data.get("threat_model", {})
+    attack_goal = threat_cfg.get("attack_goal", "untargeted")
+    model_access = threat_cfg.get("model_access", "black-box")
+    deployment_scenario = threat_cfg.get("deployment_scenario", "cloud")
+    data_sensitivity = threat_cfg.get("data_sensitivity", "medium")
+
+    # === Default suggestions based on threat model ===
+    if model_access == "black-box":
+        batch_size = 64  # Higher batch size for smoother gradient estimates
+    else:
+        batch_size = 32
+
+    if deployment_scenario in ["cloud", "api_public"]:
+        num_steps = 150  # Allow more optimization steps
+    else:
+        num_steps = 100
+
+    epsilon = 0.05  # General for CIFAR, normalized inputs
+    delta = 0.01  # Perturbation magnitude for SPSA estimate
+    learning_rate = 0.01
+
+    # Tighten epsilon if data is very sensitive
+    if data_sensitivity == "high":
+        epsilon = 0.03
+
+    # === Show suggested values ===
+    print("Suggested configuration based on threat model:")
+    print(f"  • Epsilon (max perturbation)    : {epsilon}")
+    print(f"  • Delta (perturbation size)      : {delta}")
+    print(f"  • Learning rate                  : {learning_rate}")
+    print(f"  • Number of optimization steps   : {num_steps}")
+    print(f"  • Batch size for gradient estimate: {batch_size}")
+
+    # === Allow override by user ===
+    if not questionary.confirm("Do you want to accept these suggested values?").ask():
+        epsilon = float(questionary.text("Epsilon (e.g., 0.05):", default=str(epsilon)).ask())
+        delta = float(questionary.text("Delta (perturbation size for SPSA, e.g., 0.01):", default=str(delta)).ask())
+        learning_rate = float(questionary.text("Learning rate (e.g., 0.01):", default=str(learning_rate)).ask())
+        num_steps = int(questionary.text("Number of steps (e.g., 100):", default=str(num_steps)).ask())
+        batch_size = int(questionary.text("Batch size (e.g., 32):", default=str(batch_size)).ask())
+
+    return {
+        "epsilon": epsilon,
+        "delta": delta,
+        "learning_rate": learning_rate,
+        "num_steps": num_steps,
+        "batch_size": batch_size
+    }
 
 
 def run_setup():
@@ -721,11 +773,12 @@ def run_setup():
         selected_evasions = questionary.checkbox(
             "Select the evasion attacks to simulate:",
             choices=[
-                Choice("FGSM", value="fgsm"),
-                Choice("PGD", value="pgd"),
+                Choice("Fast Gradient Sign Method (FGSM)", value="fgsm"),
+                Choice("Projected Gradient Descent (PGD)", value="pgd"),
                 Choice("Carlini & Wagner (C&W)", value="cw"),
                 Choice("DeepFool", value="deepfool"),
-                Choice("Natural Evolution Strategies (NES)", value="nes")
+                Choice("Natural Evolution Strategies (NES)", value="nes"),
+                Choice("Simultaneous Perturbation Stochastic Approximation (SPSA)", value="spsa"),
             ]
         ).ask()
 
@@ -744,6 +797,9 @@ def run_setup():
 
         if "nes" in selected_evasions:
             evasion_cfg["nes"] = configure_nes(profile_data)
+
+        if "spsa" in selected_evasions:
+            evasion_cfg["spsa"] = configure_spsa(profile_data)
 
         if evasion_cfg:
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
