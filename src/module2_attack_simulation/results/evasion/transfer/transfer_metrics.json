@@ -1,0 +1,78 @@
+{
+  "attack_type": "transfer_fgsm",
+  "substitute_model": {
+    "name": "cnn",
+    "params": {
+      "conv_filters": 16,
+      "hidden_size": 64
+    }
+  },
+  "accuracy_clean_testset": 0.6754,
+  "accuracy_adversarial_testset": 0.2001,
+  "per_class_clean": {
+    "airplane": 0.672,
+    "automobile": 0.783,
+    "bird": 0.638,
+    "cat": 0.357,
+    "deer": 0.636,
+    "dog": 0.608,
+    "frog": 0.694,
+    "horse": 0.784,
+    "ship": 0.862,
+    "truck": 0.72
+  },
+  "per_class_adversarial": {
+    "airplane": 0.211,
+    "automobile": 0.212,
+    "bird": 0.165,
+    "cat": 0.078,
+    "deer": 0.285,
+    "dog": 0.119,
+    "frog": 0.202,
+    "horse": 0.199,
+    "ship": 0.327,
+    "truck": 0.203
+  },
+  "example_adversarial_samples": [
+    {
+      "index": 0,
+      "true_label": 3,
+      "true_label_name": "cat",
+      "pred_clean": 8,
+      "pred_adv": 8,
+      "example_image_path": "examples/transfer_0_cat_ship.png"
+    },
+    {
+      "index": 1,
+      "true_label": 8,
+      "true_label_name": "ship",
+      "pred_clean": 8,
+      "pred_adv": 8,
+      "example_image_path": "examples/transfer_1_ship_ship.png"
+    },
+    {
+      "index": 2,
+      "true_label": 8,
+      "true_label_name": "ship",
+      "pred_clean": 8,
+      "pred_adv": 0,
+      "example_image_path": "examples/transfer_2_ship_airplane.png"
+    },
+    {
+      "index": 3,
+      "true_label": 0,
+      "true_label_name": "airplane",
+      "pred_clean": 0,
+      "pred_adv": 8,
+      "example_image_path": "examples/transfer_3_airplane_ship.png"
+    },
+    {
+      "index": 4,
+      "true_label": 6,
+      "true_label_name": "frog",
+      "pred_clean": 6,
+      "pred_adv": 4,
+      "example_image_path": "examples/transfer_4_frog_deer.png"
+    }
+  ]
+}
