@@ -50,6 +50,7 @@ def run_spsa(testset, profile, class_names):
     learning_rate = cfg["learning_rate"]
     num_steps = cfg["num_steps"]
     batch_size = cfg["batch_size"]
+    max_samples = cfg.get("max_samples", 0)
 
     # === Load clean model ===
     trained_model = load_model("clean_model", profile)
@@ -58,6 +59,10 @@ def run_spsa(testset, profile, class_names):
     trained_model.to(device)
 
     testloader = DataLoader(testset, batch_size=1, shuffle=False)
+
+    total_samples = len(testloader)
+    if max_samples <= 0 or max_samples > total_samples:
+        max_samples = total_samples
 
     total = 0
     correct_clean = 0
@@ -79,7 +84,10 @@ def run_spsa(testset, profile, class_names):
 
     example_log = []
 
-    for idx, (x, y) in enumerate(tqdm(testloader, desc="SPSA Attack")):
+    for idx, (x, y) in enumerate(tqdm(testloader, desc="SPSA Attack", total=max_samples)):
+        if idx >= max_samples:
+            break
+
         x, y = x.to(device), y.to(device)
 
         with torch.no_grad():

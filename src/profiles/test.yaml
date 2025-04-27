@@ -6,7 +6,7 @@ attack_overrides:
       epsilon: 0.03
       learning_rate: 0.01
       max_samples: 500
-      num_steps: 150
+      num_steps: 50
 dataset:
   name: cifar10
   type: builtin
