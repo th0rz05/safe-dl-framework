@@ -131,6 +131,11 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             from attacks.evasion.nes.run_nes import run_nes
             run_nes(testset, profile, class_names)
 
+        if "spsa" in evasion_attacks:
+            print("  - Executing SPSA...")
+            from attacks.evasion.spsa.run_spsa import run_spsa
+            run_spsa(testset, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
