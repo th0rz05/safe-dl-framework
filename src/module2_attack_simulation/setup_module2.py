@@ -578,6 +578,70 @@ def configure_deepfool(profile_data):
         "overshoot": overshoot
     }
 
+def configure_nes(profile_data):
+    print("\n=== Configuring NES (Natural Evolution Strategies) Attack ===\n")
+
+    cfg = profile_data.get("threat_model", {})
+    model_access = cfg.get("model_access", "black-box")
+    data_sensitivity = cfg.get("data_sensitivity", "medium")
+
+    # ======== DEFAULT SUGGESTIONS BASED ON PROFILE ========
+    if model_access == "black-box":
+        sigma = 0.001  # smaller noise for subtle queries
+        learning_rate = 0.01
+        epsilon = 0.03
+        num_queries = 1000 if data_sensitivity == "high" else 500
+        batch_size = 50
+    else:
+        # If somehow NES is chosen with more access, more aggressive parameters
+        sigma = 0.01
+        learning_rate = 0.02
+        epsilon = 0.05
+        num_queries = 500
+        batch_size = 30
+
+    # ======== SHOW SUGGESTIONS ========
+    print("Suggested configuration:")
+    print(f"  • Sigma (noise stddev)  : {sigma}")
+    print(f"  • Learning rate         : {learning_rate}")
+    print(f"  • Epsilon (max perturb.) : {epsilon}")
+    print(f"  • Max queries           : {num_queries}")
+    print(f"  • Batch size (per query) : {batch_size}")
+
+    if not questionary.confirm("Do you want to accept these defaults?").ask():
+        epsilon = float(questionary.text(
+            "Epsilon (maximum allowed perturbation, e.g., 0.03):",
+            default=str(epsilon)
+        ).ask())
+
+        sigma = float(questionary.text(
+            "Sigma (noise standard deviation for NES gradient estimation, e.g., 0.001):",
+            default=str(sigma)
+        ).ask())
+
+        learning_rate = float(questionary.text(
+            "Learning rate for updates (e.g., 0.01):",
+            default=str(learning_rate)
+        ).ask())
+
+        num_queries = int(questionary.text(
+            "Maximum number of queries allowed (e.g., 1000):",
+            default=str(num_queries)
+        ).ask())
+
+        batch_size = int(questionary.text(
+            "Batch size for NES gradient estimation (e.g., 50):",
+            default=str(batch_size)
+        ).ask())
+
+    return {
+        "epsilon": epsilon,
+        "sigma": sigma,
+        "learning_rate": learning_rate,
+        "num_queries": num_queries,
+        "batch_size": batch_size
+    }
+
 
 
 def run_setup():
@@ -660,7 +724,8 @@ def run_setup():
                 Choice("FGSM", value="fgsm"),
                 Choice("PGD", value="pgd"),
                 Choice("Carlini & Wagner (C&W)", value="cw"),
-                Choice("DeepFool", value="deepfool")
+                Choice("DeepFool", value="deepfool"),
+                Choice("Natural Evolution Strategies (NES)", value="nes")
             ]
         ).ask()
 
@@ -676,6 +741,9 @@ def run_setup():
 
         if "deepfool" in selected_evasions:
             evasion_cfg["deepfool"] = configure_deepfool(profile_data)
+
+        if "nes" in selected_evasions:
+            evasion_cfg["nes"] = configure_nes(profile_data)
 
         if evasion_cfg:
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})

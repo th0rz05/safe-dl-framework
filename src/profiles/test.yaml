@@ -1,8 +1,11 @@
 attack_overrides:
   evasion_attacks:
-    deepfool:
-      max_iter: 50
-      overshoot: 0.02
+    nes:
+      batch_size: 30
+      epsilon: 0.05
+      learning_rate: 0.02
+      num_queries: 500
+      sigma: 0.01
 dataset:
   name: cifar10
   type: builtin
