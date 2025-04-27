@@ -671,6 +671,8 @@ def configure_spsa(profile_data):
     if data_sensitivity == "high":
         epsilon = 0.03
 
+    suggested_max_samples = 500
+
     # === Show suggested values ===
     print("Suggested configuration based on threat model:")
     print(f"  • Epsilon (max perturbation)    : {epsilon}")
@@ -678,6 +680,7 @@ def configure_spsa(profile_data):
     print(f"  • Learning rate                  : {learning_rate}")
     print(f"  • Number of optimization steps   : {num_steps}")
     print(f"  • Batch size for gradient estimate: {batch_size}")
+    print(f"  • Max samples to attack          : {suggested_max_samples}")
 
     # === Allow override by user ===
     if not questionary.confirm("Do you want to accept these suggested values?").ask():
@@ -686,13 +689,15 @@ def configure_spsa(profile_data):
         learning_rate = float(questionary.text("Learning rate (e.g., 0.01):", default=str(learning_rate)).ask())
         num_steps = int(questionary.text("Number of steps (e.g., 100):", default=str(num_steps)).ask())
         batch_size = int(questionary.text("Batch size (e.g., 32):", default=str(batch_size)).ask())
+        suggested_max_samples = int(questionary.text("Max samples to attack (0 = all):", default=str(suggested_max_samples)).ask())
 
     return {
         "epsilon": epsilon,
         "delta": delta,
         "learning_rate": learning_rate,
         "num_steps": num_steps,
-        "batch_size": batch_size
+        "batch_size": batch_size,
+        "max_samples": suggested_max_samples
     }
 
 
