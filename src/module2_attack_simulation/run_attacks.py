@@ -136,6 +136,11 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             from attacks.evasion.spsa.run_spsa import run_spsa
             run_spsa(testset, profile, class_names)
 
+        if "transfer" in evasion_attacks:
+            print("  - Executing Transfer...")
+            from attacks.evasion.transfer.run_transfer import run_transfer
+            run_transfer(trainset, testset,valset, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
