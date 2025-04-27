@@ -126,6 +126,11 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             from attacks.evasion.deepfool.run_deepfool import run_deepfool
             run_deepfool(testset, profile, class_names)
 
+        if "nes" in evasion_attacks:
+            print("  - Executing NES...")
+            from attacks.evasion.nes.run_nes import run_nes
+            run_nes(testset, profile, class_names)
+
 
 def main():
     print("=== Safe-DL: Attack Simulation Module ===\n")
