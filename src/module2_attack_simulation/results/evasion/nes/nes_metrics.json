@@ -1,0 +1,76 @@
+{
+  "attack_type": "nes",
+  "epsilon": 0.05,
+  "sigma": 0.01,
+  "learning_rate": 0.02,
+  "num_queries": 500,
+  "batch_size": 30,
+  "accuracy_clean_testset": 0.6754,
+  "accuracy_adversarial_testset": 0.0137,
+  "per_class_clean": {
+    "airplane": 0.672,
+    "automobile": 0.783,
+    "bird": 0.638,
+    "cat": 0.357,
+    "deer": 0.636,
+    "dog": 0.608,
+    "frog": 0.694,
+    "horse": 0.784,
+    "ship": 0.862,
+    "truck": 0.72
+  },
+  "per_class_adversarial": {
+    "airplane": 0.005,
+    "automobile": 0.03,
+    "bird": 0.004,
+    "cat": 0.0,
+    "deer": 0.0,
+    "dog": 0.0,
+    "frog": 0.014,
+    "horse": 0.027,
+    "ship": 0.041,
+    "truck": 0.016
+  },
+  "example_adversarial_samples": [
+    {
+      "index": 0,
+      "true_label": 3,
+      "true_label_name": "cat",
+      "pred_clean": 8,
+      "pred_adv": 8,
+      "example_image_path": "examples/nes_0_cat_ship.png"
+    },
+    {
+      "index": 1,
+      "true_label": 8,
+      "true_label_name": "ship",
+      "pred_clean": 8,
+      "pred_adv": 1,
+      "example_image_path": "examples/nes_1_ship_automobile.png"
+    },
+    {
+      "index": 2,
+      "true_label": 8,
+      "true_label_name": "ship",
+      "pred_clean": 8,
+      "pred_adv": 0,
+      "example_image_path": "examples/nes_2_ship_airplane.png"
+    },
+    {
+      "index": 3,
+      "true_label": 0,
+      "true_label_name": "airplane",
+      "pred_clean": 0,
+      "pred_adv": 8,
+      "example_image_path": "examples/nes_3_airplane_ship.png"
+    },
+    {
+      "index": 4,
+      "true_label": 6,
+      "true_label_name": "frog",
+      "pred_clean": 6,
+      "pred_adv": 4,
+      "example_image_path": "examples/nes_4_frog_deer.png"
+    }
+  ]
+}
