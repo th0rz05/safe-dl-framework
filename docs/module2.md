@@ -111,6 +111,29 @@
     + [12.6.4 YAML Integration](#1264-yaml-integration)
     + [12.6.5 Reporting and Metrics](#1265-reporting-and-metrics)
     + [12.6.6 Design Considerations](#1266-design-considerations)
+  * [12.7 NES Attack](#127-nes-attack)
+    + [12.7.1 Objective](#1271-objective)
+    + [12.7.2 Attack Mechanics](#1272-attack-mechanics)
+    + [12.7.3 Configuration Parameters](#1273-configuration-parameters)
+    + [12.7.4 YAML Integration](#1274-yaml-integration)
+    + [12.7.5 Reporting and Metrics](#1275-reporting-and-metrics)
+    + [12.7.6 Design Considerations](#1276-design-considerations)
+  * [12.8 SPSA Attack](#128-spsa-attack)
+    + [12.8.1 Objective](#1281-objective)
+    + [12.8.2 Attack Mechanics](#1282-attack-mechanics)
+    + [12.8.3 Configuration Parameters](#1283-configuration-parameters)
+    + [12.8.4 YAML Integration](#1284-yaml-integration)
+    + [12.8.5 Reporting and Metrics](#1285-reporting-and-metrics)
+    + [12.8.6 Design Considerations](#1286-design-considerations)
+  * [12.9 Transfer-Based Attack](#129-transfer-based-attack)
+    + [12.9.1 Objective](#1291-objective)
+    + [12.9.2 Attack Mechanics](#1292-attack-mechanics)
+    + [12.9.3 Configuration Parameters](#1293-configuration-parameters)
+    + [12.9.4 YAML Integration](#1294-yaml-integration)
+    + [12.9.5 Reporting and Metrics](#1295-reporting-and-metrics)
+    + [12.9.6 Design Considerations](#1296-design-considerations)
+  * [12.10 Future Work: Additional Attacks](#1210-future-work--additional-attacks)
+
 
 ## 1. What is Module 2: Attack Simulation?
 
@@ -3235,3 +3258,571 @@ However, there are limitations:
 
 As such, DeepFool is a valuable tool for robustness analysis, particularly in research settings where detailed gradient information is available.
 
+----------
+
+### 12.7 NES Attack
+
+The NES (Natural Evolution Strategies) attack is a black-box evasion method that estimates gradients by sampling noisy perturbations around an input and observing the model’s output changes. NES falls under the class of **score-based black-box attacks**, meaning it only requires access to the model’s output scores (e.g., logits or probabilities), not the internal model structure or gradients. It is especially useful in real-world scenarios where attackers cannot directly compute model gradients but can still query the model multiple times.
+
+NES leverages the principle of **gradient estimation via random sampling**, treating adversarial example generation as a black-box optimization problem. By iteratively adjusting the input based on estimated gradients, the attacker crafts adversarial examples that are often indistinguishable from clean samples yet lead to misclassification.
+
+----------
+
+#### 12.7.1 Objective
+
+The goal of the NES attack is to generate adversarial examples that successfully fool a target model without access to its gradients, by approximating the optimal perturbation direction through noisy evaluations. NES is particularly valuable in **cloud API**, **deployed model**, or **limited-access** environments, where the attacker can only observe outputs and must work under strict query budgets.
+
+By carefully managing the number of queries and the noise parameters, NES can achieve a favorable balance between attack effectiveness and stealthiness.
+
+----------
+
+#### 12.7.2 Attack Mechanics
+
+The NES attack operates by estimating the gradient of the model's loss function through random perturbations:
+
+1.  At each iteration, a batch of random noise vectors (`δ`) is generated from a normal distribution (`N(0, I)`).
+    
+2.  The model is queried with both `x + σδ` and `x - σδ`, where `σ` controls the magnitude of the noise.
+    
+3.  Using the difference in loss outputs, an approximate gradient `∇L(x)` is computed via:
+    
+    ```
+    ∇L(x) ≈ (1 / (2σ)) * (L(x + σδ) - L(x - σδ)) * δ
+    ```
+    
+4.  A gradient ascent step is taken in the direction that increases the loss (for untargeted attacks), updating the adversarial example.
+    
+5.  The perturbation is projected to ensure it remains within the allowed epsilon-ball around the original input.
+    
+6.  The attack continues until a maximum number of queries is reached or a successful adversarial misclassification occurs.
+    
+
+Key points:
+
+-   **Sigma (`σ`)** controls the trade-off between estimation noise and accuracy.
+    
+-   **Learning rate** determines how aggressively the input is updated after each gradient estimation.
+    
+-   **Batch size** defines how many noise samples are used per iteration to stabilize the gradient estimate.
+    
+
+----------
+
+#### 12.7.3 Configuration Parameters
+
+The NES attack is controlled by several parameters, which are set during the setup phase or manually configured by the user:
+
+-   **epsilon (`ε`)**: Maximum perturbation allowed from the original input.
+    
+-   **sigma (`σ`)**: Standard deviation of the noise added during gradient estimation.
+    
+-   **learning_rate**: Step size applied when updating the adversarial example.
+    
+-   **batch_size**: Number of random noise vectors sampled per gradient estimation step.
+    
+-   **num_queries**: Total maximum number of model queries allowed before terminating the attack.
+    
+
+**Suggested Defaults for Safe-DL:**
+
+-   `epsilon = 0.05`
+    
+-   `sigma = 0.01`
+    
+-   `learning_rate = 0.02`
+    
+-   `batch_size = 30`
+    
+-   `num_queries = 500`
+    
+
+These values provide a reasonable balance between stealthiness (small epsilon) and efficiency (moderate number of queries) for black-box evasion scenarios.
+
+**Example CLI Interaction:**
+
+```
+[NES] Suggested settings:
+  - Epsilon: 0.05
+  - Sigma: 0.01
+  - Learning Rate: 0.02
+  - Batch Size: 30
+  - Number of Queries: 500
+Accept these settings? (y/n): y
+✔ NES configuration accepted.
+```
+
+----------
+
+#### 12.7.4 YAML Integration
+
+The NES attack configuration is stored under the `attack_overrides → evasion_attacks → nes` section of the profile YAML file:
+
+```yaml
+attack_overrides:
+  evasion_attacks:
+    nes:
+      epsilon: 0.05
+      sigma: 0.01
+      learning_rate: 0.02
+      batch_size: 30
+      num_queries: 500
+```
+
+This ensures reproducibility across attack runs and allows easy reconfiguration for future experiments.
+
+----------
+
+#### 12.7.5 Reporting and Metrics
+
+After executing the NES attack, the framework automatically generates structured output files:
+
+**Key metrics collected:**
+
+-   **Accuracy on Clean Test Set (CDA)**: Model accuracy on unperturbed inputs.
+    
+-   **Accuracy on Adversarial Test Set (ADA)**: Model accuracy after NES attack.
+    
+-   **Per-Class Accuracy (Clean and Adversarial)**: Breakdown of vulnerabilities at the class level.
+    
+-   **Example Adversarial Samples**: Visual examples of perturbed inputs for manual inspection.
+    
+
+**Output Files:**
+
+-   **`nes_metrics.json`**  
+    Contains:
+    
+    -   Attack configuration parameters (epsilon, sigma, learning rate, etc.)
+        
+    -   Clean and adversarial accuracies
+        
+    -   Per-class breakdown
+        
+    -   Metadata of adversarial examples
+        
+-   **`nes_report.md`**  
+    Summarizes:
+    
+    -   Attack setup
+        
+    -   Metrics overview
+        
+    -   Embedded adversarial images for review
+        
+-   **`examples/` folder**  
+    Contains images named:
+    
+    ```
+    nes_<index>_<true_class>_<pred_adv_class>.png
+    ```
+    
+
+Example directory structure:
+
+```
+results/evasion/nes/
+├── nes_metrics.json
+├── nes_report.md
+└── examples/
+    ├── nes_0_cat_ship.png
+    ├── nes_1_truck_bird.png
+    └── ...
+```
+
+----------
+
+#### 12.7.6 Design Considerations
+
+NES is a strong black-box attack strategy, particularly effective when the model outputs logits or probabilities:
+
+**Advantages:**
+
+-   **No access to gradients required**: Works purely based on model output scores.
+    
+-   **Flexible**: Can target any model accessible through queries.
+    
+-   **Query-efficient**: Balances attack success and query budget.
+    
+
+**Limitations:**
+
+-   **High query cost**: Requires many queries compared to white-box attacks.
+    
+-   **Estimation noise**: Gradient approximations can be noisy, especially for small batch sizes or large sigma values.
+    
+-   **Sensitive to hyperparameters**: Careful tuning of sigma, learning rate, and batch size is necessary.
+    
+
+NES represents an important step toward realistic black-box adversarial testing, enabling evaluations of deployed systems where only prediction scores are accessible.
+
+----------
+
+### 12.8 SPSA Attack
+
+The Simultaneous Perturbation Stochastic Approximation (SPSA) attack is a powerful gradient-free evasion technique designed for black-box settings, where the attacker does not have access to model gradients. Instead, SPSA estimates the gradient of the loss function using random perturbations and updates adversarial examples iteratively. It is especially useful when attacking deployed models served via APIs, where only input-output access is available. SPSA is highly relevant for evaluating robustness against query-based black-box adversaries.
+
+----------
+
+#### 12.8.1 Objective
+
+The goal of the SPSA attack is to find adversarial examples by approximating the loss gradient using two-sided stochastic perturbations, allowing effective optimization without requiring internal model knowledge. This enables attackers to craft adversarial inputs by querying the model, making SPSA particularly suited for **black-box** threat models where gradient information is hidden.
+
+The attack evaluates the model’s robustness against **query-efficient black-box adversaries** who attempt to find minimal perturbations capable of fooling the classifier through repeated queries.
+
+----------
+
+#### 12.8.2 Attack Mechanics
+
+SPSA estimates gradients based on random perturbations rather than analytic computation. The main steps per optimization iteration are:
+
+1.  **Sample random perturbation vectors** `δ_i` for a batch.
+    
+2.  **Query the model** with positively and negatively perturbed inputs:
+    
+    ```
+    x_plus  = x + delta * δ
+    x_minus = x - delta * δ
+    ```
+    
+3.  **Estimate the gradient** via finite differences:
+    
+    ```
+    grad ≈ (loss(x_plus) - loss(x_minus)) * δ / (2 * delta) 
+    ```
+    
+4.  **Update the adversarial input**:
+    
+    ```
+    x_adv = x_adv + learning_rate * sign(grad)
+    ```
+    
+5.  **Clip the adversarial input** to remain within the allowed epsilon-ball around the original sample and valid input space [0,1][0,1].
+    
+
+This procedure is repeated for a fixed number of steps to craft a strong adversarial perturbation.
+
+----------
+
+#### 12.8.3 Configuration Parameters
+
+The SPSA attack in the Safe-DL framework is configured with the following parameters:
+
+-   **epsilon**: Maximum allowed perturbation magnitude around the original input.
+    
+-   **delta**: Small scalar value controlling the perturbation magnitude for gradient estimation.
+    
+-   **learning_rate**: Step size for updating adversarial examples.
+    
+-   **num_steps**: Number of optimization iterations.
+    
+-   **batch_size**: Number of random perturbations sampled per gradient estimate.
+    
+-   **max_samples**: Maximum number of test samples to attack (optional for runtime control).
+    
+
+----------
+
+
+**Typical suggested defaults** (based on threat model analysis):
+
+-   **epsilon**: 0.03 – 0.05
+    
+-   **delta**: 0.01
+    
+-   **learning_rate**: 0.01
+    
+-   **num_steps**: 100 – 150
+    
+-   **batch_size**: 32 – 64
+    
+-   **max_samples**: 500 (for faster evaluation)
+    
+
+These values balance **attack strength** and **query efficiency** for common deployment scenarios like APIs or cloud inference services.
+
+**Example CLI interaction during setup:**
+
+```
+[SPSA] Suggested configuration:
+  - Epsilon: 0.03
+  - Delta: 0.01
+  - Learning rate: 0.01
+  - Number of steps: 150
+  - Batch size: 32
+  - Max samples: 500
+Accept these settings? (y/n): y
+✔ SPSA configuration accepted.
+```
+
+----------
+
+#### 12.8.4 YAML Integration
+
+The SPSA attack settings are saved under the `attack_overrides → evasion_attacks → spsa` section of the profile YAML.
+
+Example:
+
+```yaml
+attack_overrides:
+  evasion_attacks:
+    spsa:
+      epsilon: 0.03
+      delta: 0.01
+      learning_rate: 0.01
+      num_steps: 150
+      batch_size: 32
+      max_samples: 500
+```
+
+If `max_samples` is set to 0 or greater than the dataset size, the attack will process all available test samples.
+
+----------
+
+#### 12.8.5 Reporting and Metrics
+
+After completing the SPSA attack, the framework generates comprehensive outputs:
+
+**Metrics computed:**
+
+-   **Accuracy on Clean Test Set (CDA)**: Baseline model performance.
+    
+-   **Accuracy on Adversarial Test Set (ADA)**: Performance after SPSA perturbations.
+    
+-   **Per-Class Accuracy**: For both clean and adversarial samples.
+    
+-   **Visual Examples**: Up to five adversarial samples saved for inspection.
+    
+
+----------
+
+**Output files and structure:**
+
+```
+results/evasion/spsa/
+├── spsa_metrics.json
+├── spsa_report.md
+└── examples/
+    ├── spsa_0_cat_dog.png
+    ├── spsa_1_ship_airplane.png
+    └── ...
+```
+
+Each adversarial image is named according to:
+
+```
+spsa_<index>_<true_class>_<pred_adv_class>.png
+```
+
+The `spsa_metrics.json` contains all metrics and metadata, and the `spsa_report.md` provides a full Markdown summary with embedded adversarial images.
+
+----------
+
+#### 12.8.6 Design Considerations
+
+SPSA is a **powerful black-box attack** and offers distinct advantages:
+
+**Strengths:**
+
+-   **Gradient-Free**: Requires no internal knowledge of the model.
+    
+-   **Query-Efficient**: Relatively few queries needed compared to other black-box methods.
+    
+-   **Adaptable**: Can attack any model accessible via input-output queries.
+    
+
+**Limitations:**
+
+-   **Slower**: Requires multiple queries per sample, making it computationally heavy for large datasets.
+    
+-   **No guarantee of success**: Gradient estimation is noisy, and success depends on hyperparameter tuning.
+    
+
+In practice, SPSA is a **standard method** for evaluating deployed models against black-box adversaries and is widely used in adversarial machine learning research.
+
+----------
+
+### 12.9 Transfer-Based Attack
+
+The **Transfer-Based Attack** evaluates a model's vulnerability to adversarial examples generated on a substitute model, simulating a black-box scenario where the attacker does not have access to the target model’s internal parameters or gradients. This technique relies on the phenomenon of _transferability_, where adversarial examples crafted against one model often remain effective against different models trained for the same task.
+
+In the Safe-DL framework, the transfer-based attack is implemented by training a substitute model and using it to generate adversarial examples via common white-box attacks. These examples are then evaluated on the clean, unseen target model.
+
+----------
+
+#### 12.9.1 Objective
+
+The objective of the transfer-based attack is to:
+
+-   Assess the **robustness** of the target model to adversarial perturbations crafted on a different model.
+    
+-   Simulate a realistic **black-box** threat model where only the model's outputs are accessible.
+    
+-   Analyze how easily an attacker can fool the model without direct access to its internal architecture or training data.
+    
+
+By evaluating transferability, researchers can estimate the risk of model compromise even in restricted-access scenarios.
+
+----------
+
+#### 12.9.2 Attack Mechanics
+
+The transfer-based attack proceeds in several phases:
+
+1.  **Substitute Model Construction**  
+    A lightweight substitute model is built based on the selected architecture (e.g., CNN, MLP, ResNet18).  
+    Its complexity can be manually configured through the setup process to mimic realistic attacker capabilities.
+    
+2.  **Substitute Model Training**  
+    The substitute is trained on the same training dataset as the target model for a small number of epochs (typically 3), ensuring it captures general data patterns without requiring high accuracy.
+    
+3.  **Adversarial Example Generation**  
+    A standard white-box evasion attack (e.g., FGSM, PGD) is applied to the substitute model to create adversarial examples.
+    
+4.  **Transfer Evaluation**  
+    The generated adversarial examples are fed into the clean target model. The attack success rate is computed based on how many inputs cause misclassification.
+    
+
+This methodology approximates a real-world attacker with only limited access to the deployed model.
+
+----------
+
+#### 12.9.3 Configuration Parameters
+
+The transfer-based attack is configured through the interactive `setup_module2.py` script. The main configurable parameters are:
+
+-   **Attack Method**:  
+    The evasion attack used to generate adversarial examples on the substitute. Options include:
+    
+    -   `fgsm`
+        
+    -   `pgd`
+        
+-   **Substitute Model**:  
+    The model architecture used by the attacker, selected from:
+    
+    -   `cnn`
+        
+    -   `mlp`
+        
+    -   `resnet18`
+        
+    
+    Parameters such as convolutional filters or hidden layer sizes can be manually defined.
+    
+----------
+
+#### 12.9.4 YAML Integration
+
+During setup, the user is guided to define the substitute model and attack method. These settings are saved in the profile YAML file under:
+
+```yaml
+attack_overrides:
+  evasion_attacks:
+    transfer:
+      attack_method: fgsm
+      substitute_model:
+        name: cnn
+        params:
+          conv_filters: 16
+          hidden_size: 64
+
+```
+
+This ensures full **traceability** and **reproducibility** of the attack configuration for future experiments.
+
+----------
+
+#### 12.9.5 Reporting and Metrics
+
+After execution, the framework generates the following outputs:
+
+-   **Accuracy on Clean Test Set** (`accuracy_clean_testset`):  
+    Baseline model accuracy on unperturbed inputs.
+    
+-   **Accuracy on Adversarial Test Set** (`accuracy_adversarial_testset`):  
+    Accuracy on adversarial examples transferred from the substitute model.
+    
+-   **Per-Class Accuracy**:  
+    Clean and adversarial accuracy for each class independently.
+    
+-   **Visual Adversarial Examples**:  
+    Up to five samples of successful adversarial perturbations are saved for qualitative inspection.
+    
+
+----------
+
+**Generated Files:**
+
+```
+results/evasion/transfer/
+├── transfer_metrics.json
+├── transfer_report.md
+└── examples/
+    ├── transfer_0_cat_dog.png
+    ├── transfer_1_airplane_truck.png
+    └── ...
+```
+
+The `transfer_metrics.json` file stores all numerical metrics and paths to adversarial examples, while `transfer_report.md` presents a human-readable summary.
+
+----------
+
+#### 12.9.6 Design Considerations
+
+Key considerations in the implementation of the transfer-based attack include:
+
+-   **Realistic Threat Simulation**:  
+    The attacker does not need access to model parameters, matching real-world black-box threats.
+    
+-   **Substitute Simplicity**:  
+    Substitute models are deliberately simpler to reflect practical attack scenarios with limited computational resources.
+    
+-   **Attack Method Flexibility**:  
+    Different attack methods (e.g., FGSM, PGD) can be tested for transferability strength.
+    
+-   **Reproducibility**:  
+    All configurations and results are automatically saved and organized by the framework for transparent experimentation.
+    
+
+----------
+
+**Limitations:**
+
+-   The success of transfer attacks depends heavily on the substitute model's similarity to the target.
+    
+-   Robust models may resist transfer attacks even if they are vulnerable to direct white-box attacks.
+    
+
+Despite these limitations, transfer-based attacks provide an essential perspective on model robustness against realistic black-box threats.
+
+----------
+
+### 12.10 Future Work: Additional Attacks
+
+While Submodule 2.3 currently implements a comprehensive set of **evasion attacks** covering both white-box and black-box threat models, adversarial machine learning encompasses additional sophisticated attack categories that are planned as future work for the Safe-DL framework.
+
+These include:
+
+-   **Model Stealing Attacks**  
+    Attacks that aim to approximate or replicate the functionality of a deployed model by observing its outputs for carefully selected inputs. These attacks threaten intellectual property and can be the first step toward further attacks like evasion or inversion.
+    
+-   **Model Inversion Attacks**  
+    Techniques that attempt to reconstruct sensitive information about the model’s training data by analyzing model outputs. Model inversion can lead to privacy breaches, especially when dealing with sensitive datasets (e.g., medical images, biometric data).
+    
+-   **Membership Inference Attacks**  
+    Attacks designed to determine whether a specific sample was part of the model’s training set. This type of attack poses significant privacy risks, particularly in regulated environments like healthcare and finance.
+    
+
+These attack classes target **different dimensions of model security** beyond direct misclassification, focusing instead on **intellectual property theft**, **privacy violations**, and **training data exposure**.
+
+They are highly relevant in scenarios where adversaries seek to extract **information** from the model rather than simply fool its predictions.
+
+**Integration Plan:**  
+Future versions of the Safe-DL framework will extend the threat profile and evaluation submodules to incorporate these attacks, providing a more complete assessment of model vulnerabilities across:
+
+-   **Inference phase (evasion attacks)**
+    
+-   **Model extraction and privacy leakage (stealing, inversion, membership inference attacks)**
+    
+
+This expansion will allow the Safe-DL framework to support an even broader range of deployment threat models and robustness evaluation requirements
