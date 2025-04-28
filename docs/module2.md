@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-- [1. What is Module 2: Attack Simulation?](#1-what-is-module-2--attack-simulation-)
+- [1. Introduction](#1-introduction)
 - [2. Workflow Overview](#2-workflow-overview)
   * [2.1 Dataset and Model Selection](#21-dataset-and-model-selection)
   * [2.2 Threat Profile Selection](#22-threat-profile-selection)
@@ -11,11 +11,11 @@
   * [2.5 Attack Execution](#25-attack-execution)
   * [2.6 Reporting](#26-reporting)
 - [3. Dataset and Model Customization Rules](#3-dataset-and-model-customization-rules)
-  * [3.1 Custom Datasets (`user_dataset.py`)](#31-custom-datasets---user-datasetpy--)
-  * [3.2 Custom Models (`user_model.py`)](#32-custom-models---user-modelpy--)
+  * [3.1 Custom Datasets](#31-custom-datasets)
+  * [3.2 Custom Models](#32-custom-models)
   * [3.3 Built-In Compatibility](#33-built-in-compatibility)
 - [4. The Role of the Profile YAML](#4-the-role-of-the-profile-yaml)
-  * [4.1 What Is Stored in the Profile?](#41-what-is-stored-in-the-profile-)
+  * [4.1 What Is Stored in the Profile?](#41-what-is-stored-in-the-profile)
   * [4.2 Updating the Profile from the Setup Wizard](#42-updating-the-profile-from-the-setup-wizard)
   * [4.3 Reusability and Reproducibility](#43-reusability-and-reproducibility)
 - [5. Attack Simulation Flow](#5-attack-simulation-flow)
@@ -40,11 +40,11 @@
   * [8.4 Notes on Reusability](#84-notes-on-reusability)
 - [9. Reporting and Outputs](#9-reporting-and-outputs)
   * [9.1 Output Directory](#91-output-directory)
-  * [9.2 `baseline_accuracy.json`](#92--baseline-accuracyjson-)
+  * [9.2 Baseline Accuracy File](#92-baseline-accuracy-file)
   * [9.3 Attack-Specific Reports](#93-attack-specific-reports)
   * [9.4 Visual Examples Folder](#94-visual-examples-folder)
   * [9.5 Customization Notes](#95-customization-notes)
-- [10. Submodule 2.1 — Data Poisoning Attacks](#10-submodule-21---data-poisoning-attacks)
+- [10. Submodule 2.1 — Data Poisoning Attacks](#10-submodule-21--data-poisoning-attacks)
   * [10.1 Overview](#101-overview)
   * [10.2 Configuration via Setup Script](#102-configuration-via-setup-script)
   * [10.3 Label Flipping Attack](#103-label-flipping-attack)
@@ -61,7 +61,7 @@
     + [10.4.4 YAML Integration](#1044-yaml-integration)
     + [10.4.5 Reporting and Metrics](#1045-reporting-and-metrics)
     + [10.4.6 Design Considerations](#1046-design-considerations)
-- [11. Submodule 2.2 — Backdoor Attacks](#11-submodule-22---backdoor-attacks)
+- [11. Submodule 2.2 — Backdoor Attacks](#11-submodule-22--backdoor-attacks)
   * [11.1 Overview](#111-overview)
   * [11.2 Configuration via Setup Script](#112-configuration-via-setup-script)
   * [11.3 Static Patch Attack](#113-static-patch-attack)
@@ -80,7 +80,7 @@
     + [11.4.5 Reporting and Metrics](#1145-reporting-and-metrics)
     + [11.4.6 Example Visualizations](#1146-example-visualizations)
     + [11.4.7 Design Considerations](#1147-design-considerations)
-- [12. Submodule 2.3 — Evasion Attacks](#12-submodule-23---evasion-attacks)
+- [12. Submodule 2.3 — Evasion Attacks](#12-submodule-23--evasion-attacks)
   * [12.1 Overview](#121-overview)
   * [12.2 Configuration via Setup Script](#122-configuration-via-setup-script)
   * [12.3 FGSM Attack](#123-fgsm-attack)
@@ -97,7 +97,7 @@
     + [12.4.4 YAML Integration](#1244-yaml-integration)
     + [12.4.5 Reporting and Metrics](#1245-reporting-and-metrics)
     + [12.4.6 Design Considerations](#1246-design-considerations)
-  * [12.5 Carlini & Wagner (C&W) Attack](#125-carlini---wagner--c-w--attack)
+  * [12.5 Carlini Wagner Attack](#125-carlini-wagner-attack)  
     + [12.5.1 Objective](#1251-objective)
     + [12.5.2 Attack Mechanics](#1252-attack-mechanics)
     + [12.5.3 Configuration Parameters](#1253-configuration-parameters)
@@ -132,10 +132,12 @@
     + [12.9.4 YAML Integration](#1294-yaml-integration)
     + [12.9.5 Reporting and Metrics](#1295-reporting-and-metrics)
     + [12.9.6 Design Considerations](#1296-design-considerations)
-  * [12.10 Future Work: Additional Attacks](#1210-future-work--additional-attacks)
+  * [12.10 Future Work and Additional Attacks](#1210-future-work-and-additional-attacks)
 
 
-## 1. What is Module 2: Attack Simulation?
+
+
+## 1. Introduction
 
 Module 2 of the Safe-DL framework is responsible for simulating adversarial attacks against deep learning models in controlled environments. Its primary objective is to evaluate the model’s robustness when exposed to malicious manipulations — including input perturbations and training data poisoning.
 
@@ -245,7 +247,7 @@ To support flexibility and extensibility, Module 2 allows users to define their 
 
 ----------
 
-### 3.1 Custom Datasets (`user_dataset.py`)
+### 3.1 Custom Datasets
 
 To use a custom dataset, create a file named `user_dataset.py` that includes the function `get_dataset()`. This function must return:
 
@@ -302,7 +304,7 @@ def get_dataset():
 
 ---------
 
-### 3.2 Custom Models (`user_model.py`)
+### 3.2 Custom Models
 
 To define a custom model architecture, create a file named `user_model.py` that includes a function `get_model()` which returns a PyTorch `nn.Module`.
 
@@ -869,9 +871,9 @@ results/
 
 ----------
 
-### 9.2 `baseline_accuracy.json`
+### 9.2 Baseline Accuracy File
 
-This file logs the performance of the clean model (trained without any attack). It serves as a baseline for comparison across all attacks.
+`baseline_accuracy.json` logs the performance of the clean model (trained without any attack). It serves as a baseline for comparison across all attacks.
 
 Example structure:
 
@@ -2920,7 +2922,7 @@ Because of its strength, PGD is often used as a benchmark when validating advers
 
 ----------
 
-### 12.5 Carlini & Wagner (C&W) Attack
+### 12.5 Carlini Wagner Attack
 
 The Carlini & Wagner (C&W) L2 attack is a powerful and widely recognized adversarial evasion method designed to find minimal perturbations that fool a target model. Unlike simpler methods such as FGSM or PGD, the C&W attack formulates the adversarial example generation as an optimization problem. By minimizing the L2 norm of the perturbation while ensuring the adversarial misclassification, C&W produces highly effective, stealthy adversarial examples. It is particularly effective even against models hardened with defensive strategies like adversarial training.
 
@@ -3797,7 +3799,7 @@ Despite these limitations, transfer-based attacks provide an essential perspecti
 
 ----------
 
-### 12.10 Future Work: Additional Attacks
+### 12.10 Future Work and Additional Attacks
 
 While Submodule 2.3 currently implements a comprehensive set of **evasion attacks** covering both white-box and black-box threat models, adversarial machine learning encompasses additional sophisticated attack categories that are planned as future work for the Safe-DL framework.
 
