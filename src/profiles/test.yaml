@@ -82,6 +82,96 @@ model:
     hidden_size: 128
   type: builtin
 name: test
+risk_analysis:
+  recommendations:
+    clean_label:
+    - Large poisoned subset detected. Use data provenance tracking or influence functions.
+    - Low overall risk. No immediate action required, but monitor for future drift
+      or attack evolution.
+    cw:
+    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
+      or certified defenses.
+    deepfool:
+    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
+      or certified defenses.
+    fgsm:
+    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
+      or certified defenses.
+    label_flipping:
+    - Flip rate above 5%. Recommend data cleaning and per-class accuracy monitoring.
+    learned_trigger:
+    - Fully blended backdoor trigger. Use activation clustering and spectral signature
+      defenses.
+    - Backdoor with high ASR and high risk. Suggest fine-pruning or model inspection
+      techniques.
+    nes:
+    - Stealthy but strong evasion attack. Suggest gradient masking and input preprocessing
+      (e.g., JPEG compression).
+    pgd:
+    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
+      or certified defenses.
+    spsa:
+    - Stealthy but strong evasion attack. Suggest gradient masking and input preprocessing
+      (e.g., JPEG compression).
+    transfer:
+    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
+      or certified defenses.
+  summary:
+    clean_label:
+      probability: 0.9
+      risk_score: 0.244
+      severity: 0.159
+      visibility: 0.3
+    cw:
+      probability: 0.9
+      risk_score: 1.53
+      severity: 1.0
+      visibility: 0.3
+    deepfool:
+      probability: 1.0
+      risk_score: 1.9
+      severity: 1.0
+      visibility: 0.1
+    fgsm:
+      probability: 1.0
+      risk_score: 1.7
+      severity: 1.0
+      visibility: 0.3
+    label_flipping:
+      probability: 1.0
+      risk_score: 0.547
+      severity: 0.422
+      visibility: 0.705
+    learned_trigger:
+      probability: 0.9
+      risk_score: 1.62
+      severity: 1.0
+      visibility: 0.2
+    nes:
+      probability: 0.8
+      risk_score: 1.44
+      severity: 1.0
+      visibility: 0.2
+    pgd:
+      probability: 1.0
+      risk_score: 1.7
+      severity: 1.0
+      visibility: 0.3
+    spsa:
+      probability: 0.8
+      risk_score: 1.44
+      severity: 1.0
+      visibility: 0.2
+    static_patch:
+      probability: 1.0
+      risk_score: 1.4
+      severity: 1.0
+      visibility: 0.6
+    transfer:
+      probability: 0.85
+      risk_score: 1.53
+      severity: 1.0
+      visibility: 0.2
 threat_model:
   attack_goal: targeted
   data_sensitivity: high

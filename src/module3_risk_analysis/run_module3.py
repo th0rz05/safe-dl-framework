@@ -14,7 +14,7 @@ from risk_utils import (
 # Paths
 BASELINE_PATH = Path("../module2_attack_simulation/results/baseline_accuracy.json")
 RESULTS_DIR = Path("../module2_attack_simulation/results/")
-OUTPUT_DIR = Path("results/risk_analysis/")
+OUTPUT_DIR = Path("results/")
 DP_DIR = RESULTS_DIR / "data_poisoning"
 BD_DIR = RESULTS_DIR / "backdoor"
 EV_DIR = RESULTS_DIR / "evasion"
