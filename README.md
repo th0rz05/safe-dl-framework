@@ -10,6 +10,7 @@ Created as part of a master’s thesis at FEUP by Tiago Barbosa.
 - [Full Framework Overview](docs/framework.md)
 - [Module 1 – Threat Modeling](docs/module1.md)
 - [Module 2 – Attack Simulation](docs/module2.md)
+- [Module 3 – Vulnerability Assessment](docs/module3.md)
 
 ---
 
