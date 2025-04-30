@@ -1,0 +1,24 @@
+{
+  "label_flipping": {
+    "type": "data_poisoning",
+    "accuracy_clean": 0.6754,
+    "accuracy_attack": 0.5488,
+    "severity": 0.422,
+    "probability": 1.0,
+    "visibility": 0.705,
+    "risk_score": 0.547,
+    "flip_rate": 0.1,
+    "num_flipped": 4049
+  },
+  "clean_label": {
+    "type": "data_poisoning",
+    "accuracy_clean": 0.6754,
+    "accuracy_attack": 0.6276,
+    "severity": 0.159,
+    "probability": 0.9,
+    "visibility": 0.3,
+    "risk_score": 0.244,
+    "fraction_poison": 0.15,
+    "avg_perturbation_norm": 0.0743
+  }
+}

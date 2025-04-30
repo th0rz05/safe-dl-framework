@@ -1,5 +1,65 @@
 attack_overrides:
+  backdoor:
+    learned:
+      epochs: 30
+      label_mode: corrupted
+      lambda_mask: 0.001
+      lambda_tv: 0.01
+      learning_rate: 0.1
+      patch_size_ratio: 0.05
+      poison_fraction: 0.05
+      target_class: 5
+    static_patch:
+      blend_alpha: 1.0
+      label_mode: corrupted
+      patch_position: bottom_right
+      patch_size_ratio: 0.15
+      patch_type: white_square
+      poison_fraction: 0.05
+      target_class: 7
+  data_poisoning:
+    clean_label:
+      epsilon: 0.1
+      fraction_poison: 0.05
+      max_iterations: 100
+      perturbation_method: feature_collision
+      source_selection: random
+      target_class: 9
+    label_flipping:
+      flip_rate: 0.08
+      source_class: null
+      strategy: many_to_one
+      target_class: 0
   evasion_attacks:
+    cw:
+      binary_search_steps: 9
+      confidence: 0.1
+      initial_const: 0.001
+      learning_rate: 0.01
+      max_iterations: 1000
+    deepfool:
+      max_iter: 50
+      overshoot: 0.02
+    fgsm:
+      epsilon: 0.03
+    nes:
+      batch_size: 30
+      epsilon: 0.05
+      learning_rate: 0.02
+      num_queries: 500
+      sigma: 0.01
+    pgd:
+      alpha: 0.01
+      epsilon: 0.03
+      num_iter: 50
+      random_start: true
+    spsa:
+      batch_size: 32
+      delta: 0.01
+      epsilon: 0.03
+      learning_rate: 0.01
+      max_samples: 500
+      num_steps: 150
     transfer:
       attack_method: fgsm
       substitute_model:
@@ -8,13 +68,13 @@ attack_overrides:
           conv_filters: 16
           hidden_size: 64
 dataset:
-  name: cifar10
+  name: mnist
   type: builtin
 model:
   input_shape:
-  - 3
-  - 32
-  - 32
+  - 1
+  - 28
+  - 28
   name: cnn
   num_classes: 10
   params:
