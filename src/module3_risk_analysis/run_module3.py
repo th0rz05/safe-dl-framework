@@ -5,12 +5,14 @@ import questionary
 from glob import glob
 from pathlib import Path
 from risk_utils import analyze_label_flipping, analyze_clean_label
+from risk_utils import analyze_static_patch, analyze_learned_trigger
 
 # Paths
 BASELINE_PATH = Path("../module2_attack_simulation/results/baseline_accuracy.json")
 RESULTS_DIR = Path("../module2_attack_simulation/results/")
 OUTPUT_DIR = Path("results/risk_analysis/")
 DP_DIR = RESULTS_DIR / "data_poisoning"
+BD_DIR = RESULTS_DIR / "backdoor"
 
 def select_profile():
     profiles = glob("../profiles/*.yaml")
@@ -42,8 +44,10 @@ def main():
     baseline = load_json(BASELINE_PATH)
     analysis = {}
 
-    # Get list of data poisoning attacks used in the profile
+
     attack_overrides = profile_data.get("attack_overrides", {})
+
+    # Get list of data poisoning attacks used in the profile
     dp_attacks = attack_overrides.get("data_poisoning", {})
 
     # Label Flipping analysis
@@ -61,6 +65,23 @@ def main():
             print("[*] Analyzing attack: Clean Label")
             data = load_json(path)
             analysis["clean_label"] = analyze_clean_label(data, baseline)
+
+    # Check backdoor attacks from profile
+    bd_attacks = attack_overrides.get("backdoor", {})
+
+    if "static_patch" in bd_attacks:
+        path = BD_DIR / "static_patch" / "static_patch_metrics.json"
+        if path.exists():
+            print("[*] Analyzing attack: Static Patch")
+            data = load_json(path)
+            analysis["static_patch"] = analyze_static_patch(data)
+
+    if "learned_trigger" in bd_attacks:
+        path = BD_DIR / "learned_trigger" / "learned_trigger_metrics.json"
+        if path.exists():
+            print("[*] Analyzing attack: Learned Trigger")
+            data = load_json(path)
+            analysis["learned_trigger"] = analyze_learned_trigger(data)
 
     # Save the risk analysis result
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)

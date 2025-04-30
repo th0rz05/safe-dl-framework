@@ -877,7 +877,7 @@ def run_setup():
             "Select the backdoor attacks to simulate:",
             choices=[
                 Choice("Static Patch Trigger", value="static_patch"),
-                Choice("Adversarially Learned Trigger", value="learned")
+                Choice("Adversarially Learned Trigger", value="learned_trigger")
             ]
         ).ask()
 
@@ -886,8 +886,8 @@ def run_setup():
         if "static_patch" in selected_backdoors:
             backdoor_cfg["static_patch"] = configure_static_patch(profile_data, class_names)
 
-        if "learned" in selected_backdoors:
-            backdoor_cfg["learned"] = configure_learned_trigger(profile_data, class_names)
+        if "learned_trigger" in selected_backdoors:
+            backdoor_cfg["learned_trigger"] = configure_learned_trigger(profile_data, class_names)
 
         if not backdoor_cfg:
             print("[!] No backdoor attacks selected.")

@@ -1,6 +1,6 @@
 attack_overrides:
   backdoor:
-    learned:
+    learned_trigger:
       epochs: 30
       label_mode: corrupted
       lambda_mask: 0.001

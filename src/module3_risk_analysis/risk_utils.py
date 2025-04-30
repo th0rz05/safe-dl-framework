@@ -70,3 +70,65 @@ def analyze_clean_label(data, baseline):
         "fraction_poison": poison_fraction,
         "avg_perturbation_norm": round(avg_norm, 4) if example_poisoned else None
     }
+
+def analyze_static_patch(data):
+    acc_clean = data["accuracy_clean_testset"]
+    asr = data.get("attack_success_rate", 0.0)
+
+    # Severity: ASR * drop in clean accuracy
+    severity = min(asr + (1 - acc_clean), 1.0)
+
+    # Probability: corrupted-label + white-box (default = 1.0)
+    probability = 1.0
+
+    # Visibility: higher patch size = easier to spot
+    patch_ratio = data.get("patch_size_ratio", 0.15)
+    visibility = min(0.3 + 2 * patch_ratio, 1.0)
+
+    risk_score = round(severity * probability * (1 + (1 - visibility)), 3)
+
+    return {
+        "type": "backdoor",
+        "accuracy_clean": round(acc_clean, 4),
+        "asr": round(asr, 4),
+        "severity": round(severity, 3),
+        "probability": probability,
+        "visibility": round(visibility, 3),
+        "risk_score": risk_score,
+        "patch_size_ratio": patch_ratio,
+        "poison_fraction": data.get("poison_fraction"),
+        "blend_alpha": data.get("blend_alpha")
+    }
+
+
+def analyze_learned_trigger(data):
+    acc_clean = data["accuracy_clean_testset"]
+    asr = data.get("attack_success_rate", 0.0)
+
+    # Severity = ASR + degradation on clean test set
+    severity = min(asr + (1 - acc_clean), 1.0)
+
+    # Probability: learned trigger = a bit harder to execute
+    probability = 0.9
+
+    # Visibility: inferred from ASR + blending
+    visibility = 0.2
+    blend_alpha = data.get("blend_alpha", 1.0)
+    if blend_alpha < 0.5:
+        visibility = 0.4  # semi-stealth
+    if blend_alpha < 0.2:
+        visibility = 0.6  # more visible
+
+    risk_score = round(severity * probability * (1 + (1 - visibility)), 3)
+
+    return {
+        "type": "backdoor",
+        "accuracy_clean": round(acc_clean, 4),
+        "asr": round(asr, 4),
+        "severity": round(severity, 3),
+        "probability": probability,
+        "visibility": round(visibility, 3),
+        "risk_score": risk_score,
+        "poison_fraction": data.get("poison_fraction"),
+        "blend_alpha": blend_alpha
+    }
