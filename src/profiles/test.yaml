@@ -70,6 +70,15 @@ attack_overrides:
 dataset:
   name: mnist
   type: builtin
+defense_config:
+  data_poisoning:
+    clean_label:
+    - provenance_tracking
+    - robust_loss
+    - monitor_drift
+    label_flipping:
+    - data_cleaning
+    - per_class_monitoring
 model:
   input_shape:
   - 1
