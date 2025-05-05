@@ -71,6 +71,48 @@ def generate_recommendations(risk_data):
     # Deduplicate if needed
     return list(dict.fromkeys(recs))
 
+def generate_recommendation_tags(risk_data):
+    recs = defaultdict(list)
+
+    for name, attack in risk_data.items():
+        typ = attack["type"]
+        score = attack["risk_score"]
+        sev = attack["severity"]
+        vis = attack["visibility"]
+
+        if typ == "evasion":
+            if score >= 1.5:
+                recs[name] += ["adversarial_training", "randomized_smoothing", "certified_defense"]
+            elif sev >= 0.8 and vis <= 0.3:
+                recs[name] += ["gradient_masking", "jpeg_preprocessing"]
+            elif vis >= 0.6:
+                recs[name] += ["perturbation_detection"]
+
+        elif typ == "data_poisoning":
+            flip_rate = attack.get("flip_rate", 0.0)
+            poison_frac = attack.get("fraction_poison", 0.0)
+            if flip_rate > 0.05:
+                recs[name] += ["data_cleaning", "per_class_monitoring"]
+            elif poison_frac > 0.1:
+                recs[name] += ["provenance_tracking", "influence_functions"]
+            elif score > 0.5:
+                recs[name] += ["robust_loss", "dp_training"]
+
+        elif typ == "backdoor":
+            blend = attack.get("blend_alpha", 1.0)
+            if blend >= 1.0:
+                recs[name] += ["activation_clustering", "spectral_signatures"]
+            elif blend <= 0.3 and vis <= 0.3:
+                recs[name] += ["anomaly_detection", "pruning"]
+            if attack.get("asr", 0.0) > 0.8 and score >= 1.5:
+                recs[name] += ["fine_pruning", "model_inspection"]
+
+        if score < 0.3:
+            recs[name] += ["monitor_drift"]
+
+    return dict(recs)
+
+
 def update_profile_with_recommendations(profile_path, recommendations):
     with open(profile_path, "r") as f:
         profile = yaml.safe_load(f)
@@ -105,111 +147,115 @@ def update_profile_with_summary(profile_path, risk_data):
         yaml.safe_dump(profile, f)
 
 
-# Paths
-risk_path = Path("results/risk_analysis.json")
-profile_path = Path("../profiles/test.yaml")
-report_path = Path("results/risk_report.md")
+def generate_risk_report(risk_path: Path, profile_path: Path, report_path: Path):
+    # Load files
+    if not risk_path.exists():
+        print(f"[!] File not found: {risk_path}")
+        exit(1)
 
-# Load files
-if not risk_path.exists():
-    print(f"[!] File not found: {risk_path}")
-    exit(1)
+    if not profile_path.exists():
+        print(f"[!] File not found: {profile_path}")
+        exit(1)
 
-if not profile_path.exists():
-    print(f"[!] File not found: {profile_path}")
-    exit(1)
+    with open(risk_path, "r") as f:
+        risk_data = json.load(f)
 
-with open(risk_path, "r") as f:
-    risk_data = json.load(f)
+    with open(profile_path, "r") as f:
+        profile_data = yaml.safe_load(f)
 
-with open(profile_path, "r") as f:
-    profile_data = yaml.safe_load(f)
+    # Build risk matrix and ranking
+    matrix = defaultdict(lambda: defaultdict(list))
+    ranking = []
+    rows = []
 
-# Build risk matrix and ranking
-matrix = defaultdict(lambda: defaultdict(list))
-ranking = []
-rows = []
+    for attack, info in risk_data.items():
+        sev = bucketize(info["severity"])
+        prob = bucketize(info["probability"])
+        matrix[sev][prob].append(attack)
+        ranking.append((attack, info["risk_score"]))
+        attack_type = info.get("type", "")
+        report_link = get_report_path(attack,attack_type)
+        rows.append([
+            attack,
+            attack_type,
+            round(info["severity"], 2),
+            round(info["probability"], 2),
+            round(info["visibility"], 2),
+            round(info["risk_score"], 2),
+            f"[Report]({report_link})"
+        ])
 
-for attack, info in risk_data.items():
-    sev = bucketize(info["severity"])
-    prob = bucketize(info["probability"])
-    matrix[sev][prob].append(attack)
-    ranking.append((attack, info["risk_score"]))
-    attack_type = info.get("type", "")
-    report_link = get_report_path(attack,attack_type)
-    rows.append([
-        attack,
-        attack_type,
-        round(info["severity"], 2),
-        round(info["probability"], 2),
-        round(info["visibility"], 2),
-        round(info["risk_score"], 2),
-        f"[Report]({report_link})"
-    ])
+    ranking.sort(key=lambda x: x[1], reverse=True)
 
-ranking.sort(key=lambda x: x[1], reverse=True)
+    # Generate markdown report
+    lines = []
 
-# Generate markdown report
-lines = []
+    lines.append("# Risk Analysis Report\n")
+    lines.append(f"**Profile**: `{profile_path.name}`  ")
+    lines.append(f"**Dataset**: `{profile_data['dataset']['name']}`  ")
+    lines.append(f"**Model**: `{profile_data['model']['name']}`  ")
+    lines.append(f"**Generated on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
 
-lines.append("# Risk Analysis Report\n")
-lines.append(f"**Profile**: `{profile_path.name}`  ")
-lines.append(f"**Dataset**: `{profile_data['dataset']['name']}`  ")
-lines.append(f"**Model**: `{profile_data['model']['name']}`  ")
-lines.append(f"**Generated on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    lines.append("## Overview\n")
+    lines.append("This report summarizes the risk associated with each attack simulated in Module 2 of the Safe-DL framework. "
+                 "Each attack is evaluated based on its impact (severity), likelihood of success (probability), and perceptibility (visibility). "
+                 "A final risk score is computed to help prioritize mitigation strategies.\n")
 
-lines.append("## Overview\n")
-lines.append("This report summarizes the risk associated with each attack simulated in Module 2 of the Safe-DL framework. "
-             "Each attack is evaluated based on its impact (severity), likelihood of success (probability), and perceptibility (visibility). "
-             "A final risk score is computed to help prioritize mitigation strategies.\n")
+    lines.append("## Summary Table\n")
+    lines.append(tabulate(rows, headers=["Attack", "Type", "Severity", "Probability", "Visibility", "Risk Score", "Report"], tablefmt="github"))
+    lines.append("")
 
-lines.append("## Summary Table\n")
-lines.append(tabulate(rows, headers=["Attack", "Type", "Severity", "Probability", "Visibility", "Risk Score", "Report"], tablefmt="github"))
-lines.append("")
+    lines.append("## Risk Matrix (Qualitative)\n")
+    prob_levels = ["Low", "Medium", "High"]
+    sev_levels = ["Low", "Medium", "High"]
+    matrix_table = [["Severity \\ Probability"] + prob_levels]
+    for sev in sev_levels:
+        row = [sev]
+        for prob in prob_levels:
+            cell = ", ".join(matrix[sev][prob]) if matrix[sev][prob] else "-"
+            row.append(cell)
+        matrix_table.append(row)
+    lines.append(tabulate(matrix_table, headers="firstrow", tablefmt="github"))
+    lines.append("")
 
-lines.append("## Risk Matrix (Qualitative)\n")
-prob_levels = ["Low", "Medium", "High"]
-sev_levels = ["Low", "Medium", "High"]
-matrix_table = [["Severity \\ Probability"] + prob_levels]
-for sev in sev_levels:
-    row = [sev]
-    for prob in prob_levels:
-        cell = ", ".join(matrix[sev][prob]) if matrix[sev][prob] else "-"
-        row.append(cell)
-    matrix_table.append(row)
-lines.append(tabulate(matrix_table, headers="firstrow", tablefmt="github"))
-lines.append("")
+    lines.append("## Risk Ranking\n")
+    for i, (attack, score) in enumerate(ranking, 1):
+        atype = risk_data[attack]["type"]
+        report_link = get_report_path(attack, atype)
+        lines.append(f"{i}. **{attack}** — risk score: {score:.2f} → [Report]({report_link})")
+    lines.append("")
 
-lines.append("## Risk Ranking\n")
-for i, (attack, score) in enumerate(ranking, 1):
-    atype = risk_data[attack]["type"]
-    report_link = get_report_path(attack, atype)
-    lines.append(f"{i}. **{attack}** — risk score: {score:.2f} → [Report]({report_link})")
-lines.append("")
+    lines.append("## Recommendations\n")
+    for rec in generate_recommendations(risk_data):
+        lines.append(rec)
 
-lines.append("## Recommendations\n")
-for rec in generate_recommendations(risk_data):
-    lines.append(rec)
+    # Save the report
+    report_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(report_path, "w") as f:
+        f.write("\n".join(lines))
 
-# Save the report
-report_path.parent.mkdir(parents=True, exist_ok=True)
-with open(report_path, "w") as f:
-    f.write("\n".join(lines))
+    print(f"[✓] Risk report saved to: {report_path}")
 
-print(f"[✓] Risk report saved to: {report_path}")
+    # Group recommendations per attack
+    raw_recs = generate_recommendations(risk_data)
+    grouped = defaultdict(list)
+    for line in raw_recs:
+        if line.startswith("- **"):
+            attack = line.split("**")[1]
+            text = line.split("**: ")[1]
+            grouped[attack].append(text)
 
-# Group recommendations per attack
-raw_recs = generate_recommendations(risk_data)
-grouped = defaultdict(list)
-for line in raw_recs:
-    if line.startswith("- **"):
-        attack = line.split("**")[1]
-        text = line.split("**: ")[1]
-        grouped[attack].append(text)
+    # Save into profile.yaml
+    recommendation_tags = generate_recommendation_tags(risk_data)
+    update_profile_with_recommendations(profile_path, recommendation_tags)
+    print(f"[✓] Recommendations saved to: {profile_path} under `risk_analysis.recommendations`")
 
-# Save into profile.yaml
-update_profile_with_recommendations(profile_path, dict(grouped))
-print(f"[✓] Recommendations saved to: {profile_path} under `risk_analysis.recommendations`")
+    update_profile_with_summary(profile_path, risk_data)
+    print(f"[✓] Summary saved to: {profile_path} under `risk_analysis.summary`")
 
-update_profile_with_summary(profile_path, risk_data)
-print(f"[✓] Summary saved to: {profile_path} under `risk_analysis.summary`")
+if __name__ == "__main__":
+    risk_path = Path("results/risk_analysis.json")
+    profile_path = Path("../profiles/test.yaml")
+    report_path = Path("results/risk_report.md")
+
+    generate_risk_report(risk_path, profile_path, report_path)

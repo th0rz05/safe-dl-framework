@@ -11,6 +11,8 @@ from risk_utils import (
     analyze_deepfool, analyze_nes, analyze_spsa, analyze_transfer
 )
 
+from generate_risk_report import generate_risk_report
+
 # Paths
 BASELINE_PATH = Path("../module2_attack_simulation/results/baseline_accuracy.json")
 RESULTS_DIR = Path("../module2_attack_simulation/results/")
@@ -146,6 +148,13 @@ def main():
         json.dump(analysis, f, indent=2)
 
     print(f"\n[✓] Risk analysis saved to {output_path}")
+
+    # Generate report
+    risk_path = Path("results/risk_analysis.json")
+    report_path = Path("results/risk_report.md")
+    profile_path = Path(profile_path)
+
+    generate_risk_report(risk_path, profile_path, report_path)
 
 
 if __name__ == "__main__":

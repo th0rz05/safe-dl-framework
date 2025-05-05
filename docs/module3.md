@@ -377,7 +377,9 @@ The integration is achieved by embedding the risk analysis results and recommend
 
 ### 8.1 Fields Added to profile.yaml
 
-After Module 3 execution, the profile file is updated with:
+After Module 3 execution, the profile file is updated with a `risk_analysis` section containing both a numeric summary and a list of recommended defenses per attack.
+
+Example:
 
 ```yaml
 risk_analysis:
@@ -394,12 +396,16 @@ risk_analysis:
       risk_score: 1.7
   recommendations:
     label_flipping:
-      - Flip rate above 5%. Recommend data cleaning and per-class accuracy monitoring.
+      - data_cleaning
+      - per_class_monitoring
     pgd:
-      - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing, or certified defenses.
+      - adversarial_training
+      - randomized_smoothing
+      - certified_defense
+
 ```
 
-----------
+These tags can be automatically interpreted by Module 4 to propose relevant defenses, while still allowing manual selection by the user.
 
 
 ## 9. Limitations and Future Work

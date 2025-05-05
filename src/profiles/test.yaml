@@ -85,37 +85,43 @@ name: test
 risk_analysis:
   recommendations:
     clean_label:
-    - Large poisoned subset detected. Use data provenance tracking or influence functions.
-    - Low overall risk. No immediate action required, but monitor for future drift
-      or attack evolution.
+    - provenance_tracking
+    - influence_functions
+    - monitor_drift
     cw:
-    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
-      or certified defenses.
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
     deepfool:
-    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
-      or certified defenses.
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
     fgsm:
-    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
-      or certified defenses.
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
     label_flipping:
-    - Flip rate above 5%. Recommend data cleaning and per-class accuracy monitoring.
+    - data_cleaning
+    - per_class_monitoring
     learned_trigger:
-    - Fully blended backdoor trigger. Use activation clustering and spectral signature
-      defenses.
-    - Backdoor with high ASR and high risk. Suggest fine-pruning or model inspection
-      techniques.
+    - activation_clustering
+    - spectral_signatures
+    - fine_pruning
+    - model_inspection
     nes:
-    - Stealthy but strong evasion attack. Suggest gradient masking and input preprocessing
-      (e.g., JPEG compression).
+    - gradient_masking
+    - jpeg_preprocessing
     pgd:
-    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
-      or certified defenses.
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
     spsa:
-    - Stealthy but strong evasion attack. Suggest gradient masking and input preprocessing
-      (e.g., JPEG compression).
+    - gradient_masking
+    - jpeg_preprocessing
     transfer:
-    - Very high-risk evasion attack. Recommend adversarial training, randomized smoothing,
-      or certified defenses.
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
   summary:
     clean_label:
       probability: 0.9
