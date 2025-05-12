@@ -3,10 +3,12 @@ from collections import defaultdict
 import random
 import os
 import json
+import shutil
+import matplotlib.pyplot as plt
 
 from attacks.data_poisoning.label_flipping.generate_label_flipping_report import \
     generate_label_flipping_report
-from attacks.utils import train_model, evaluate_model, get_class_labels, save_flip_examples
+from attacks.utils import train_model, evaluate_model, get_class_labels
 
 
 def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
@@ -95,21 +97,59 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
     return poisoned_dataset, flip_log, dict(flip_map)
 
 
+def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/data_poisoning/label_flipping/examples",
+                       class_names=None):
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
-def run_label_flipping(trainset, testset, valset, model, profile, class_names):
-    print("[*] Running label flipping attack from profile configuration...")
+    saved = 0
+    for example in flip_log:
+        try:
+            idx = example["index"]
+            original_label = example["original_label"]
+            new_label = example["new_label"]
+            original_label_name = example.get("original_label_name", original_label)
+            new_label_name = example.get("new_label_name", new_label)
+            img, _ = dataset[idx]  # img: tensor [C, H, W]
 
-    attack_cfg = profile.get("attack_overrides", {}).get("data_poisoning", {}).get("label_flipping", {})
-    strategy = attack_cfg.get("strategy")
-    flip_rate = attack_cfg.get("flip_rate")
-    source_class = attack_cfg.get("source_class")
-    target_class = attack_cfg.get("target_class")
+            # Convert image to NumPy array and rearrange if needed
+            img = img.cpu()
 
-    if strategy not in ["one_to_one", "many_to_one", "fully_random"]:
-        raise ValueError("Invalid or missing strategy in attack_overrides.data_poisoning")
+            if img.shape[0] in [3, 4]:  # RGB or RGBA
+                img = img.permute(1, 2, 0)  # [H, W, C]
 
-    if flip_rate is None:
-        raise ValueError("Missing flip_rate in attack_overrides.data_poisoning")
+            img = img.squeeze()
+
+            # Save the image with appropriate color mapping
+            plt.figure()
+            plt.imshow(img, cmap="gray" if img.ndim == 2 else None)
+            plt.axis("off")
+            plt.title(f"{original_label_name} -> {new_label_name}")
+            filename = os.path.join(output_dir, f"flip_{idx}_{original_label}_to_{new_label}.png")
+            plt.savefig(filename, dpi=300, bbox_inches="tight")
+            plt.close()
+
+            saved += 1
+            if saved >= num_examples:
+                break
+
+        except Exception as e:
+            print(f"[!] Failed to save flip example for index {example.get('index', '?')}: {e}")
+
+def apply_label_flipping(trainset, profile, class_names):
+    """
+    Apply label flipping to a training set using profile parameters.
+    Returns: poisoned_trainset, flip_log, flip_map
+    """
+    cfg = profile.get("attack_overrides", {}).get("data_poisoning", {}).get("label_flipping", {})
+    strategy = cfg.get("strategy")
+    flip_rate = cfg.get("flip_rate")
+    source_class = cfg.get("source_class")
+    target_class = cfg.get("target_class")
+
+    if strategy is None or flip_rate is None:
+        raise ValueError("Missing strategy or flip_rate in attack config")
 
     classes = get_class_labels(trainset)
 
@@ -131,7 +171,7 @@ def run_label_flipping(trainset, testset, valset, model, profile, class_names):
     else:
         print("    Flipping: random class → random class")
 
-    poisoned_trainset, flip_log, flip_map = flip_labels(
+    return flip_labels(
         trainset,
         flip_rate=flip_rate,
         strategy=strategy,
@@ -139,6 +179,11 @@ def run_label_flipping(trainset, testset, valset, model, profile, class_names):
         target_class=target_class,
         class_names=class_names
     )
+
+def run_label_flipping(trainset, testset, valset, model, profile, class_names):
+    print("[*] Running label flipping attack from profile configuration...")
+
+    poisoned_trainset, flip_log, flip_map = apply_label_flipping(trainset, profile, class_names)
 
     print("[*] Training model on poisoned dataset...")
     train_model(model, poisoned_trainset, valset, epochs=3)
@@ -152,14 +197,16 @@ def run_label_flipping(trainset, testset, valset, model, profile, class_names):
     os.makedirs("results", exist_ok=True)
     save_flip_examples(trainset.dataset, flip_log, num_examples=5,class_names=class_names)
 
+    attack_cfg = profile.get("attack_overrides", {}).get("data_poisoning", {}).get("label_flipping", {})
+
     result = {
         "attack_type": "label_flipping",
-        "flipping_strategy": strategy,
+        "flipping_strategy": attack_cfg.get("strategy"),
         "accuracy_after_attack": acc,
         "per_class_accuracy": per_class_accuracy,
-        "flip_rate": flip_rate,
-        "source_class": source_class,
-        "target_class": target_class,
+        "flip_rate": attack_cfg.get("flip_rate"),
+        "source_class": attack_cfg.get("source_class"),
+        "target_class": attack_cfg.get("target_class"),
         "num_flipped": len(flip_log),
         "flipping_map": flip_map,
         "example_flips": flip_log[:5]
