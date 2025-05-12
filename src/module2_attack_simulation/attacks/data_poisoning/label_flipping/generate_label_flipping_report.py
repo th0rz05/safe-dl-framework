@@ -6,7 +6,7 @@ def generate_label_flipping_report(json_file, md_file):
         results = json.load(f)
 
     lines = []
-    lines.append("#Data Poisoning - Label Flipping Attack Report\n")
+    lines.append("# Data Poisoning - Label Flipping Attack Report\n")
 
     lines.append("## Overview\n")
     lines.append(f"- **Attack Type:** {results.get('attack_type')}")
