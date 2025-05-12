@@ -8,7 +8,6 @@ from defenses.data_cleaning import run_data_cleaning_defense
 # Add module2 path for shared functions
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "module2_attack_simulation")))
 from dataset_loader import load_builtin_dataset, load_user_dataset
-from attacks.utils import load_model_cfg_from_profile, evaluate_model
 
 
 def choose_profile():
@@ -41,8 +40,8 @@ def apply_data_poisoning_defenses(profile, trainset, testset, valset, class_name
     for attack_type, config in dp_defenses.items():
         print(f"\n[*] Applying data poisoning defenses for: {attack_type}")
         for defense_name in config.get("defenses", []):
-            if attack_type == "label_flipping" and defense_name == "data_cleaning":
-                run_data_cleaning_defense(profile, trainset, testset, valset, class_names)
+            if defense_name == "data_cleaning":
+                run_data_cleaning_defense(profile, trainset, testset, valset, class_names,attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 
@@ -70,9 +69,6 @@ def main():
 
     print("\n[*] Loading dataset...")
     trainset, testset, valset, class_names, _ = load_dataset_from_profile(profile)
-
-    print("[*] Loading model...")
-    model = load_model_cfg_from_profile(profile)
 
     print("[*] Starting defense application...\n")
 

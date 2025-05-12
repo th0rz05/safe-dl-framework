@@ -1,63 +1,127 @@
 import os
 import sys
 import json
-from copy import deepcopy
+from torch.utils.data import Subset
+import torch
+import numpy as np
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..","..","module2_attack_simulation")))
-from attacks.utils import train_model, evaluate_model, get_class_labels,load_model_cfg_from_profile
-from attacks.data_poisoning.label_flipping.run_label_flipping import flip_labels
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
+from attacks.utils import train_model, evaluate_model, get_class_labels, load_model_cfg_from_profile
+from attacks.data_poisoning.label_flipping.run_label_flipping import flip_labels  # Only for label_flipping
 
 
-def apply_data_cleaning(trainset, params):
+def apply_data_cleaning(trainset,model, params):
     """
-    Placeholder for data cleaning logic.
-    Currently removes no samples – must be updated in final version.
+    Apply data cleaning strategies to remove suspected poisoned or noisy samples.
+
+    Args:
+    ----
+    - trainset: Subset or Dataset (must have 'loss' accessible if needed)
+    - params: dict with keys 'method' and 'threshold'
+
+    Returns:
+    ----
+    - A filtered Subset or Dataset with potentially noisy samples removed
     """
+
     print(f"[*] Applying data cleaning with method={params['method']} and threshold={params['threshold']}")
-    # TODO: implement actual data cleaning logic
-    return trainset
+
+    method = params['method']
+    threshold = params['threshold']
+    retained_indices = []
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.eval()
+    model.to(device)
+
+    loader = torch.utils.data.DataLoader(trainset, batch_size=64)
+    criterion = torch.nn.CrossEntropyLoss(reduction='none')
+
+    losses = []
+    all_indices = []
+
+    with torch.no_grad():
+        for i, (x, y) in enumerate(loader):
+            x, y = x.to(device), y.to(device)
+            logits = model(x)
+            batch_loss = criterion(logits, y)
+            losses.extend(batch_loss.cpu().numpy())
+
+            start_idx = i * loader.batch_size
+            end_idx = start_idx + x.size(0)
+            batch_indices = trainset.indices[start_idx:end_idx] if isinstance(trainset, Subset) else list(range(start_idx, end_idx))
+            all_indices.extend(batch_indices)
+
+    if method == "loss_filtering":
+        mean_loss = sum(losses) / len(losses)
+        for idx, loss in zip(all_indices, losses):
+            if loss <= mean_loss * threshold:
+                retained_indices.append(idx)
+
+    elif method == "outlier_detection":
+        loss_array = np.array(losses)
+        mean_loss = np.mean(loss_array)
+        std_loss = np.std(loss_array)
+
+        z_scores = (loss_array - mean_loss) / std_loss
+        retained_indices = [idx for idx, z in zip(all_indices, z_scores) if abs(z) <= threshold]
+
+    else:
+        raise ValueError(f"Unknown data cleaning method: {method}")
+
+    print(f"[✔] Retained {len(retained_indices)} out of {len(all_indices)} samples.")
+    return Subset(trainset.dataset, retained_indices) if isinstance(trainset, Subset) else Subset(trainset, retained_indices)
 
 
-def run_data_cleaning_defense(profile, trainset, testset, valset, class_names):
-    print("[*] Running data_cleaning defense for label_flipping...")
+def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, attack_type):
+    print(f"[*] Running data_cleaning defense for {attack_type}...")
 
-    attack_cfg = profile["attack_overrides"]["data_poisoning"]["label_flipping"]
-    defense_cfg = profile["defense_config"]["data_poisoning"]["label_flipping"]["data_cleaning"]
+    # Load defense config for this attack
+    defense_cfg = profile["defense_config"]["data_poisoning"][attack_type]["data_cleaning"]
 
+    # Load model for training after cleaning
     model = load_model_cfg_from_profile(profile)
-    class_ids = get_class_labels(trainset)
 
-    # 1. Apply label flipping
-    poisoned_trainset, flip_log, flip_map = flip_labels(
-        trainset,
-        flip_rate=attack_cfg["flip_rate"],
-        strategy=attack_cfg["strategy"],
-        source_class=attack_cfg.get("source_class"),
-        target_class=attack_cfg.get("target_class"),
-        class_names=class_names
-    )
+    # Generate poisoned dataset depending on the attack type
+    if attack_type == "label_flipping":
+        attack_cfg = profile["attack_overrides"]["data_poisoning"]["label_flipping"]
+        poisoned_trainset, flip_log, flip_map = flip_labels(
+            trainset,
+            flip_rate=attack_cfg["flip_rate"],
+            strategy=attack_cfg["strategy"],
+            source_class=attack_cfg.get("source_class"),
+            target_class=attack_cfg.get("target_class"),
+            class_names=class_names
+        )
+    else:
+        raise NotImplementedError(f"Data cleaning for attack '{attack_type}' not implemented yet.")
 
-    # 2. Apply data cleaning
-    cleaned_dataset = apply_data_cleaning(poisoned_trainset, defense_cfg)
+    # Save poisoned model to temp for loss-based filtering
+    print("[*] Saving temporary model for loss analysis...")
+    temp_model = load_model_cfg_from_profile(profile)
+    train_model(temp_model, poisoned_trainset, valset, epochs=3, class_names=class_names)
 
-    # 3. Train model on cleaned dataset
+    # Apply cleaning
+    cleaned_dataset = apply_data_cleaning(poisoned_trainset, temp_model, defense_cfg)
+
+    # Train final model on cleaned data
     train_model(model, cleaned_dataset, valset, epochs=3, class_names=class_names)
 
-    # 4. Evaluate on clean test set
+    # Evaluate
     acc, per_class = evaluate_model(model, testset, class_names=class_names)
 
-    # 5. Save metrics
-    os.makedirs("results/module4_defenses", exist_ok=True)
+    # Save metrics
+    os.makedirs(f"results/data_poisoning/{attack_type}", exist_ok=True)
     results = {
         "defense": "data_cleaning",
-        "attack": "label_flipping",
+        "attack": attack_type,
         "accuracy_after_defense": acc,
         "per_class_accuracy": per_class,
-        "flip_map": flip_map,
-        "num_flipped": len(flip_log),
         "cleaning_params": defense_cfg
     }
-    with open("results/module4_defenses/data_cleaning_label_flipping.json", "w") as f:
+
+    path = f"results/data_poisoning/{attack_type}/data_cleaning_results.json"
+    with open(path, "w") as f:
         json.dump(results, f, indent=2)
 
-    print("[✔] Defense results saved.")
+    print(f"[✔] Defense results saved to {path}")

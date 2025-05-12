@@ -30,7 +30,7 @@ def configure_provenance_tracking():
 
 
 def configure_data_cleaning():
-    method = select("Cleaning strategy:", choices=["loss_filtering", "ensemble_disagreement", "outlier_detection"]).ask()
+    method = select("Cleaning strategy:", choices=["loss_filtering","outlier_detection"]).ask()
     threshold = float(text("Anomaly threshold (e.g., 0.9):", default="0.9").ask())
     return {"method": method, "threshold": threshold}
 
