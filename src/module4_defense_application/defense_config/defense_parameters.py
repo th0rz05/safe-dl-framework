@@ -102,13 +102,6 @@ def configure_perturbation_detection():
     return {"method": method, "threshold": threshold}
 
 
-
-def configure_monitor_drift():
-    frequency = int(text("Evaluation frequency (epochs):", default="1").ask())
-    alert_threshold = float(text("Alert threshold for drift:", default="0.1").ask())
-    return {"frequency": frequency, "alert_threshold": alert_threshold}
-
-
 # Main dispatcher
 DEFENSE_PARAMETER_FUNCTIONS = {
     "dp_training": configure_dp_training,
@@ -128,6 +121,5 @@ DEFENSE_PARAMETER_FUNCTIONS = {
     "jpeg_preprocessing": configure_jpeg_preprocessing,
     "adversarial_training": configure_adversarial_training,
     "randomized_smoothing": configure_randomized_smoothing,
-    "certified_defense": configure_certified_defense,
-    "monitor_drift": configure_monitor_drift,
+    "certified_defense": configure_certified_defense
 }
