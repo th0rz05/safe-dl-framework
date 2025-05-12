@@ -73,45 +73,121 @@ dataset:
 defense_config:
   backdoor:
     learned_trigger:
-    - activation_clustering
-    - spectral_signatures
-    - fine_pruning
-    - model_inspection
+      activation_clustering:
+        num_clusters: 2
+      defenses:
+      - activation_clustering
+      - spectral_signatures
+      - fine_pruning
+      - model_inspection
+      fine_pruning:
+        pruning_ratio: 0.2
+      model_inspection:
+        layers:
+        - fc1
+        - fc2
+      spectral_signatures:
+        threshold: 0.9
   data_poisoning:
     clean_label:
-    - provenance_tracking
-    - influence_functions
-    - monitor_drift
+      defenses:
+      - provenance_tracking
+      - influence_functions
+      - monitor_drift
+      influence_functions:
+        method: grad_influence
+        sample_size: 500
+      monitor_drift:
+        alert_threshold: 0.1
+        frequency: 1
+      provenance_tracking:
+        granularity: sample
     label_flipping:
-    - data_cleaning
-    - per_class_monitoring
+      data_cleaning:
+        method: loss_filtering
+        threshold: 0.9
+      defenses:
+      - data_cleaning
+      - per_class_monitoring
+      per_class_monitoring:
+        std_threshold: 2.0
   evasion_attacks:
     cw:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      certified_defense:
+        method: interval_bound
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      - certified_defense
+      randomized_smoothing:
+        sigma: 0.25
     deepfool:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      certified_defense:
+        method: interval_bound
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      - certified_defense
+      randomized_smoothing:
+        sigma: 0.25
     fgsm:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      certified_defense:
+        method: interval_bound
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      - certified_defense
+      randomized_smoothing:
+        sigma: 0.25
     nes:
-    - gradient_masking
-    - jpeg_preprocessing
+      defenses:
+      - gradient_masking
+      - jpeg_preprocessing
+      gradient_masking:
+        strength: 0.5
+      jpeg_preprocessing:
+        quality: 75
     pgd:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      certified_defense:
+        method: interval_bound
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      - certified_defense
+      randomized_smoothing:
+        sigma: 0.25
     spsa:
-    - gradient_masking
-    - jpeg_preprocessing
+      defenses:
+      - gradient_masking
+      - jpeg_preprocessing
+      gradient_masking:
+        strength: 0.5
+      jpeg_preprocessing:
+        quality: 75
     transfer:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      certified_defense:
+        method: interval_bound
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      - certified_defense
+      randomized_smoothing:
+        sigma: 0.25
 model:
   input_shape:
   - 1

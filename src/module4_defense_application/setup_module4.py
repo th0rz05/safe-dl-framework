@@ -6,6 +6,7 @@ from questionary import Choice
 from glob import glob
 from defense_config.defense_tags import DEFENSE_TAGS
 from defense_config.defense_descriptions import DEFENSE_DESCRIPTIONS
+from defense_config.defense_parameters import DEFENSE_PARAMETER_FUNCTIONS
 
 
 def load_profile(path):
@@ -47,50 +48,31 @@ def ask_defenses(subattack, suggestions, all_possible):
 
     return selected
 
-def configure_data_poisoning_defenses(profile_data):
-    print("[*] Configuring defenses for Data Poisoning attacks...")
+def configure_defenses(profile_data, category):
+    print(f"[*] Configuring defenses for {category.replace('_', ' ').title()}...")
     recs = profile_data.get("risk_analysis", {}).get("recommendations", {})
     applied = {}
 
-    for subattack in DEFENSE_TAGS["data_poisoning"]:
+    for subattack in DEFENSE_TAGS.get(category, {}):
         suggestions = recs.get(subattack, [])
-        all_possible = DEFENSE_TAGS["data_poisoning"][subattack]
+        all_possible = DEFENSE_TAGS[category][subattack]
         defenses = ask_defenses(subattack, suggestions, all_possible)
+
         if defenses:
-            applied[subattack] = copy.deepcopy(defenses)
-
-    return applied
-
-def configure_backdoor_defenses(profile_data):
-    print("[*] Configuring defenses for Backdoor attacks...")
-    recs = profile_data.get("risk_analysis", {}).get("recommendations", {})
-    applied = {}
-
-    for subattack in DEFENSE_TAGS.get("backdoor", {}):
-        suggestions = recs.get(subattack, [])
-        all_possible = DEFENSE_TAGS["backdoor"][subattack]
-        defenses = ask_defenses(subattack, suggestions, all_possible)
-        if defenses:
-            applied[subattack] = copy.deepcopy(defenses)
-
-    return applied
-
-def configure_evasion_defenses(profile_data):
-    print("[*] Configuring defenses for Evasion attacks...")
-    recs = profile_data.get("risk_analysis", {}).get("recommendations", {})
-    applied = {}
-
-    for subattack in DEFENSE_TAGS.get("evasion_attacks", {}):
-        suggestions = recs.get(subattack, [])
-        all_possible = DEFENSE_TAGS["evasion_attacks"][subattack]
-        defenses = ask_defenses(subattack, suggestions, all_possible)
-        if defenses:
-            applied[subattack] = copy.deepcopy(defenses)
+            applied[subattack] = {
+                "defenses": copy.deepcopy(defenses)
+            }
+            for defense in defenses:
+                param_fn = DEFENSE_PARAMETER_FUNCTIONS.get(defense)
+                if param_fn:
+                    print(f"[?] Configuring parameters for defense: {defense}")
+                    params = param_fn()
+                    applied[subattack][defense] = copy.deepcopy(params)
 
     return applied
 
 def run_setup():
-    print("\n=== Safe-DL — Module 4 Setup Wizard (Data Poisoning Only) ===\n")
+    print("\n=== Safe-DL — Module 4 Setup Wizard ===\n")
 
     profile_path = select_profile()
     profile_data = load_profile(profile_path)
@@ -98,17 +80,9 @@ def run_setup():
     if "defense_config" not in profile_data:
         profile_data["defense_config"] = {}
 
-    if "data_poisoning" in DEFENSE_TAGS:
-        dp_defenses = configure_data_poisoning_defenses(profile_data)
-        profile_data["defense_config"]["data_poisoning"] = dp_defenses
-
-    if "backdoor" in DEFENSE_TAGS:
-        bd_defenses = configure_backdoor_defenses(profile_data)
-        profile_data["defense_config"]["backdoor"] = bd_defenses
-
-    if "evasion_attacks" in DEFENSE_TAGS:
-        ev_defenses = configure_evasion_defenses(profile_data)
-        profile_data["defense_config"]["evasion_attacks"] = ev_defenses
+    for category in DEFENSE_TAGS:
+        defenses = configure_defenses(profile_data, category)
+        profile_data["defense_config"][category] = defenses
 
     save_profile(profile_data, profile_path)
     print(f"\n[✔] Profile updated with defenses and saved to: {profile_path}")
