@@ -3,7 +3,7 @@ import sys
 import yaml
 import questionary
 
-from defenses.data_cleaning import run_data_cleaning_defense
+from defenses.data_cleaning.data_cleaning import run_data_cleaning_defense
 
 # Add module2 path for shared functions
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "module2_attack_simulation")))

@@ -4,10 +4,50 @@ import json
 from torch.utils.data import Subset
 import torch
 import numpy as np
+import matplotlib.pyplot as plt
+from defenses.data_cleaning.generate_data_cleaning_report import generate_data_cleaning_report
 
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..","..", "module2_attack_simulation")))
 from attacks.utils import train_model, evaluate_model, get_class_labels, load_model_cfg_from_profile
 from attacks.data_poisoning.label_flipping.run_label_flipping import flip_labels  # Only for label_flipping
+
+
+def save_cleaned_examples(dataset, removed_indices, output_dir="results/data_poisoning/cleaned_examples", class_names=None, max_examples=5):
+    os.makedirs(output_dir, exist_ok=True)
+    saved = 0
+
+    #remove old files
+    for file in os.listdir(output_dir):
+        file_path = os.path.join(output_dir, file)
+        try:
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            print(f"[!] Failed to remove file {file_path}: {e}")
+
+    for idx in removed_indices:
+        try:
+            img, label = dataset[idx]
+            label_name = class_names[label] if class_names else str(label)
+
+            img = img.cpu()
+            if img.shape[0] in [3, 4]:  # RGB or RGBA
+                img = img.permute(1, 2, 0)  # [H, W, C]
+            img = img.squeeze()
+
+            plt.figure()
+            plt.imshow(img, cmap="gray" if img.ndim == 2 else None)
+            plt.axis("off")
+            plt.title(f"Removed: {label_name}")
+            filename = os.path.join(output_dir, f"removed_{idx}_{label}.png")
+            plt.savefig(filename, dpi=300, bbox_inches="tight")
+            plt.close()
+
+            saved += 1
+            if saved >= max_examples:
+                break
+        except Exception as e:
+            print(f"[!] Failed to save removed sample {idx}: {e}")
 
 
 def apply_data_cleaning(trainset,model, params):
@@ -104,6 +144,12 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
     # Apply cleaning
     cleaned_dataset = apply_data_cleaning(poisoned_trainset, temp_model, defense_cfg)
 
+    removed_indices = list(set(poisoned_trainset.indices) - set(cleaned_dataset.indices))
+    print(f"[*] Saving up to 5 removed examples ({len(removed_indices)} identified)...")
+    save_cleaned_examples(poisoned_trainset.dataset, removed_indices,
+                          output_dir=f"results/data_poisoning/{attack_type}/cleaned_examples",
+                          class_names=class_names, max_examples=5)
+
     # Train final model on cleaned data
     train_model(model, cleaned_dataset, valset, epochs=3, class_names=class_names)
 
@@ -112,12 +158,27 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
 
     # Save metrics
     os.makedirs(f"results/data_poisoning/{attack_type}", exist_ok=True)
+
+    example_flips = []
+    for idx in removed_indices[:5]:
+        img, label = poisoned_trainset.dataset[idx]
+        label_name = class_names[label] if class_names else str(label)
+        path = f"cleaned_examples/removed_{idx}_{label}.png"
+        example_flips.append({
+            "index": idx,
+            "original_label": label,
+            "original_label_name": label_name,
+            "image_path": path
+        })
+
     results = {
         "defense": "data_cleaning",
         "attack": attack_type,
         "accuracy_after_defense": acc,
         "per_class_accuracy": per_class,
-        "cleaning_params": defense_cfg
+        "cleaning_params": defense_cfg,
+        "num_removed": len(removed_indices),
+        "example_removed": example_flips
     }
 
     path = f"results/data_poisoning/{attack_type}/data_cleaning_results.json"
@@ -125,3 +186,8 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
         json.dump(results, f, indent=2)
 
     print(f"[✔] Defense results saved to {path}")
+
+    # Generate Markdown report
+    md_path = f"results/data_poisoning/{attack_type}/data_cleaning_report.md"
+    generate_data_cleaning_report(json_file=path, md_file=md_path)
+    print(f"[✔] Report generated at {md_path}")

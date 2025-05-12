@@ -1,0 +1,54 @@
+{
+  "defense": "data_cleaning",
+  "attack": "label_flipping",
+  "accuracy_after_defense": 0.6104,
+  "per_class_accuracy": {
+    "airplane": 0.716,
+    "automobile": 0.687,
+    "bird": 0.407,
+    "cat": 0.154,
+    "deer": 0.656,
+    "dog": 0.4,
+    "frog": 0.788,
+    "horse": 0.752,
+    "ship": 0.696,
+    "truck": 0.848
+  },
+  "cleaning_params": {
+    "method": "loss_filtering",
+    "threshold": 0.9
+  },
+  "num_removed": 20358,
+  "example_removed": [
+    {
+      "index": 0,
+      "original_label": 6,
+      "original_label_name": "frog",
+      "image_path": "cleaned_examples/removed_0_6.png"
+    },
+    {
+      "index": 4,
+      "original_label": 1,
+      "original_label_name": "automobile",
+      "image_path": "cleaned_examples/removed_4_1.png"
+    },
+    {
+      "index": 5,
+      "original_label": 0,
+      "original_label_name": "airplane",
+      "image_path": "cleaned_examples/removed_5_0.png"
+    },
+    {
+      "index": 9,
+      "original_label": 3,
+      "original_label_name": "cat",
+      "image_path": "cleaned_examples/removed_9_3.png"
+    },
+    {
+      "index": 11,
+      "original_label": 0,
+      "original_label_name": "airplane",
+      "image_path": "cleaned_examples/removed_11_0.png"
+    }
+  ]
+}
