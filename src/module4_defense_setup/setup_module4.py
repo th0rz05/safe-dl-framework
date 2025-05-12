@@ -1,3 +1,4 @@
+import copy
 import os
 import yaml
 import questionary
@@ -54,7 +55,37 @@ def configure_data_poisoning_defenses(profile_data):
     for subattack in DEFENSE_TAGS["data_poisoning"]:
         suggestions = recs.get(subattack, [])
         all_possible = DEFENSE_TAGS["data_poisoning"][subattack]
-        applied[subattack] = ask_defenses(subattack, suggestions, all_possible)
+        defenses = ask_defenses(subattack, suggestions, all_possible)
+        if defenses:
+            applied[subattack] = copy.deepcopy(defenses)
+
+    return applied
+
+def configure_backdoor_defenses(profile_data):
+    print("[*] Configuring defenses for Backdoor attacks...")
+    recs = profile_data.get("risk_analysis", {}).get("recommendations", {})
+    applied = {}
+
+    for subattack in DEFENSE_TAGS.get("backdoor", {}):
+        suggestions = recs.get(subattack, [])
+        all_possible = DEFENSE_TAGS["backdoor"][subattack]
+        defenses = ask_defenses(subattack, suggestions, all_possible)
+        if defenses:
+            applied[subattack] = copy.deepcopy(defenses)
+
+    return applied
+
+def configure_evasion_defenses(profile_data):
+    print("[*] Configuring defenses for Evasion attacks...")
+    recs = profile_data.get("risk_analysis", {}).get("recommendations", {})
+    applied = {}
+
+    for subattack in DEFENSE_TAGS.get("evasion_attacks", {}):
+        suggestions = recs.get(subattack, [])
+        all_possible = DEFENSE_TAGS["evasion_attacks"][subattack]
+        defenses = ask_defenses(subattack, suggestions, all_possible)
+        if defenses:
+            applied[subattack] = copy.deepcopy(defenses)
 
     return applied
 
@@ -64,12 +95,20 @@ def run_setup():
     profile_path = select_profile()
     profile_data = load_profile(profile_path)
 
-    dp_defenses = configure_data_poisoning_defenses(profile_data)
-
     if "defense_config" not in profile_data:
         profile_data["defense_config"] = {}
 
-    profile_data["defense_config"]["data_poisoning"] = dp_defenses
+    if "data_poisoning" in DEFENSE_TAGS:
+        dp_defenses = configure_data_poisoning_defenses(profile_data)
+        profile_data["defense_config"]["data_poisoning"] = dp_defenses
+
+    if "backdoor" in DEFENSE_TAGS:
+        bd_defenses = configure_backdoor_defenses(profile_data)
+        profile_data["defense_config"]["backdoor"] = bd_defenses
+
+    if "evasion_attacks" in DEFENSE_TAGS:
+        ev_defenses = configure_evasion_defenses(profile_data)
+        profile_data["defense_config"]["evasion_attacks"] = ev_defenses
 
     save_profile(profile_data, profile_path)
     print(f"\n[✔] Profile updated with defenses and saved to: {profile_path}")

@@ -70,6 +70,48 @@ attack_overrides:
 dataset:
   name: mnist
   type: builtin
+defense_config:
+  backdoor:
+    learned_trigger:
+    - activation_clustering
+    - spectral_signatures
+    - fine_pruning
+    - model_inspection
+  data_poisoning:
+    clean_label:
+    - provenance_tracking
+    - influence_functions
+    - monitor_drift
+    label_flipping:
+    - data_cleaning
+    - per_class_monitoring
+  evasion_attacks:
+    cw:
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
+    deepfool:
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
+    fgsm:
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
+    nes:
+    - gradient_masking
+    - jpeg_preprocessing
+    pgd:
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
+    spsa:
+    - gradient_masking
+    - jpeg_preprocessing
+    transfer:
+    - adversarial_training
+    - randomized_smoothing
+    - certified_defense
 model:
   input_shape:
   - 1
