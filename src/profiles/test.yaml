@@ -10,13 +10,13 @@ attack_overrides:
       poison_fraction: 0.05
       target_class: 5
     static_patch:
-      blend_alpha: 1.0
-      label_mode: corrupted
+      blend_alpha: 0.25
+      label_mode: clean
       patch_position: bottom_right
       patch_size_ratio: 0.15
       patch_type: white_square
       poison_fraction: 0.05
-      target_class: 7
+      target_class: 3
   data_poisoning:
     clean_label:
       epsilon: 0.1
@@ -70,15 +70,6 @@ attack_overrides:
 dataset:
   name: mnist
   type: builtin
-defense_config:
-  data_poisoning:
-    clean_label:
-    - provenance_tracking
-    - robust_loss
-    - monitor_drift
-    label_flipping:
-    - data_cleaning
-    - per_class_monitoring
 model:
   input_shape:
   - 1
