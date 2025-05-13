@@ -5,6 +5,8 @@ import questionary
 
 from defenses.data_cleaning.data_cleaning import run_data_cleaning_defense
 from defenses.per_class_monitoring.per_class_monitoring import run_per_class_monitoring_defense
+from defenses.robust_loss.robust_loss import run_robust_loss_defense
+
 
 # Add module2 path for shared functions
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "module2_attack_simulation")))
@@ -45,6 +47,8 @@ def apply_data_poisoning_defenses(profile, trainset, testset, valset, class_name
                 run_data_cleaning_defense(profile, trainset, testset, valset, class_names,attack_type)
             elif defense_name == "per_class_monitoring":
                 run_per_class_monitoring_defense(profile,attack_type)
+            elif defense_name == "robust_loss":
+                run_robust_loss_defense(profile,trainset,testset,valset,class_names,attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 
