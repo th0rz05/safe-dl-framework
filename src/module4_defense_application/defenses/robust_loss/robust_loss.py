@@ -209,7 +209,7 @@ def run_robust_loss_defense(
 
         # 8. Markdown report
     try:
-        from generate_robust_loss_report import generate_report
+        from defenses.robust_loss.generate_robust_loss_report import generate_report
         md_path = os.path.join(out_dir, "robust_loss_report.md")
         generate_report(json_path, md_path)
         print(f"[✔] Report generated at {md_path}")

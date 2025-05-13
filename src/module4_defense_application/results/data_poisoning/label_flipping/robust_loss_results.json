@@ -1,0 +1,18 @@
+{
+  "defense": "robust_loss",
+  "attack": "label_flipping",
+  "type": "gce",
+  "clean_accuracy": 0.6342,
+  "per_class_accuracy": {
+    "airplane": 0.701,
+    "automobile": 0.872,
+    "bird": 0.527,
+    "cat": 0.419,
+    "deer": 0.583,
+    "dog": 0.378,
+    "frog": 0.748,
+    "horse": 0.688,
+    "ship": 0.661,
+    "truck": 0.765
+  }
+}
