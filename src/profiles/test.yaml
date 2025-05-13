@@ -31,20 +31,21 @@ defense_config:
       defenses:
       - provenance_tracking
       - influence_functions
-      - monitor_drift
       influence_functions:
         method: grad_influence
         sample_size: 500
-      monitor_drift:
-        alert_threshold: 0.1
-        frequency: 1
       provenance_tracking:
         granularity: sample
     label_flipping:
       defenses:
-      - per_class_monitoring
-      per_class_monitoring:
-        std_threshold: 1.0
+      - robust_loss
+      - dp_training
+      dp_training:
+        clip_norm: 1.0
+        delta: 1.0e-05
+        epsilon: 2.0
+      robust_loss:
+        type: gce
   evasion_attacks:
     cw:
       adversarial_training:
