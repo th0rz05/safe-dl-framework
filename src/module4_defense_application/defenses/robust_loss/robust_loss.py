@@ -137,13 +137,16 @@ def run_robust_loss_defense(
         fraction = attack_cfg.get("fraction_poison", 0.05)
         target_cls = attack_cfg.get("target_class")
         method = attack_cfg.get("perturbation_method", "overlay")
+        epsilon = attack_cfg.get("epsilon", 0.1)
         max_iters = attack_cfg.get("max_iterations", 100)
         selection = attack_cfg.get("source_selection", "random")
+        # apply_clean_label signature: (dataset, fraction_poison, target_class, method, epsilon, max_iterations, source_selection, class_names, model)
         poisoned_trainset, poison_log, class_counts = apply_clean_label(
             trainset,
             fraction,
             target_cls,
             method,
+            epsilon,
             max_iters,
             selection,
             class_names,
