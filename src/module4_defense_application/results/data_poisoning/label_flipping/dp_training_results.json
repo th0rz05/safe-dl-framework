@@ -1,0 +1,21 @@
+{
+  "defense": "dp_training",
+  "attack": "label_flipping",
+  "epsilon_target": 2.0,
+  "delta_target": 1e-05,
+  "clip_norm": 1.0,
+  "epsilon_spent": 1.992692688984611,
+  "clean_accuracy": 0.3653,
+  "per_class_accuracy": {
+    "airplane": 0.63,
+    "automobile": 0.486,
+    "bird": 0.284,
+    "cat": 0.155,
+    "deer": 0.181,
+    "dog": 0.313,
+    "frog": 0.299,
+    "horse": 0.37,
+    "ship": 0.46,
+    "truck": 0.475
+  }
+}

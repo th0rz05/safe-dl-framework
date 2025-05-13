@@ -8,12 +8,10 @@ from torch.utils.data import DataLoader
 from tqdm.auto import tqdm
 
 # ---- Opacus for differentially private SGD ----
-try:
-    from opacus import PrivacyEngine
-    from opacus.accountants.analysis import get_noise_multiplier
-    OPACUS_AVAILABLE = True
-except ImportError:
-    OPACUS_AVAILABLE = False
+from opacus import PrivacyEngine
+from opacus.accountants.utils import get_noise_multiplier
+from opacus.validators import ModuleValidator
+
 
 # ---- import attack utilities from Module 2 ----
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation"))
@@ -43,8 +41,6 @@ def make_private(model: torch.nn.Module,
     """Return (model, dp_optimizer, engine) prepared for DP‑SGD.
     Uses make_private_with_epsilon if available, otherwise manually computes noise_multiplier."""
 
-    if not OPACUS_AVAILABLE:
-        raise RuntimeError("Opacus is not installed. Run `pip install opacus`. ")
 
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
     engine = PrivacyEngine()
@@ -92,9 +88,6 @@ def run_dp_training_defense(
 ):
     """Apply Differential‑Privacy training as a defense against data poisoning."""
 
-    if not OPACUS_AVAILABLE:
-        raise RuntimeError("Opacus library is required for DP Training but is not installed.")
-
     print(f"[*] Running DP Training defense for attack '{attack_type}'…")
 
     # 1. Load defense parameters
@@ -105,6 +98,11 @@ def run_dp_training_defense(
 
     # 2. Build (or load) victim model skeleton
     model = load_model_cfg_from_profile(profile)
+
+    # ---- Replace unsupported layers (BatchNorm → GroupNorm) ----
+    if not ModuleValidator.is_valid(model):
+        print("[*] Converting unsupported layers for DP …")
+        model = ModuleValidator.fix(model)
 
     # 3. Create poisoned training dataset
     if attack_type == "label_flipping":

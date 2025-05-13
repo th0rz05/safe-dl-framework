@@ -38,14 +38,11 @@ defense_config:
         granularity: sample
     label_flipping:
       defenses:
-      - robust_loss
       - dp_training
       dp_training:
         clip_norm: 1.0
         delta: 1.0e-05
         epsilon: 2.0
-      robust_loss:
-        type: gce
   evasion_attacks:
     cw:
       adversarial_training:
