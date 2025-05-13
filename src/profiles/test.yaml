@@ -41,14 +41,10 @@ defense_config:
       provenance_tracking:
         granularity: sample
     label_flipping:
-      data_cleaning:
-        method: loss_filtering
-        threshold: 0.9
       defenses:
-      - data_cleaning
       - per_class_monitoring
       per_class_monitoring:
-        std_threshold: 2.0
+        std_threshold: 1.0
   evasion_attacks:
     cw:
       adversarial_training:

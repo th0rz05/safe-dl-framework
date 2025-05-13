@@ -1,0 +1,29 @@
+{
+  "defense": "per_class_monitoring",
+  "attack": "label_flipping",
+  "accuracy_mean": 0.5488,
+  "accuracy_std": 0.1951,
+  "threshold": 1.0,
+  "flagged_classes": [
+    {
+      "class": "cat",
+      "accuracy": 0.338
+    },
+    {
+      "class": "dog",
+      "accuracy": 0.302
+    }
+  ],
+  "per_class_accuracy": {
+    "airplane": 0.682,
+    "automobile": 0.742,
+    "bird": 0.44,
+    "cat": 0.338,
+    "deer": 0.377,
+    "dog": 0.302,
+    "frog": 0.873,
+    "horse": 0.474,
+    "ship": 0.796,
+    "truck": 0.464
+  }
+}
