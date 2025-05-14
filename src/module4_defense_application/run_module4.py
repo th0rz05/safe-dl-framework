@@ -8,7 +8,7 @@ from defenses.per_class_monitoring.per_class_monitoring import run_per_class_mon
 from defenses.robust_loss.robust_loss import run_robust_loss_defense
 from defenses.dp_training.dp_training import run_dp_training_defense
 from defenses.provenance_tracking.provenance_tracking import run_provenance_tracking_defense
-
+from defenses.influence_functions.influence_functions import run_influence_functions_defense
 
 
 # Add module2 path for shared functions
@@ -56,6 +56,8 @@ def apply_data_poisoning_defenses(profile, trainset, testset, valset, class_name
                 run_dp_training_defense(profile, trainset, testset, valset, class_names, attack_type)
             elif defense_name == "provenance_tracking":
                 run_provenance_tracking_defense(profile, trainset, testset, valset, class_names, attack_type)
+            elif defense_name == "influence_functions":
+                run_influence_functions_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 
