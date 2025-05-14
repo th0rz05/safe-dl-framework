@@ -1,8 +1,6 @@
 # defense_config/defense_descriptions.py
 
 DEFENSE_DESCRIPTIONS = {
-    # Common
-    "monitor_drift": "Track prediction drift over time to detect long-term attacks or degradation.",
 
     # Data Poisoning
     "data_cleaning": "Remove corrupted or mislabeled samples using heuristics, clustering, or manual review.",

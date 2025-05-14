@@ -6,15 +6,13 @@ DEFENSE_TAGS = {
             "data_cleaning",
             "per_class_monitoring",
             "robust_loss",
-            "dp_training",
-            "monitor_drift"
+            "dp_training"
         ],
         "clean_label": [
             "provenance_tracking",
             "influence_functions",
             "robust_loss",
-            "dp_training",
-            "monitor_drift"
+            "dp_training"
         ]
     },
     "evasion_attacks": {

@@ -129,7 +129,6 @@ risk_analysis:
     clean_label:
     - provenance_tracking
     - influence_functions
-    - monitor_drift
     cw:
     - adversarial_training
     - randomized_smoothing

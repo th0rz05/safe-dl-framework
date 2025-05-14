@@ -107,9 +107,6 @@ def generate_recommendation_tags(risk_data):
             if attack.get("asr", 0.0) > 0.8 and score >= 1.5:
                 recs[name] += ["fine_pruning", "model_inspection"]
 
-        if score < 0.3:
-            recs[name] += ["monitor_drift"]
-
     return dict(recs)
 
 
