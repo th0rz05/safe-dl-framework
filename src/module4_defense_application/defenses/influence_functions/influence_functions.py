@@ -88,7 +88,10 @@ def run_influence_functions_defense(profile, trainset, testset, valset, class_na
     sample_size = cfg.get("sample_size", 500)
 
     profile_name = profile.get("name", "default")
-    model_path = os.path.join("..", "..", "..", "module2_attack_simulation", "saved_models", f"{profile_name}_clean_model.pth")
+    model_path = os.path.join(
+        os.path.dirname(__file__),
+        "..", "..", "..", "module2_attack_simulation", "saved_models", f"{profile_name}_clean_model.pth")
+
     model = load_model_cfg_from_profile(profile)
     model.load_state_dict(torch.load(model_path, map_location=torch.device("cpu")))
     model.eval()
