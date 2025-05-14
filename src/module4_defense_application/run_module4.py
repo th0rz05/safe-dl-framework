@@ -7,6 +7,7 @@ from defenses.data_cleaning.data_cleaning import run_data_cleaning_defense
 from defenses.per_class_monitoring.per_class_monitoring import run_per_class_monitoring_defense
 from defenses.robust_loss.robust_loss import run_robust_loss_defense
 from defenses.dp_training.dp_training import run_dp_training_defense
+from defenses.provenance_tracking.provenance_tracking import run_provenance_tracking_defense
 
 
 
@@ -53,6 +54,8 @@ def apply_data_poisoning_defenses(profile, trainset, testset, valset, class_name
                 run_robust_loss_defense(profile,trainset,testset,valset,class_names,attack_type)
             elif defense_name == "dp_training":
                 run_dp_training_defense(profile, trainset, testset, valset, class_names, attack_type)
+            elif defense_name == "provenance_tracking":
+                run_provenance_tracking_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 

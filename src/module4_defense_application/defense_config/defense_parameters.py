@@ -25,7 +25,7 @@ def configure_influence_functions():
 
 
 def configure_provenance_tracking():
-    granularity = select("Tracking granularity:", choices=["sample", "batch", "source"]).ask()
+    granularity = select("Tracking granularity:", choices=["sample", "batch"]).ask()
     return {"granularity": granularity}
 
 

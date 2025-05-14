@@ -1,10 +1,12 @@
 attack_overrides:
   data_poisoning:
-    label_flipping:
-      flip_rate: 0.08
-      source_class: null
-      strategy: many_to_one
-      target_class: 0
+    clean_label:
+      epsilon: 0.1
+      fraction_poison: 0.05
+      max_iterations: 100
+      perturbation_method: overlay
+      source_selection: random
+      target_class: 2
 dataset:
   name: cifar10
   type: builtin
@@ -29,20 +31,10 @@ defense_config:
   data_poisoning:
     clean_label:
       defenses:
-      - provenance_tracking
       - influence_functions
       influence_functions:
         method: grad_influence
         sample_size: 500
-      provenance_tracking:
-        granularity: sample
-    label_flipping:
-      defenses:
-      - dp_training
-      dp_training:
-        clip_norm: 1.0
-        delta: 1.0e-05
-        epsilon: 2.0
   evasion_attacks:
     cw:
       adversarial_training:
