@@ -69,7 +69,10 @@ def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
     for attack_type, config in bd_defenses.items():
         print(f"\n[*] Applying backdoor defenses for: {attack_type}")
         for defense_name in config.get("defenses", []):
-            print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
+            if defense_name == "activation_clustering":
+                run_activation_clustering_defense(profile, trainset, testset, valset, class_names, attack_type)
+            else:
+                print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 
 
 def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
@@ -77,10 +80,7 @@ def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
     for attack_type, config in ev_defenses.items():
         print(f"\n[*] Applying evasion defenses for: {attack_type}")
         for defense_name in config.get("defenses", []):
-            if defense_name == "activation_clustering":
-                run_activation_clustering_defense(profile, trainset, testset, valset, class_names, attack_type)
-            else:
-                print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
+            print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 
 
 def main():
