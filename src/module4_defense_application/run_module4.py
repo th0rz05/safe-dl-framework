@@ -9,6 +9,8 @@ from defenses.robust_loss.robust_loss import run_robust_loss_defense
 from defenses.dp_training.dp_training import run_dp_training_defense
 from defenses.provenance_tracking.provenance_tracking import run_provenance_tracking_defense
 from defenses.influence_functions.influence_functions import run_influence_functions_defense
+from defenses.activation_clustering.activation_clustering import run_activation_clustering_defense
+
 
 
 # Add module2 path for shared functions
@@ -75,7 +77,10 @@ def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
     for attack_type, config in ev_defenses.items():
         print(f"\n[*] Applying evasion defenses for: {attack_type}")
         for defense_name in config.get("defenses", []):
-            print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
+            if defense_name == "activation_clustering":
+                run_activation_clustering_defense(profile, trainset, testset, valset, class_names, attack_type)
+            else:
+                print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 
 
 def main():
