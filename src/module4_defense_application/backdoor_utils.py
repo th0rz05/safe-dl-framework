@@ -18,15 +18,7 @@ def simulate_static_patch_attack(profile, trainset, testset, class_names):
     Returns poisoned training set, patched test set, and trigger info.
     """
 
-    print("[*] Simulating Static Patch Backdoor Attack...")
-    print(f"    → Patch type         : {patch_type}")
-    print(f"    → Patch size ratio   : {patch_size_ratio}")
-    print(f"    → Poison fraction    : {poison_fraction}")
-    print(f"    → Target class       : {target_class} ({class_names[target_class]})")
-    print(f"    → Label mode         : {label_mode}")
-    print(f"    → Blending alpha     : {blend_alpha}")
-    print(f"    → Patch position     : {patch_position}")
-    print(f"    → Number of poisoned samples: {len(poison_indices)}")
+
 
 
     cfg = profile.get("attack_overrides", {}).get("backdoor", {}).get("static_patch", {})
@@ -42,6 +34,8 @@ def simulate_static_patch_attack(profile, trainset, testset, class_names):
     _, H, W = input_shape
     patch_size = int(W * patch_size_ratio), int(H * patch_size_ratio)
 
+
+
     patch = generate_patch(patch_type, patch_size)
 
     poisoned_trainset = deepcopy(trainset)
@@ -52,6 +46,16 @@ def simulate_static_patch_attack(profile, trainset, testset, class_names):
 
     total_poison = int(len(poisoned_trainset) * poison_fraction)
     poison_indices = random.sample(eligible_indices, min(total_poison, len(eligible_indices)))
+
+    print("[*] Simulating Static Patch Backdoor Attack...")
+    print(f"    → Patch type         : {patch_type}")
+    print(f"    → Patch size ratio   : {patch_size_ratio}")
+    print(f"    → Poison fraction    : {poison_fraction}")
+    print(f"    → Target class       : {target_class} ({class_names[target_class]})")
+    print(f"    → Label mode         : {label_mode}")
+    print(f"    → Blending alpha     : {blend_alpha}")
+    print(f"    → Patch position     : {patch_position}")
+    print(f"    → Number of poisoned samples: {len(poison_indices)}")
 
     for local_idx in poison_indices:
         image, label = poisoned_trainset[local_idx]
@@ -130,19 +134,11 @@ def simulate_learned_trigger_attack(profile, trainset, testset, class_names):
     Returns poisoned training set, patched test set, and trigger info.
     """
 
-    print("[*] Simulating Learned Trigger Backdoor Attack...")
-    print(f"    → Poison fraction    : {poison_fraction}")
-    print(f"    → Target class       : {target_class} ({class_names[target_class]})")
-    print(f"    → Label mode         : {label_mode}")
-    print(f"    → Trigger loaded from: trigger.pt")
-    print(f"    → Mask loaded from   : mask.pt")
-    print(f"    → Number of poisoned samples: {len(poison_indices)}")
-
-
     cfg = profile.get("attack_overrides", {}).get("backdoor", {}).get("learned_trigger", {})
     target_class = cfg.get("target_class")
     poison_fraction = cfg.get("poison_fraction", 0.1)
     label_mode = cfg.get("label_mode", "corrupted")
+
 
     trigger = torch.load(os.path.join(
         os.path.dirname(__file__), "..", "module2_attack_simulation",
@@ -166,6 +162,14 @@ def simulate_learned_trigger_attack(profile, trainset, testset, class_names):
     ]
     total_poison = int(len(poisoned_trainset) * poison_fraction)
     poison_indices = random.sample(eligible_indices, min(total_poison, len(eligible_indices)))
+
+    print("[*] Simulating Learned Trigger Backdoor Attack...")
+    print(f"    → Poison fraction    : {poison_fraction}")
+    print(f"    → Target class       : {target_class} ({class_names[target_class]})")
+    print(f"    → Label mode         : {label_mode}")
+    print(f"    → Trigger loaded from: trigger.pt")
+    print(f"    → Mask loaded from   : mask.pt")
+    print(f"    → Number of poisoned samples: {len(poison_indices)}")
 
     for local_idx in poison_indices:
         image, label = poisoned_trainset[local_idx]

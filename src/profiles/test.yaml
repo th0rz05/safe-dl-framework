@@ -30,7 +30,7 @@ dataset:
   type: builtin
 defense_config:
   backdoor:
-    learned_trigger:
+    static_patch:
       activation_clustering:
         num_clusters: 2
       anomaly_detection:
