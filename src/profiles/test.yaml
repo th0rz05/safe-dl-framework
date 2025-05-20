@@ -1,4 +1,22 @@
 attack_overrides:
+  backdoor:
+    learned_trigger:
+      epochs: 30
+      label_mode: corrupted
+      lambda_mask: 0.001
+      lambda_tv: 0.01
+      learning_rate: 0.1
+      patch_size_ratio: 0.05
+      poison_fraction: 0.05
+      target_class: 1
+    static_patch:
+      blend_alpha: 1.0
+      label_mode: corrupted
+      patch_position: bottom_right
+      patch_size_ratio: 0.15
+      patch_type: white_square
+      poison_fraction: 0.05
+      target_class: 0
   data_poisoning:
     clean_label:
       epsilon: 0.1
