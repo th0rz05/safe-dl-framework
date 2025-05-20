@@ -33,9 +33,13 @@ defense_config:
     learned_trigger:
       activation_clustering:
         num_clusters: 2
+      anomaly_detection:
+        type: autoencoder
       defenses:
       - activation_clustering
       - spectral_signatures
+      - anomaly_detection
+      - pruning
       - fine_pruning
       - model_inspection
       fine_pruning:
@@ -44,92 +48,13 @@ defense_config:
         layers:
         - fc1
         - fc2
+      pruning:
+        pruning_ratio: 0.2
+        scope: all_layers
       spectral_signatures:
         threshold: 0.9
-  data_poisoning:
-    clean_label:
-      defenses:
-      - influence_functions
-      influence_functions:
-        method: grad_influence
-        sample_size: 500
-  evasion_attacks:
-    cw:
-      adversarial_training:
-        attack_type: fgsm
-        epsilon: 0.03
-      certified_defense:
-        method: interval_bound
-      defenses:
-      - adversarial_training
-      - randomized_smoothing
-      - certified_defense
-      randomized_smoothing:
-        sigma: 0.25
-    deepfool:
-      adversarial_training:
-        attack_type: fgsm
-        epsilon: 0.03
-      certified_defense:
-        method: interval_bound
-      defenses:
-      - adversarial_training
-      - randomized_smoothing
-      - certified_defense
-      randomized_smoothing:
-        sigma: 0.25
-    fgsm:
-      adversarial_training:
-        attack_type: fgsm
-        epsilon: 0.03
-      certified_defense:
-        method: interval_bound
-      defenses:
-      - adversarial_training
-      - randomized_smoothing
-      - certified_defense
-      randomized_smoothing:
-        sigma: 0.25
-    nes:
-      defenses:
-      - gradient_masking
-      - jpeg_preprocessing
-      gradient_masking:
-        strength: 0.5
-      jpeg_preprocessing:
-        quality: 75
-    pgd:
-      adversarial_training:
-        attack_type: fgsm
-        epsilon: 0.03
-      certified_defense:
-        method: interval_bound
-      defenses:
-      - adversarial_training
-      - randomized_smoothing
-      - certified_defense
-      randomized_smoothing:
-        sigma: 0.25
-    spsa:
-      defenses:
-      - gradient_masking
-      - jpeg_preprocessing
-      gradient_masking:
-        strength: 0.5
-      jpeg_preprocessing:
-        quality: 75
-    transfer:
-      adversarial_training:
-        attack_type: fgsm
-        epsilon: 0.03
-      certified_defense:
-        method: interval_bound
-      defenses:
-      - adversarial_training
-      - randomized_smoothing
-      - certified_defense
-      randomized_smoothing:
-        sigma: 0.25
+  data_poisoning: {}
+  evasion_attacks: {}
 model:
   input_shape:
   - 3
