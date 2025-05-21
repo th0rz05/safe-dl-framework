@@ -14,6 +14,7 @@ from defenses.spectral_signatures.spectral_signatures import run_spectral_signat
 from defenses.anomaly_detection.anomaly_detection import run_anomaly_detection_defense
 from defenses.pruning.pruning import run_pruning_defense
 from defenses.fine_pruning.fine_pruning import run_fine_pruning_defense
+from defenses.model_inspection.model_inspection import run_model_inspection_defense
 
 
 
@@ -83,6 +84,8 @@ def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
                 run_pruning_defense(profile, trainset, testset, valset, class_names, attack_type)
             elif defense_name == "fine_pruning":
                 run_fine_pruning_defense(profile, trainset, testset, valset, class_names, attack_type)
+            elif defense_name == "model_inspection":
+                run_model_inspection_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 

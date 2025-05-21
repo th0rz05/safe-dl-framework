@@ -32,10 +32,7 @@ defense_config:
   backdoor:
     static_patch:
       defenses:
-      - fine_pruning
       - model_inspection
-      fine_pruning:
-        pruning_ratio: 0.2
       model_inspection:
         layers:
         - fc1
