@@ -61,7 +61,7 @@ def configure_model_inspection():
 
 
 def configure_anomaly_detection():
-    detector_type = select("Anomaly detection type:", choices=["autoencoder", "isolation_forest", "lof"]).ask()
+    detector_type = select("Anomaly detection type:", choices=["isolation_forest", "lof"]).ask()
     return {"type": detector_type}
 
 def configure_pruning():
