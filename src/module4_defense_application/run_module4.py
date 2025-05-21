@@ -10,6 +10,7 @@ from defenses.dp_training.dp_training import run_dp_training_defense
 from defenses.provenance_tracking.provenance_tracking import run_provenance_tracking_defense
 from defenses.influence_functions.influence_functions import run_influence_functions_defense
 from defenses.activation_clustering.activation_clustering import run_activation_clustering_defense
+from defenses.spectral_signatures.spectral_signatures import run_spectral_signatures_defense
 
 
 
@@ -71,6 +72,8 @@ def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
         for defense_name in config.get("defenses", []):
             if defense_name == "activation_clustering":
                 run_activation_clustering_defense(profile, trainset, testset, valset, class_names, attack_type)
+            elif defense_name == "spectral_signatures":
+                run_spectral_signatures_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 

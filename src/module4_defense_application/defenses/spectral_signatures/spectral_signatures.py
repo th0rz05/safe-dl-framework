@@ -8,16 +8,14 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader, Subset
 from sklearn.decomposition import TruncatedSVD
 from collections import defaultdict
-from defenses.spectral_signatures.generate_spectral_signatures_report import generate_spectral_signatures_report
 
+from defenses.spectral_signatures.generate_spectral_signatures_report import generate_spectral_signatures_report
 
 # Add module2 path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
 from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
 from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
 
-def ensure_dir(path):
-    os.makedirs(path, exist_ok=True)
 
 def extract_layer_activations(model, dataloader, layer_name):
     activations = []
@@ -44,6 +42,53 @@ def extract_layer_activations(model, dataloader, layer_name):
     handle.remove()
     activations_tensor = torch.cat(activations, dim=0)
     return activations_tensor.numpy(), indices
+
+
+def save_removed_examples(dataset, removed_indices, output_dir, class_names=None, max_examples=5):
+    os.makedirs(output_dir, exist_ok=True)
+    for file in os.listdir(output_dir):
+        file_path = os.path.join(output_dir, file)
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    saved = 0
+    example_log = []
+
+    for idx in removed_indices:
+        try:
+            img, label = dataset[idx]
+            label_name = class_names[label] if class_names else str(label)
+
+            img = img.cpu()
+            if img.dim() == 3 and img.shape[0] in [3, 4]:
+                img = img.permute(1, 2, 0)
+            img = img.squeeze()
+
+            filename = f"removed_{idx}_{label}.png"
+            save_path = os.path.join(output_dir, filename)
+
+            plt.figure()
+            plt.imshow(img, cmap="gray" if img.ndim == 2 else None)
+            plt.axis("off")
+            plt.title(f"Removed: {label_name}")
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
+            plt.close()
+
+            example_log.append({
+                "index": idx,
+                "original_label": label,
+                "original_label_name": label_name,
+                "image_path": os.path.join(os.path.basename(output_dir), filename)
+            })
+
+            saved += 1
+            if saved >= max_examples:
+                break
+        except Exception as e:
+            print(f"[!] Failed to save example {idx}: {e}")
+
+    return example_log
+
 
 def run_spectral_signatures_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Spectral Signatures defense for {attack_type}...")
@@ -82,7 +127,7 @@ def run_spectral_signatures_defense(profile, trainset, testset, valset, class_na
     removed_indices = []
 
     output_dir = f"results/backdoor/{attack_type}/spectral_histograms"
-    ensure_dir(output_dir)
+    os.makedirs(output_dir, exist_ok=True)
 
     for cls in class_to_feats:
         X = np.stack(class_to_feats[cls])
@@ -100,6 +145,7 @@ def run_spectral_signatures_defense(profile, trainset, testset, valset, class_na
         retained_indices.update(retained)
         removed_indices.extend(removed)
 
+        # Plot
         plt.figure()
         plt.hist(abs_proj, bins=40, color='blue', alpha=0.7)
         plt.axvline(cutoff, color='red', linestyle='--', label=f"Cutoff (q={threshold})")
@@ -112,12 +158,19 @@ def run_spectral_signatures_defense(profile, trainset, testset, valset, class_na
         plt.close()
 
     print(f"[✔] Removed {len(removed_indices)} suspected samples across all classes.")
+
     cleaned_trainset = Subset(poisoned_trainset, sorted(retained_indices))
 
     clean_model = load_model_cfg_from_profile(profile)
-    train_model(clean_model, cleaned_trainset, valset, epochs=3, class_names=class_names)
+    print("[*] Retraining model on cleaned dataset...")
+    train_model(clean_model, cleaned_trainset, valset=valset, epochs=3, class_names=class_names)
 
     acc, per_class = evaluate_model(clean_model, testset, class_names=class_names)
+
+    os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
+    example_log = save_removed_examples(poisoned_trainset.dataset, removed_indices,
+                                        output_dir=f"results/backdoor/{attack_type}/spectral_removed",
+                                        class_names=class_names, max_examples=5)
 
     results = {
         "defense": "spectral_signatures",
@@ -125,6 +178,8 @@ def run_spectral_signatures_defense(profile, trainset, testset, valset, class_na
         "accuracy_after_defense": acc,
         "per_class_accuracy": per_class,
         "num_removed": len(removed_indices),
+        "removed_indices": removed_indices,
+        "example_removed": example_log,
         "params": cfg
     }
 
@@ -134,7 +189,6 @@ def run_spectral_signatures_defense(profile, trainset, testset, valset, class_na
 
     print(f"[✔] Results saved to {result_path}")
 
-    # Optional report generation
     md_path = f"results/backdoor/{attack_type}/spectral_signatures_report.md"
     generate_spectral_signatures_report(json_file=result_path, md_file=md_path)
     print(f"[✔] Report generated at {md_path}")
