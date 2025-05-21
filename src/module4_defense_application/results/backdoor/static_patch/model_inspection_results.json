@@ -1,0 +1,54 @@
+{
+  "defense": "model_inspection",
+  "attack": "static_patch",
+  "layers_inspected": [
+    "fc.1",
+    "fc.3"
+  ],
+  "suspicious_layers": [],
+  "layer_stats": {
+    "fc.1.weight": {
+      "mean": -0.0015553871635347605,
+      "std": 0.01045595109462738,
+      "max_abs": 0.3686946928501129,
+      "num_large_weights": 0
+    },
+    "fc.1.bias": {
+      "mean": -0.000993999419733882,
+      "std": 0.005527206230908632,
+      "max_abs": 0.022846229374408722,
+      "num_large_weights": 0
+    },
+    "fc.3.weight": {
+      "mean": 0.0017792589496821165,
+      "std": 0.04028897359967232,
+      "max_abs": 0.13738104701042175,
+      "num_large_weights": 0
+    },
+    "fc.3.bias": {
+      "mean": 0.013790914788842201,
+      "std": 0.04836871847510338,
+      "max_abs": 0.10175604373216629,
+      "num_large_weights": 0
+    }
+  },
+  "accuracy_after_defense": 0.6276,
+  "per_class_accuracy": {
+    "airplane": 0.838,
+    "automobile": 0.765,
+    "bird": 0.519,
+    "cat": 0.465,
+    "deer": 0.479,
+    "dog": 0.583,
+    "frog": 0.45,
+    "horse": 0.778,
+    "ship": 0.647,
+    "truck": 0.752
+  },
+  "params": {
+    "layers": [
+      "fc.1",
+      "fc.3"
+    ]
+  }
+}
