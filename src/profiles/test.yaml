@@ -31,10 +31,7 @@ dataset:
 defense_config:
   backdoor:
     static_patch:
-      anomaly_detection:
-        type: isolation_forest
       defenses:
-      - anomaly_detection
       - pruning
       - fine_pruning
       - model_inspection

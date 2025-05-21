@@ -12,6 +12,7 @@ from defenses.influence_functions.influence_functions import run_influence_funct
 from defenses.activation_clustering.activation_clustering import run_activation_clustering_defense
 from defenses.spectral_signatures.spectral_signatures import run_spectral_signatures_defense
 from defenses.anomaly_detection.anomaly_detection import run_anomaly_detection_defense
+from defenses.pruning.pruning import run_pruning_defense
 
 
 
@@ -77,6 +78,8 @@ def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
                 run_spectral_signatures_defense(profile, trainset, testset, valset, class_names, attack_type)
             elif defense_name == "anomaly_detection":
                 run_anomaly_detection_defense(profile, trainset, testset, valset, class_names, attack_type)
+            elif defense_name == "pruning":
+                run_pruning_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 
