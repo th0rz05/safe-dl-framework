@@ -35,8 +35,8 @@ defense_config:
       - model_inspection
       model_inspection:
         layers:
-        - fc1
-        - fc2
+        - fc.1
+        - fc.3
   data_poisoning: {}
   evasion_attacks: {}
 model:

@@ -5,7 +5,6 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-from collections import defaultdict
 from torch.nn import Module
 from torch.utils.data import DataLoader, Subset
 
@@ -17,13 +16,16 @@ from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigge
 from defenses.model_inspection.generate_model_inspection_report import generate_model_inspection_report
 
 
-def inspect_layer_weights(model: Module, layer_names: list):
+def inspect_layer_weights(model: Module, layer_names: list, output_dir: str):
     stats = {}
     suspicious = []
+
+    os.makedirs(output_dir, exist_ok=True)
 
     for name, param in model.named_parameters():
         if not any(layer in name for layer in layer_names):
             continue
+
         weights = param.detach().cpu().numpy().flatten()
         mean = np.mean(weights)
         std = np.std(weights)
@@ -40,14 +42,14 @@ def inspect_layer_weights(model: Module, layer_names: list):
         if max_abs > 2.0 or std > 1.0:
             suspicious.append(name)
 
-        os.makedirs("results/tmp_model_inspection_weights", exist_ok=True)
         plt.figure()
         plt.hist(weights, bins=50, alpha=0.7)
         plt.title(f"Layer: {name}")
         plt.xlabel("Weight Value")
         plt.ylabel("Frequency")
         plt.tight_layout()
-        plt.savefig(f"results/tmp_model_inspection_weights/{name.replace('.', '_')}_hist.png")
+        fname = name.replace(".", "_") + "_hist.png"
+        plt.savefig(os.path.join(output_dir, fname))
         plt.close()
 
     return suspicious, stats
@@ -72,7 +74,8 @@ def run_model_inspection_defense(profile, trainset, testset, valset, class_names
     train_model(model, poisoned_trainset, valset, epochs=3, class_names=class_names)
 
     print(f"[*] Inspecting weights of layers: {', '.join(layers_to_inspect)}")
-    suspicious_layers, stats = inspect_layer_weights(model, layers_to_inspect)
+    hist_dir = f"results/backdoor/{attack_type}/inspection_histograms"
+    suspicious_layers, stats = inspect_layer_weights(model, layers_to_inspect, hist_dir)
 
     acc, per_class = evaluate_model(model, testset, class_names=class_names)
 
