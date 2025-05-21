@@ -10,6 +10,8 @@ from collections import defaultdict
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
 
+from defenses.anomaly_detection.generate_anomaly_detection_report import generate_anomaly_detection_report
+
 # Add module2 path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
 from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
@@ -159,6 +161,8 @@ def run_anomaly_detection_defense(profile, trainset, testset, valset, class_name
     result_path = f"results/backdoor/{attack_type}/anomaly_detection_results.json"
     with open(result_path, "w") as f:
         json.dump(results, f, indent=2)
-
     print(f"[✔] Results saved to {result_path}")
-    return result_path
+
+    md_path = f"results/backdoor/{attack_type}/anomaly_detection_report.md"
+    generate_anomaly_detection_report(json_file=result_path, md_file=md_path)
+    print(f"[✔] Report generated at {md_path}")
