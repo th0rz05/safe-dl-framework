@@ -1,0 +1,24 @@
+{
+  "defense": "fine_pruning",
+  "attack": "static_patch",
+  "accuracy_after_defense": 0.6573,
+  "per_class_accuracy": {
+    "airplane": 0.651,
+    "automobile": 0.758,
+    "bird": 0.339,
+    "cat": 0.588,
+    "deer": 0.693,
+    "dog": 0.703,
+    "frog": 0.707,
+    "horse": 0.692,
+    "ship": 0.66,
+    "truck": 0.782
+  },
+  "pruning_ratio": 0.2,
+  "pruned_layer": "fc.3",
+  "num_neurons_pruned": 2,
+  "pruned_neuron_indices": [
+    9,
+    4
+  ]
+}
