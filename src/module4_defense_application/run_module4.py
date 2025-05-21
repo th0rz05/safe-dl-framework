@@ -13,6 +13,7 @@ from defenses.activation_clustering.activation_clustering import run_activation_
 from defenses.spectral_signatures.spectral_signatures import run_spectral_signatures_defense
 from defenses.anomaly_detection.anomaly_detection import run_anomaly_detection_defense
 from defenses.pruning.pruning import run_pruning_defense
+from defenses.fine_pruning.fine_pruning import run_fine_pruning_defense
 
 
 
@@ -80,6 +81,8 @@ def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
                 run_anomaly_detection_defense(profile, trainset, testset, valset, class_names, attack_type)
             elif defense_name == "pruning":
                 run_pruning_defense(profile, trainset, testset, valset, class_names, attack_type)
+            elif defense_name == "fine_pruning":
+                run_fine_pruning_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
                 print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
 

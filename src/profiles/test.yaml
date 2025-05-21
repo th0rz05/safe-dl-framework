@@ -32,7 +32,6 @@ defense_config:
   backdoor:
     static_patch:
       defenses:
-      - pruning
       - fine_pruning
       - model_inspection
       fine_pruning:
@@ -41,9 +40,6 @@ defense_config:
         layers:
         - fc1
         - fc2
-      pruning:
-        pruning_ratio: 0.2
-        scope: all_layers
   data_poisoning: {}
   evasion_attacks: {}
 model:
