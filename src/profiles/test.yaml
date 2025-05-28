@@ -29,16 +29,21 @@ dataset:
   name: cifar10
   type: builtin
 defense_config:
-  backdoor:
-    static_patch:
-      defenses:
-      - model_inspection
-      model_inspection:
-        layers:
-        - fc.1
-        - fc.3
+  backdoor: {}
   data_poisoning: {}
-  evasion_attacks: {}
+  evasion_attacks:
+    pgd:
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      certified_defense:
+        method: interval_bound
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      - certified_defense
+      randomized_smoothing:
+        sigma: 0.25
 model:
   input_shape:
   - 3
