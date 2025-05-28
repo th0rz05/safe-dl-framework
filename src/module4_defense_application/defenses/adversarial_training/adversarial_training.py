@@ -83,7 +83,7 @@ def run_adversarial_training_defense(profile, trainset, testset, valset, class_n
     print("[*] Evaluating model on clean test set...")
     acc, per_class = evaluate_model(model, testset, class_names=class_names)
 
-    os.makedirs(f"results/evasion_attacks/{attack_type}", exist_ok=True)
+    os.makedirs(f"results/evasion/{attack_type}", exist_ok=True)
     results = {
         "defense": "adversarial_training",
         "attack": attack_type,
@@ -95,11 +95,11 @@ def run_adversarial_training_defense(profile, trainset, testset, valset, class_n
         }
     }
 
-    result_path = f"results/evasion_attacks/{attack_type}/adversarial_training_results.json"
+    result_path = f"results/evasion/{attack_type}/adversarial_training_results.json"
     with open(result_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"[✔] Results saved to {result_path}")
 
-    md_path = f"results/evasion_attacks/{attack_type}/adversarial_training_report.md"
+    md_path = f"results/evasion/{attack_type}/adversarial_training_report.md"
     generate_adversarial_training_report(json_file=result_path, md_file=md_path)
     print(f"[✔] Report generated at {md_path}")
