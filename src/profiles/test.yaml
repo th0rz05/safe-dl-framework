@@ -36,10 +36,7 @@ defense_config:
       certified_defense:
         method: interval_bound
       defenses:
-      - randomized_smoothing
       - certified_defense
-      randomized_smoothing:
-        sigma: 0.1
 model:
   input_shape:
   - 3
