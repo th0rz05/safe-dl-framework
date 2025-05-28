@@ -1,0 +1,21 @@
+{
+  "defense": "randomized_smoothing",
+  "attack": "pgd",
+  "sigma": 0.1,
+  "accuracy_after_defense": 0.5332,
+  "per_class_accuracy": {
+    "airplane": 0.788,
+    "automobile": 0.438,
+    "bird": 0.593,
+    "cat": 0.167,
+    "deer": 0.25,
+    "dog": 0.769,
+    "frog": 0.284,
+    "horse": 0.544,
+    "ship": 0.79,
+    "truck": 0.709
+  },
+  "params": {
+    "sigma": 0.1
+  }
+}
