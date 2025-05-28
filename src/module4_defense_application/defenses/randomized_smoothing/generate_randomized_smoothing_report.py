@@ -19,23 +19,25 @@ def generate_randomized_smoothing_report(json_file, md_file):
         lines.append(f"- **{cls}**: {acc:.4f}")
 
     lines.append("\n## Noise Distribution")
-    lines.append("The following histogram shows the distribution of Gaussian noise added to the training samples.\n")
+    lines.append("The histogram below shows the distribution of the Gaussian noise applied during training.\n")
 
     attack_type = data.get("attack", "unknown")
-    hist_path = f"results/evasion/{attack_type}/randomized_smoothing/histograms/noise_distribution.png"
-    if os.path.exists(hist_path):
-        lines.append(f"![Noise Distribution](histograms/noise_distribution.png)\n")
+    hist_rel_path = f"noise_histograms/noise_distribution.png"
+    hist_abs_path = os.path.join("results", "evasion", attack_type, hist_rel_path)
+    if os.path.exists(hist_abs_path):
+        lines.append(f"![Noise Distribution]({hist_rel_path})\n")
 
-    lines.append("## Visual Examples\n")
-    lines.append("The following examples show original vs. noisy training samples used in adversarial training.\n")
+    lines.append("## Visual Examples")
+    lines.append("Each example below compares the original and noisy version of a training sample.\n")
 
-    examples_dir = f"results/evasion/{attack_type}/randomized_smoothing/noisy_examples"
-    if os.path.exists(examples_dir):
-        for fname in sorted(os.listdir(examples_dir)):
+    examples_rel_path = f"noisy_examples"
+    examples_abs_path = os.path.join("results", "evasion", attack_type, examples_rel_path)
+    if os.path.exists(examples_abs_path):
+        for fname in sorted(os.listdir(examples_abs_path)):
             if fname.endswith(".png"):
                 title = fname.replace(".png", "").replace("_", " ").capitalize()
                 lines.append(f"### {title}")
-                lines.append(f"![{title}](noisy_examples/{fname})\n")
+                lines.append(f"![{title}]({examples_rel_path}/{fname})\n")
 
     with open(md_file, "w") as f:
         f.write("\n".join(lines))

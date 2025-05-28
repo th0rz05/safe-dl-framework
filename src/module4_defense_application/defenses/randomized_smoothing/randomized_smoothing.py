@@ -43,9 +43,9 @@ def run_randomized_smoothing_defense(profile, trainset, testset, valset, class_n
     sigma = cfg.get("sigma", 0.25)
 
     # Directories
-    base_dir = f"results/evasion/{attack_type}/randomized_smoothing"
+    base_dir = f"results/evasion/{attack_type}"
     examples_dir = os.path.join(base_dir, "noisy_examples")
-    hist_dir = os.path.join(base_dir, "histograms")
+    hist_dir = os.path.join(base_dir, "noise_histograms")
     shutil.rmtree(examples_dir, ignore_errors=True)
     shutil.rmtree(hist_dir, ignore_errors=True)
     os.makedirs(examples_dir, exist_ok=True)
