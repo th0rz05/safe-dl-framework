@@ -15,6 +15,7 @@ from defenses.anomaly_detection.anomaly_detection import run_anomaly_detection_d
 from defenses.pruning.pruning import run_pruning_defense
 from defenses.fine_pruning.fine_pruning import run_fine_pruning_defense
 from defenses.model_inspection.model_inspection import run_model_inspection_defense
+from defenses.adversarial_training.adversarial_training import run_adversarial_training_defense
 
 
 
@@ -66,7 +67,7 @@ def apply_data_poisoning_defenses(profile, trainset, testset, valset, class_name
             elif defense_name == "influence_functions":
                 run_influence_functions_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
-                print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
+                print(f"  - Error: Unknown defense '{defense_name}' for {attack_type}. Please check the profile configuration.")
 
 
 def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
@@ -87,7 +88,7 @@ def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
             elif defense_name == "model_inspection":
                 run_model_inspection_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
-                print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
+                print(f"  - Error: Unknown defense '{defense_name}' for {attack_type}. Please check the profile configuration.")
 
 
 def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
@@ -95,7 +96,10 @@ def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
     for attack_type, config in ev_defenses.items():
         print(f"\n[*] Applying evasion defenses for: {attack_type}")
         for defense_name in config.get("defenses", []):
-            print(f"  - Placeholder: Running {defense_name} defense for {attack_type}")
+            if defense_name == "adversarial_training":
+                run_adversarial_training_defense(profile, trainset, testset, valset, class_names, attack_type)
+            else:
+                print(f"  - Error: Unknown defense '{defense_name}' for {attack_type}. Please check the profile configuration.")
 
 
 def main():
