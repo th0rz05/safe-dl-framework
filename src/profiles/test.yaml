@@ -33,13 +33,9 @@ defense_config:
   data_poisoning: {}
   evasion_attacks:
     pgd:
-      adversarial_training:
-        attack_type: fgsm
-        epsilon: 0.03
       certified_defense:
         method: interval_bound
       defenses:
-      - adversarial_training
       - randomized_smoothing
       - certified_defense
       randomized_smoothing:
