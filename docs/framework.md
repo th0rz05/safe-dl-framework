@@ -618,13 +618,13 @@ The focus is to:
 
 ### Defense Strategy Mapping
 
-| Detected Attack Type     | Recommended Defensive Strategies                                |
-|--------------------------|-----------------------------------------------------------------|
-| Data Poisoning           | Data Sanitization, Outlier Removal, Robust Training             |
-| Backdoor Attacks         | Neuron Pruning, Activation Clustering, Fine-tuning              |
-| Adversarial Examples     | Adversarial Training (FGSM/PGD), Preprocessing, Certified Defenses |
-| Model Stealing           | Output Obfuscation, Query Rate Limiting, Watermarking           |
-| Privacy Attacks          | Differential Privacy, Regularization, Dropout                   |
+| Detected Attack Type     | Recommended Defensive Strategies                               |
+|--------------------------|----------------------------------------------------------------|
+| Data Poisoning           | Data Sanitization, Outlier Removal, Robust Training            |
+| Backdoor Attacks         | Neuron Pruning, Activation Clustering, Fine-tuning             |
+| Adversarial Examples     | Adversarial Training (FGSM/PGD), Preprocessing |
+| Model Stealing           | Output Obfuscation, Query Rate Limiting, Watermarking          |
+| Privacy Attacks          | Differential Privacy, Regularization, Dropout                  |
 
 >The framework automatically selects these strategies based on the threat profile and the vulnerability report.
 

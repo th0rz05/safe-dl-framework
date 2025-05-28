@@ -355,7 +355,7 @@ This Markdown report includes:
 
 ## Recommendations
 
-- **pgd**: Very high-risk evasion attack. Recommend adversarial training, randomized smoothing, or certified defenses.
+- **pgd**: Very high-risk evasion attack. Recommend adversarial training and randomized smoothing
 - **static_patch**: Fully blended backdoor trigger. Use activation clustering and spectral signature defenses.
 ```
 
@@ -401,7 +401,6 @@ risk_analysis:
     pgd:
       - adversarial_training
       - randomized_smoothing
-      - certified_defense
 
 ```
 

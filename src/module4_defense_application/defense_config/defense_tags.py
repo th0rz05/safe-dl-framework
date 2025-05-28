@@ -16,13 +16,13 @@ DEFENSE_TAGS = {
         ]
     },
     "evasion_attacks": {
-        "fgsm": ["adversarial_training", "randomized_smoothing", "certified_defense"],
-        "pgd": ["adversarial_training", "randomized_smoothing", "certified_defense"],
+        "fgsm": ["adversarial_training", "randomized_smoothing"],
+        "pgd": ["adversarial_training", "randomized_smoothing"],
         "nes": ["gradient_masking", "jpeg_preprocessing"],
         "spsa": ["gradient_masking", "jpeg_preprocessing"],
-        "cw": ["adversarial_training", "randomized_smoothing", "certified_defense"],
-        "deepfool": ["adversarial_training", "randomized_smoothing", "certified_defense"],
-        "transfer": ["adversarial_training", "randomized_smoothing", "certified_defense"]
+        "cw": ["adversarial_training", "randomized_smoothing"],
+        "deepfool": ["adversarial_training", "randomized_smoothing"],
+        "transfer": ["adversarial_training", "randomized_smoothing"]
     },
     "backdoor": {
         "static_patch": [

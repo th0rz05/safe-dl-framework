@@ -92,10 +92,6 @@ def configure_randomized_smoothing():
     return {"sigma": sigma}
 
 
-def configure_certified_defense():
-    method = select("Certified defense method:", choices=["interval_bound", "convex_relaxation", "lipschitz_bound"]).ask()
-    return {"method": method}
-
 def configure_perturbation_detection():
     method = select("Detection method:", choices=["l2_thresholding", "statistical_test", "entropy_based"]).ask()
     threshold = float(text("Detection threshold:", default="0.1").ask())
@@ -120,6 +116,5 @@ DEFENSE_PARAMETER_FUNCTIONS = {
     "perturbation_detection": configure_perturbation_detection,
     "jpeg_preprocessing": configure_jpeg_preprocessing,
     "adversarial_training": configure_adversarial_training,
-    "randomized_smoothing": configure_randomized_smoothing,
-    "certified_defense": configure_certified_defense
+    "randomized_smoothing": configure_randomized_smoothing
 }

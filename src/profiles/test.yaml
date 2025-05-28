@@ -31,12 +31,7 @@ dataset:
 defense_config:
   backdoor: {}
   data_poisoning: {}
-  evasion_attacks:
-    pgd:
-      certified_defense:
-        method: interval_bound
-      defenses:
-      - certified_defense
+  evasion_attacks: {}
 model:
   input_shape:
   - 3
@@ -54,84 +49,20 @@ risk_analysis:
     clean_label:
     - provenance_tracking
     - influence_functions
-    cw:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
-    deepfool:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
-    fgsm:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
-    label_flipping:
-    - data_cleaning
-    - per_class_monitoring
     learned_trigger:
     - activation_clustering
     - spectral_signatures
     - fine_pruning
     - model_inspection
-    nes:
-    - gradient_masking
-    - jpeg_preprocessing
-    pgd:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
-    spsa:
-    - gradient_masking
-    - jpeg_preprocessing
-    transfer:
-    - adversarial_training
-    - randomized_smoothing
-    - certified_defense
   summary:
     clean_label:
       probability: 0.9
       risk_score: 0.244
       severity: 0.159
       visibility: 0.3
-    cw:
-      probability: 0.9
-      risk_score: 1.53
-      severity: 1.0
-      visibility: 0.3
-    deepfool:
-      probability: 1.0
-      risk_score: 1.9
-      severity: 1.0
-      visibility: 0.1
-    fgsm:
-      probability: 1.0
-      risk_score: 1.7
-      severity: 1.0
-      visibility: 0.3
-    label_flipping:
-      probability: 1.0
-      risk_score: 0.547
-      severity: 0.422
-      visibility: 0.705
     learned_trigger:
       probability: 0.9
       risk_score: 1.62
-      severity: 1.0
-      visibility: 0.2
-    nes:
-      probability: 0.8
-      risk_score: 1.44
-      severity: 1.0
-      visibility: 0.2
-    pgd:
-      probability: 1.0
-      risk_score: 1.7
-      severity: 1.0
-      visibility: 0.3
-    spsa:
-      probability: 0.8
-      risk_score: 1.44
       severity: 1.0
       visibility: 0.2
     static_patch:
@@ -139,11 +70,6 @@ risk_analysis:
       risk_score: 1.4
       severity: 1.0
       visibility: 0.6
-    transfer:
-      probability: 0.85
-      risk_score: 1.53
-      severity: 1.0
-      visibility: 0.2
 threat_model:
   attack_goal: targeted
   data_sensitivity: high

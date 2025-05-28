@@ -13,7 +13,6 @@ DEFENSE_DESCRIPTIONS = {
     # Evasion
     "adversarial_training": "Include adversarial examples in training to increase robustness.",
     "randomized_smoothing": "Add noise to inputs and average predictions to gain certified robustness.",
-    "certified_defense": "Use provable guarantees against attacks within certain norms.",
     "gradient_masking": "Obfuscate gradients to prevent attackers from computing effective perturbations.",
     "jpeg_preprocessing": "Apply JPEG compression to remove high-frequency adversarial noise.",
 

@@ -37,7 +37,7 @@ def generate_recommendations(risk_data):
         # Evasion attacks
         if typ == "evasion":
             if score >= 1.5:
-                recs.append(f"- **{name}**: Very high-risk evasion attack. Recommend adversarial training, randomized smoothing, or certified defenses.")
+                recs.append(f"- **{name}**: Very high-risk evasion attack. Recommend adversarial training and randomized smoothing")
             elif sev >= 0.8 and vis <= 0.3:
                 recs.append(f"- **{name}**: Stealthy but strong evasion attack. Suggest gradient masking and input preprocessing (e.g., JPEG compression).")
             elif vis >= 0.6:
@@ -82,7 +82,7 @@ def generate_recommendation_tags(risk_data):
 
         if typ == "evasion":
             if score >= 1.5:
-                recs[name] += ["adversarial_training", "randomized_smoothing", "certified_defense"]
+                recs[name] += ["adversarial_training", "randomized_smoothing"]
             elif sev >= 0.8 and vis <= 0.3:
                 recs[name] += ["gradient_masking", "jpeg_preprocessing"]
             elif vis >= 0.6:
