@@ -19,15 +19,6 @@ defense_config:
   backdoor: {}
   data_poisoning: {}
   evasion_attacks:
-    pgd:
-      adversarial_training:
-        attack_type: fgsm
-        epsilon: 0.03
-      defenses:
-      - adversarial_training
-      - randomized_smoothing
-      randomized_smoothing:
-        sigma: 0.25
     spsa:
       defenses:
       - gradient_masking

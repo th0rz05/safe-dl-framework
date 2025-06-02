@@ -6,7 +6,7 @@ from tqdm import tqdm
 
 # Para carregar arquitetura correta
 from attacks.utils import load_model_cfg_from_profile
-
+from attacks.evasion.spsa.run_spsa import spsa_attack
 
 def load_clean_model(model_name, profile):
     profile_name = profile.get("name", "default")
@@ -24,7 +24,6 @@ def load_clean_model(model_name, profile):
     print(f"[✔] Loaded clean model from {model_path}")
     return model
 
-
 def fgsm_attack(model, x, y, epsilon):
     x.requires_grad = True
     logits = model(x)
@@ -34,7 +33,6 @@ def fgsm_attack(model, x, y, epsilon):
     x_grad = x.grad.data.sign()
     x_adv = x + epsilon * x_grad
     return torch.clamp(x_adv, 0, 1).detach()
-
 
 def pgd_attack(model, x, y, epsilon, alpha=0.01, num_iter=7):
     x_adv = x.clone().detach()
@@ -52,7 +50,6 @@ def pgd_attack(model, x, y, epsilon, alpha=0.01, num_iter=7):
         x_adv.requires_grad = True
 
     return x_adv
-
 
 def evaluate_robustness(model, testset, attack_type, epsilon, device):
     model.eval()
@@ -90,20 +87,27 @@ def evaluate_robustness(model, testset, attack_type, epsilon, device):
     per_class_acc = {cls: round(v["correct"] / v["total"], 4) if v["total"] > 0 else 0.0 for cls, v in per_class.items()}
     return round(correct / total, 4), per_class_acc
 
+def apply_attack_spsa_to_dataset(model, testset, profile, device):
+    print("[*] Applying SPSA attack to dataset...")
+    cfg = profile.get("attack_overrides", {}).get("evasion_attacks", {}).get("spsa", {})
 
-def apply_attack_to_dataset(model, testset, attack_type, epsilon, device):
-    adversarial_data = []
-    model.eval()
+    epsilon = cfg.get("epsilon", 0.03)
+    delta = cfg.get("delta", 0.01)
+    learning_rate = cfg.get("learning_rate", 0.01)
+    num_steps = cfg.get("num_steps", 150)
+    batch_size = cfg.get("batch_size", 32)
+    max_samples = cfg.get("max_samples", 500)
+
     loader = DataLoader(testset, batch_size=1, shuffle=False)
+    adversarial_data = []
+    count = 0
 
-    for x, y in loader:
+    for x, y in tqdm(loader, desc="SPSA Attack"):
+        if count >= max_samples:
+            break
         x, y = x.to(device), y.to(device)
-        if attack_type == "fgsm":
-            x_adv = fgsm_attack(model, x, y, epsilon)
-        elif attack_type == "pgd":
-            x_adv = pgd_attack(model, x, y, epsilon)
-        else:
-            raise ValueError(f"[!] Unsupported attack type: {attack_type}")
+        x_adv = spsa_attack(model, x, y, epsilon=epsilon, delta=delta, learning_rate=learning_rate, num_steps=num_steps, batch_size=batch_size)
         adversarial_data.append((x_adv.cpu(), y.cpu()))
+        count += 1
 
     return adversarial_data

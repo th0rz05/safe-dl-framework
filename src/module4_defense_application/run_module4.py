@@ -17,6 +17,8 @@ from defenses.fine_pruning.fine_pruning import run_fine_pruning_defense
 from defenses.model_inspection.model_inspection import run_model_inspection_defense
 from defenses.adversarial_training.adversarial_training import run_adversarial_training_defense
 from defenses.randomized_smoothing.randomized_smoothing import run_randomized_smoothing_defense
+from defenses.gradient_masking.gradient_masking import run_gradient_masking_defense
+
 
 
 
@@ -101,6 +103,8 @@ def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
                 run_adversarial_training_defense(profile, trainset, testset, valset, class_names, attack_type)
             elif defense_name == "randomized_smoothing":
                 run_randomized_smoothing_defense(profile, trainset, testset, valset, class_names, attack_type)
+            elif defense_name == "gradient_masking":
+                run_gradient_masking_defense(profile, trainset, testset, valset, class_names, attack_type)
             else:
                 print(f"  - Error: Unknown defense '{defense_name}' for {attack_type}. Please check the profile configuration.")
 
