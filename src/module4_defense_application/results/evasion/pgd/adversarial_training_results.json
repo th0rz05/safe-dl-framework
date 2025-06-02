@@ -1,23 +1,35 @@
 {
-  "defense": "adversarial_training",
-  "attack": "pgd",
-  "accuracy_after_defense": 0.5266,
-  "robust_accuracy": 0.2376,
-  "per_class_accuracy": {
-    "airplane": 0.633,
-    "automobile": 0.64,
-    "bird": 0.119,
-    "cat": 0.141,
-    "deer": 0.439,
-    "dog": 0.57,
-    "frog": 0.801,
-    "horse": 0.579,
-    "ship": 0.685,
-    "truck": 0.659
+  "defense_name": "adversarial_training",
+  "evaluated_attack": "pgd",
+  "clean_test_accuracy": 0.4439,
+  "adversarial_test_accuracy": 0.1942,
+  "per_class_clean_accuracy": {
+    "airplane": 0.636,
+    "automobile": 0.771,
+    "bird": 0.197,
+    "cat": 0.016,
+    "deer": 0.429,
+    "dog": 0.6,
+    "frog": 0.476,
+    "horse": 0.389,
+    "ship": 0.535,
+    "truck": 0.39
   },
-  "params": {
+  "per_class_adversarial_accuracy": {
+    "3": 0.005,
+    "8": 0.203,
+    "0": 0.367,
+    "6": 0.118,
+    "1": 0.482,
+    "9": 0.137,
+    "5": 0.303,
+    "7": 0.131,
+    "4": 0.154,
+    "2": 0.042
+  },
+  "parameters": {
     "epsilon": 0.03,
-    "base_attack": "fgsm",
-    "mix_clean": true
+    "base_attack_used_for_training": "fgsm",
+    "mixed_with_clean": true
   }
 }

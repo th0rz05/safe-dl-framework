@@ -1,24 +1,38 @@
 # Adversarial Training Defense Report
 
-**Attack Type:** pgd
-**Defense Method:** Adversarial Training
-**Base Attack Used:** fgsm
-**Epsilon:** 0.03
-**Mix Clean:** True
-**Robust Accuracy:** 0.2376
+**Attack Evaluated:** pgd
+**Defense Method:** adversarial_training
 
-## Accuracy After Defense
+## Training Parameters
+- **Base Attack Used for Training:** fgsm
+- **Epsilon:** 0.03
+- **Mixed with Clean Samples:** True
 
-- **Overall Accuracy:** 0.5266
+## Evaluation Results
 
-### Per-Class Accuracy
-- **airplane**: 0.6330
-- **automobile**: 0.6400
-- **bird**: 0.1190
-- **cat**: 0.1410
-- **deer**: 0.4390
-- **dog**: 0.5700
-- **frog**: 0.8010
-- **horse**: 0.5790
-- **ship**: 0.6850
-- **truck**: 0.6590
+- **Clean Test Accuracy:** 0.4439
+- **Adversarial Test Accuracy:** 0.1942
+
+### Per-Class Accuracy (Clean)
+- **airplane**: 0.6360
+- **automobile**: 0.7710
+- **bird**: 0.1970
+- **cat**: 0.0160
+- **deer**: 0.4290
+- **dog**: 0.6000
+- **frog**: 0.4760
+- **horse**: 0.3890
+- **ship**: 0.5350
+- **truck**: 0.3900
+
+### Per-Class Accuracy (Adversarial)
+- **3**: 0.0050
+- **8**: 0.2030
+- **0**: 0.3670
+- **6**: 0.1180
+- **1**: 0.4820
+- **9**: 0.1370
+- **5**: 0.3030
+- **7**: 0.1310
+- **4**: 0.1540
+- **2**: 0.0420
