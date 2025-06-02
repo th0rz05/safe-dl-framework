@@ -15,13 +15,17 @@ def evaluate_with_smoothing(model, dataset, sigma, device, class_names, num_samp
 
     for x, y in tqdm(loader, desc=f"Evaluating with Smoothing (sigma={sigma})"):
         x, y = x.to(device), y.to(device)
+        x = x.squeeze()  # Ensure x is [C, H, W]
+        if x.dim() != 3:
+            raise ValueError(f"Invalid input shape {x.shape} after squeeze; expected [C, H, W]")
+
         votes = torch.zeros(len(class_names))
 
         for _ in range(num_samples):
             noise = sigma * torch.randn_like(x)
-            x_noisy = torch.clamp(x + noise, 0, 1)
+            noisy_input = torch.clamp(x + noise, 0, 1).unsqueeze(0).to(device)
             with torch.no_grad():
-                pred = model(x_noisy).argmax(dim=1)
+                pred = model(noisy_input).argmax(dim=1)
             votes[pred.item()] += 1
 
         final_pred = votes.argmax().item()
@@ -43,7 +47,7 @@ def run_randomized_smoothing_defense(profile, trainset, testset, valset, class_n
     num_samples = cfg.get("num_samples", 25)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = load_clean_model("clean_model",profile).to(device)
+    model = load_clean_model("clean_model", profile).to(device)
 
     print("[*] Evaluating smoothed model on clean test set...")
     acc_clean, per_class_clean = evaluate_with_smoothing(model, testset, sigma, device, class_names, num_samples)

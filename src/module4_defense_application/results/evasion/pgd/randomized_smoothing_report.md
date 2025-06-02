@@ -1,44 +1,36 @@
 # Randomized Smoothing Defense Report
 
-**Attack Type:** pgd
-**Defense Method:** Randomized Smoothing
-**Noise Level (σ):** 0.1
+**Attack Evaluated:** pgd
+**Defense Method:** randomized_smoothing
 
-## Accuracy After Defense
+## Smoothing Parameters
+- **Sigma (noise std):** 0.25
+- **Number of Samples:** 25
 
-- **Overall Accuracy:** 0.5332
+## Evaluation Results
+- **Smoothed Accuracy on Clean Test Set:** 0.2472
+- **Smoothed Accuracy on Adversarial Test Set:** 0.0476
 
-### Per-Class Accuracy
-- **airplane**: 0.7880
-- **automobile**: 0.4380
-- **bird**: 0.5930
-- **cat**: 0.1670
-- **deer**: 0.2500
-- **dog**: 0.7690
-- **frog**: 0.2840
-- **horse**: 0.5440
-- **ship**: 0.7900
-- **truck**: 0.7090
+### Per-Class Accuracy (Clean + Smoothed)
+- **airplane**: 0.3480
+- **automobile**: 0.8640
+- **bird**: 0.0850
+- **cat**: 0.0030
+- **deer**: 0.0000
+- **dog**: 0.0180
+- **frog**: 0.5460
+- **horse**: 0.0480
+- **ship**: 0.1030
+- **truck**: 0.4570
 
-## Noise Distribution
-The histogram below shows the distribution of the Gaussian noise applied during training.
-
-![Noise Distribution](noise_histograms/noise_distribution.png)
-
-## Visual Examples
-Each example below compares the original and noisy version of a training sample.
-
-### Example 0
-![Example 0](noisy_examples/example_0.png)
-
-### Example 1
-![Example 1](noisy_examples/example_1.png)
-
-### Example 2
-![Example 2](noisy_examples/example_2.png)
-
-### Example 3
-![Example 3](noisy_examples/example_3.png)
-
-### Example 4
-![Example 4](noisy_examples/example_4.png)
+### Per-Class Accuracy (Adversarial + Smoothed)
+- **airplane**: 0.0950
+- **automobile**: 0.1670
+- **bird**: 0.0050
+- **cat**: 0.0000
+- **deer**: 0.0000
+- **dog**: 0.0010
+- **frog**: 0.1400
+- **horse**: 0.0030
+- **ship**: 0.0090
+- **truck**: 0.0560
