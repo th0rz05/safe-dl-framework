@@ -1,5 +1,5 @@
-import os
 import json
+
 
 def generate_randomized_smoothing_report(json_file, md_file):
     with open(json_file, "r") as f:
@@ -7,37 +7,24 @@ def generate_randomized_smoothing_report(json_file, md_file):
 
     lines = []
     lines.append("# Randomized Smoothing Defense Report\n")
-    lines.append(f"**Attack Type:** {data.get('attack', 'Unknown')}")
-    lines.append(f"**Defense Method:** Randomized Smoothing")
-    lines.append(f"**Noise Level (σ):** {data.get('sigma', 'N/A')}\n")
+    lines.append(f"**Attack Evaluated:** {data.get('evaluated_attack', 'Unknown')}")
+    lines.append(f"**Defense Method:** {data.get('defense_name', 'randomized_smoothing')}\n")
 
-    lines.append("## Accuracy After Defense\n")
-    lines.append(f"- **Overall Accuracy:** {data.get('accuracy_after_defense', 0.0):.4f}")
+    lines.append("## Smoothing Parameters")
+    lines.append(f"- **Sigma (noise std):** {data.get('sigma', 'N/A')}")
+    lines.append(f"- **Number of Samples:** {data.get('num_samples', 'N/A')}\n")
 
-    lines.append("\n### Per-Class Accuracy")
-    for cls, acc in data.get("per_class_accuracy", {}).items():
+    lines.append("## Evaluation Results")
+    lines.append(f"- **Smoothed Accuracy on Clean Test Set:** {data.get('smoothed_accuracy_clean', 0.0):.4f}")
+    lines.append(f"- **Smoothed Accuracy on Adversarial Test Set:** {data.get('smoothed_accuracy_adversarial', 0.0):.4f}\n")
+
+    lines.append("### Per-Class Accuracy (Clean + Smoothed)")
+    for cls, acc in data.get("per_class_smoothed_accuracy_clean", {}).items():
         lines.append(f"- **{cls}**: {acc:.4f}")
 
-    lines.append("\n## Noise Distribution")
-    lines.append("The histogram below shows the distribution of the Gaussian noise applied during training.\n")
-
-    attack_type = data.get("attack", "unknown")
-    hist_rel_path = f"noise_histograms/noise_distribution.png"
-    hist_abs_path = os.path.join("results", "evasion", attack_type, hist_rel_path)
-    if os.path.exists(hist_abs_path):
-        lines.append(f"![Noise Distribution]({hist_rel_path})\n")
-
-    lines.append("## Visual Examples")
-    lines.append("Each example below compares the original and noisy version of a training sample.\n")
-
-    examples_rel_path = f"noisy_examples"
-    examples_abs_path = os.path.join("results", "evasion", attack_type, examples_rel_path)
-    if os.path.exists(examples_abs_path):
-        for fname in sorted(os.listdir(examples_abs_path)):
-            if fname.endswith(".png"):
-                title = fname.replace(".png", "").replace("_", " ").capitalize()
-                lines.append(f"### {title}")
-                lines.append(f"![{title}]({examples_rel_path}/{fname})\n")
+    lines.append("\n### Per-Class Accuracy (Adversarial + Smoothed)")
+    for cls, acc in data.get("per_class_smoothed_accuracy_adversarial", {}).items():
+        lines.append(f"- **{cls}**: {acc:.4f}")
 
     with open(md_file, "w") as f:
         f.write("\n".join(lines))

@@ -1,112 +1,76 @@
 import os
-import sys
 import json
 import torch
-import numpy as np
-import matplotlib.pyplot as plt
-import shutil
-
-from torch.utils.data import Dataset
-from torchvision.transforms.functional import to_pil_image
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+from evasion_utils import load_clean_model, apply_attack_to_dataset
 from defenses.randomized_smoothing.generate_randomized_smoothing_report import generate_randomized_smoothing_report
 
-# Add module2 path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
-from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
 
+def evaluate_with_smoothing(model, dataset, sigma, device, class_names, num_samples=25):
+    model.eval()
+    loader = DataLoader(dataset, batch_size=1, shuffle=False)
+    correct = 0
+    per_class = {cls: {"correct": 0, "total": 0} for cls in class_names}
 
-class NoisyDataset(Dataset):
-    def __init__(self, base_dataset, sigma):
-        self.base_dataset = base_dataset
-        self.sigma = sigma
-        self.cached_originals = []
-        self.cached_noisy = []
+    for x, y in tqdm(loader, desc=f"Evaluating with Smoothing (sigma={sigma})"):
+        x, y = x.to(device), y.to(device)
+        votes = torch.zeros(len(class_names))
 
-        for i in range(min(5, len(base_dataset))):
-            x, _ = base_dataset[i]
-            self.cached_originals.append(x.clone())
-            self.cached_noisy.append(x + torch.randn_like(x) * sigma)
+        for _ in range(num_samples):
+            noise = sigma * torch.randn_like(x)
+            x_noisy = torch.clamp(x + noise, 0, 1)
+            with torch.no_grad():
+                pred = model(x_noisy).argmax(dim=1)
+            votes[pred.item()] += 1
 
-    def __getitem__(self, index):
-        x, y = self.base_dataset[index]
-        noise = torch.randn_like(x) * self.sigma
-        return x + noise, y
+        final_pred = votes.argmax().item()
+        correct += (final_pred == y.item())
+        cls = class_names[y.item()]
+        per_class[cls]["total"] += 1
+        if final_pred == y.item():
+            per_class[cls]["correct"] += 1
 
-    def __len__(self):
-        return len(self.base_dataset)
+    acc = correct / len(dataset)
+    per_class_acc = {cls: round(v["correct"] / v["total"], 4) if v["total"] > 0 else 0.0 for cls, v in per_class.items()}
+    return round(acc, 4), per_class_acc
 
 
 def run_randomized_smoothing_defense(profile, trainset, testset, valset, class_names, attack_type):
-    print(f"[*] Running Randomized Smoothing defense for {attack_type}...")
-
+    print(f"[*] Running Randomized Smoothing defense for evasion attack: {attack_type}...")
     cfg = profile["defense_config"]["evasion_attacks"][attack_type]["randomized_smoothing"]
     sigma = cfg.get("sigma", 0.25)
+    num_samples = cfg.get("num_samples", 25)
 
-    # Directories
-    base_dir = f"results/evasion/{attack_type}"
-    examples_dir = os.path.join(base_dir, "noisy_examples")
-    hist_dir = os.path.join(base_dir, "noise_histograms")
-    shutil.rmtree(examples_dir, ignore_errors=True)
-    shutil.rmtree(hist_dir, ignore_errors=True)
-    os.makedirs(examples_dir, exist_ok=True)
-    os.makedirs(hist_dir, exist_ok=True)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = load_clean_model(profile).to(device)
 
-    # Create noisy version of training set
-    noisy_trainset = NoisyDataset(trainset, sigma=sigma)
+    print("[*] Evaluating smoothed model on clean test set...")
+    acc_clean, per_class_clean = evaluate_with_smoothing(model, testset, sigma, device, class_names, num_samples)
 
-    # Save visual examples
-    print("[*] Saving original vs noisy examples...")
-    for i, (orig, noisy) in enumerate(zip(noisy_trainset.cached_originals, noisy_trainset.cached_noisy)):
-        fig, axs = plt.subplots(1, 2, figsize=(4, 2))
-        axs[0].imshow(to_pil_image(orig), cmap='gray')
-        axs[0].set_title("Original")
-        axs[0].axis("off")
-        axs[1].imshow(to_pil_image(noisy), cmap='gray')
-        axs[1].set_title("Noisy")
-        axs[1].axis("off")
-        plt.tight_layout()
-        plt.savefig(os.path.join(examples_dir, f"example_{i}.png"), dpi=150)
-        plt.close()
+    print(f"[*] Generating adversarial examples with {attack_type}...")
+    adv_testset = apply_attack_to_dataset(model, testset, attack_type, epsilon=0.03, device=device)
 
-    # Save noise histogram
-    print("[*] Saving histogram of noise distribution...")
-    noise = (torch.stack(noisy_trainset.cached_noisy) - torch.stack(noisy_trainset.cached_originals)).flatten().numpy()
-    plt.figure(figsize=(6, 4))
-    plt.hist(noise, bins=40, color='skyblue', edgecolor='black')
-    plt.title("Distribution of Added Gaussian Noise")
-    plt.xlabel("Noise Value")
-    plt.ylabel("Frequency")
-    plt.tight_layout()
-    plt.savefig(os.path.join(hist_dir, "noise_distribution.png"))
-    plt.close()
+    print("[*] Evaluating smoothed model on adversarial test set...")
+    acc_adv, per_class_adv = evaluate_with_smoothing(model, adv_testset, sigma, device, class_names, num_samples)
 
-    # Load model
-    model = load_model_cfg_from_profile(profile)
-
-    # Train on noisy data
-    print(f"[*] Training model with Gaussian noise σ = {sigma} on training set...")
-    train_model(model, noisy_trainset, valset, epochs=3, class_names=class_names)
-
-    # Evaluate on clean test set
-    acc, per_class = evaluate_model(model, testset, class_names=class_names)
-
-    # Save results
-    os.makedirs(base_dir, exist_ok=True)
-    result_data = {
-        "defense": "randomized_smoothing",
-        "attack": attack_type,
+    os.makedirs(f"results/evasion/{attack_type}", exist_ok=True)
+    results = {
+        "defense_name": "randomized_smoothing",
+        "evaluated_attack": attack_type,
         "sigma": sigma,
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
-        "params": cfg
+        "num_samples": num_samples,
+        "smoothed_accuracy_clean": acc_clean,
+        "smoothed_accuracy_adversarial": acc_adv,
+        "per_class_smoothed_accuracy_clean": per_class_clean,
+        "per_class_smoothed_accuracy_adversarial": per_class_adv
     }
 
-    result_path = os.path.join(base_dir, "randomized_smoothing_results.json")
-    with open(result_path, "w") as f:
-        json.dump(result_data, f, indent=2)
-    print(f"[✔] Results saved to {result_path}")
+    json_path = f"results/evasion/{attack_type}/randomized_smoothing_results.json"
+    with open(json_path, "w") as f:
+        json.dump(results, f, indent=2)
+    print(f"[✔] Results saved to {json_path}")
 
-    # Generate Markdown report
-    md_path = os.path.join(base_dir, "randomized_smoothing_report.md")
-    generate_randomized_smoothing_report(json_file=result_path, md_file=md_path)
+    md_path = f"results/evasion/{attack_type}/randomized_smoothing_report.md"
+    generate_randomized_smoothing_report(json_file=json_path, md_file=md_path)
     print(f"[✔] Report generated at {md_path}")
