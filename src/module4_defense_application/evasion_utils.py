@@ -117,14 +117,18 @@ def apply_attack_spsa_to_dataset(model, testset, profile, device):
 
     loader = DataLoader(testset, batch_size=1, shuffle=False)
     adversarial_data = []
+
+    pbar = tqdm(total=max_samples, desc="SPSA Attack")
     count = 0
 
-    for x, y in tqdm(loader, desc="SPSA Attack"):
+    for x, y in loader:
         if count >= max_samples:
             break
         x, y = x.to(device), y.to(device)
         x_adv = spsa_attack(model, x, y, epsilon=epsilon, delta=delta, learning_rate=learning_rate, num_steps=num_steps, batch_size=batch_size)
         adversarial_data.append((x_adv.cpu(), y.cpu()))
         count += 1
+        pbar.update(1)
 
+    pbar.close()
     return adversarial_data
