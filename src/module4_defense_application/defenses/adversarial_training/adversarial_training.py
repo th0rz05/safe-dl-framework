@@ -10,8 +10,35 @@ from defenses.adversarial_training.generate_adversarial_training_report import g
 # Caminho para módulo 2
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
 from attacks.utils import load_model_cfg_from_profile, evaluate_model
-from attacks.evasion.fgsm.run_fgsm import fgsm_attack
-from attacks.evasion.pgd.run_pgd import pgd_attack
+
+
+def fgsm_attack(model, x, y, epsilon):
+    x.requires_grad = True
+    logits = model(x)
+    loss = F.cross_entropy(logits, y)
+    model.zero_grad()
+    loss.backward()
+    x_grad = x.grad.data.sign()
+    x_adv = x + epsilon * x_grad
+    return torch.clamp(x_adv, 0, 1).detach()
+
+
+def pgd_attack(model, x, y, epsilon, alpha=0.01, num_iter=7):
+    x_adv = x.clone().detach()
+    x_adv.requires_grad = True
+
+    for _ in range(num_iter):
+        logits = model(x_adv)
+        loss = F.cross_entropy(logits, y)
+        model.zero_grad()
+        loss.backward()
+        grad = x_adv.grad.data
+        x_adv = x_adv + alpha * grad.sign()
+        x_adv = torch.min(torch.max(x_adv, x - epsilon), x + epsilon)
+        x_adv = torch.clamp(x_adv, 0, 1).detach()
+        x_adv.requires_grad = True
+
+    return x_adv
 
 
 def run_adversarial_training_defense(profile, trainset, testset, valset, class_names, attack_type):
