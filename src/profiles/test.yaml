@@ -1,30 +1,17 @@
 attack_overrides:
-  backdoor:
-    learned_trigger:
-      epochs: 30
-      label_mode: corrupted
-      lambda_mask: 0.001
-      lambda_tv: 0.01
-      learning_rate: 0.1
-      patch_size_ratio: 0.05
-      poison_fraction: 0.05
-      target_class: 1
-    static_patch:
-      blend_alpha: 1.0
-      label_mode: corrupted
-      patch_position: bottom_right
-      patch_size_ratio: 0.15
-      patch_type: white_square
-      poison_fraction: 0.05
-      target_class: 0
-  data_poisoning:
-    clean_label:
-      epsilon: 0.1
-      fraction_poison: 0.05
-      max_iterations: 100
-      perturbation_method: overlay
-      source_selection: random
-      target_class: 2
+  evasion_attacks:
+    pgd:
+      alpha: 0.01
+      epsilon: 0.03
+      num_iter: 50
+      random_start: true
+    spsa:
+      batch_size: 32
+      delta: 0.01
+      epsilon: 0.03
+      learning_rate: 0.01
+      max_samples: 500
+      num_steps: 150
 dataset:
   name: cifar10
   type: builtin
@@ -32,7 +19,16 @@ defense_config:
   backdoor: {}
   data_poisoning: {}
   evasion_attacks:
-    nes:
+    pgd:
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      randomized_smoothing:
+        sigma: 0.25
+    spsa:
       defenses:
       - gradient_masking
       - jpeg_preprocessing
