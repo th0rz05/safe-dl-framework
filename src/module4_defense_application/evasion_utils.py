@@ -87,6 +87,23 @@ def evaluate_robustness(model, testset, attack_type, epsilon, device):
     per_class_acc = {cls: round(v["correct"] / v["total"], 4) if v["total"] > 0 else 0.0 for cls, v in per_class.items()}
     return round(correct / total, 4), per_class_acc
 
+def apply_attack_to_dataset(model, testset, attack_type, epsilon, device):
+    adversarial_data = []
+    model.eval()
+    loader = DataLoader(testset, batch_size=1, shuffle=False)
+
+    for x, y in loader:
+        x, y = x.to(device), y.to(device)
+        if attack_type == "fgsm":
+            x_adv = fgsm_attack(model, x, y, epsilon)
+        elif attack_type == "pgd":
+            x_adv = pgd_attack(model, x, y, epsilon)
+        else:
+            raise ValueError(f"[!] Unsupported attack type: {attack_type}")
+        adversarial_data.append((x_adv.cpu(), y.cpu()))
+
+    return adversarial_data
+
 def apply_attack_spsa_to_dataset(model, testset, profile, device):
     print("[*] Applying SPSA attack to dataset...")
     cfg = profile.get("attack_overrides", {}).get("evasion_attacks", {}).get("spsa", {})
