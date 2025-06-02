@@ -6,39 +6,11 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from defenses.adversarial_training.generate_adversarial_training_report import generate_adversarial_training_report
+from evasion_utils import fgsm_attack, pgd_attack, evaluate_robustness
 
 # Caminho para módulo 2
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
 from attacks.utils import load_model_cfg_from_profile, evaluate_model
-
-
-def fgsm_attack(model, x, y, epsilon):
-    x.requires_grad = True
-    logits = model(x)
-    loss = F.cross_entropy(logits, y)
-    model.zero_grad()
-    loss.backward()
-    x_grad = x.grad.data.sign()
-    x_adv = x + epsilon * x_grad
-    return torch.clamp(x_adv, 0, 1).detach()
-
-
-def pgd_attack(model, x, y, epsilon, alpha=0.01, num_iter=7):
-    x_adv = x.clone().detach()
-    x_adv.requires_grad = True
-
-    for _ in range(num_iter):
-        logits = model(x_adv)
-        loss = F.cross_entropy(logits, y)
-        model.zero_grad()
-        loss.backward()
-        grad = x_adv.grad.data
-        x_adv = x_adv + alpha * grad.sign()
-        x_adv = torch.min(torch.max(x_adv, x - epsilon), x + epsilon)
-        x_adv = torch.clamp(x_adv, 0, 1).detach()
-        x_adv.requires_grad = True
-
-    return x_adv
 
 
 def run_adversarial_training_defense(profile, trainset, testset, valset, class_names, attack_type):
@@ -85,19 +57,20 @@ def run_adversarial_training_defense(profile, trainset, testset, valset, class_n
     clean_acc, per_class_clean = evaluate_model(model, testset, class_names=class_names)
 
     print(f"[*] Evaluating robustness against {attack_type}...")
-    robust_acc = evaluate_robustness(model, testset, attack_type, epsilon, device)
+    robust_acc, per_class_robust = evaluate_robustness(model, testset, attack_type, epsilon, device)
 
     os.makedirs(f"results/evasion/{attack_type}", exist_ok=True)
     results = {
-        "defense": "adversarial_training",
-        "attack": attack_type,
-        "accuracy_after_defense": clean_acc,
-        "robust_accuracy": robust_acc,
-        "per_class_accuracy": per_class_clean,
-        "params": {
+        "defense_name": "adversarial_training",
+        "evaluated_attack": attack_type,
+        "clean_test_accuracy": clean_acc,
+        "adversarial_test_accuracy": robust_acc,
+        "per_class_clean_accuracy": per_class_clean,
+        "per_class_adversarial_accuracy": per_class_robust,
+        "parameters": {
             "epsilon": epsilon,
-            "base_attack": base_attack,
-            "mix_clean": True
+            "base_attack_used_for_training": base_attack,
+            "mixed_with_clean": True
         }
     }
 
@@ -109,27 +82,3 @@ def run_adversarial_training_defense(profile, trainset, testset, valset, class_n
     md_path = f"results/evasion/{attack_type}/adversarial_training_report.md"
     generate_adversarial_training_report(json_file=result_path, md_file=md_path)
     print(f"[✔] Report generated at {md_path}")
-
-
-def evaluate_robustness(model, testset, attack_type, epsilon, device):
-    model.eval()
-    loader = DataLoader(testset, batch_size=64, shuffle=False)
-    correct = 0
-    total = 0
-
-    for x, y in loader:
-        x, y = x.to(device), y.to(device)
-
-        if attack_type == "fgsm":
-            with torch.no_grad():
-                x_adv = fgsm_attack(model, x, y, epsilon)
-        elif attack_type == "pgd":
-            x_adv = pgd_attack(model, x, y, epsilon)
-        else:
-            raise ValueError(f"[!] Unsupported evaluation attack: {attack_type}")
-
-        preds = model(x_adv).argmax(dim=1)
-        correct += (preds == y).sum().item()
-        total += y.size(0)
-
-    return round(correct / total, 4)
