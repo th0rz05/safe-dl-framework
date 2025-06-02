@@ -43,7 +43,7 @@ def run_randomized_smoothing_defense(profile, trainset, testset, valset, class_n
     num_samples = cfg.get("num_samples", 25)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = load_clean_model(profile).to(device)
+    model = load_clean_model("clean_model",profile).to(device)
 
     print("[*] Evaluating smoothed model on clean test set...")
     acc_clean, per_class_clean = evaluate_with_smoothing(model, testset, sigma, device, class_names, num_samples)

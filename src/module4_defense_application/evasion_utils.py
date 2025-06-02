@@ -8,12 +8,11 @@ from tqdm import tqdm
 from attacks.utils import load_model_cfg_from_profile
 
 
-def load_clean_model(profile):
-    model_name = profile["model"]["name"]
+def load_clean_model(model_name, profile):
     profile_name = profile.get("name", "default")
 
     # Caminho absoluto para pasta de modelos salvos no módulo 2
-    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation"))
+    base_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "module2_attack_simulation"))
     model_path = os.path.join(base_path, "saved_models", f"{profile_name}_{model_name}.pth")
 
     if not os.path.exists(model_path):
