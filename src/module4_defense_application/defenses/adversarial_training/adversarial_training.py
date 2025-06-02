@@ -120,13 +120,13 @@ def evaluate_robustness(model, testset, attack_type, epsilon, device):
     for x, y in loader:
         x, y = x.to(device), y.to(device)
 
-        with torch.no_grad():
-            if attack_type == "fgsm":
+        if attack_type == "fgsm":
+            with torch.no_grad():
                 x_adv = fgsm_attack(model, x, y, epsilon)
-            elif attack_type == "pgd":
-                x_adv = pgd_attack(model, x, y, epsilon)
-            else:
-                raise ValueError(f"[!] Unsupported evaluation attack: {attack_type}")
+        elif attack_type == "pgd":
+            x_adv = pgd_attack(model, x, y, epsilon)
+        else:
+            raise ValueError(f"[!] Unsupported evaluation attack: {attack_type}")
 
         preds = model(x_adv).argmax(dim=1)
         correct += (preds == y).sum().item()
