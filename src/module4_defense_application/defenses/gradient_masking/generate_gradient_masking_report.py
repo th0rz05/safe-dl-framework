@@ -12,8 +12,8 @@ def generate_gradient_masking_report(json_file, md_file):
 
     params = data.get("params", {})
     lines.append(f"**Masking Strength:** {params.get('strength', 'N/A')}")
-    lines.append(f"**Masked Accuracy (Clean):** {data.get('masked_accuracy_clean', 0.0):.4f}")
-    lines.append(f"**Masked Accuracy (Adversarial):** {data.get('masked_accuracy_adversarial', 0.0):.4f}\n")
+    lines.append(f"**Masked Accuracy (Clean):** {data.get('accuracy_clean', 0.0):.4f}")
+    lines.append(f"**Masked Accuracy (Adversarial):** {data.get('accuracy_adversarial', 0.0):.4f}\n")
 
     lines.append("## Per-Class Accuracy (Clean)")
     for cls, acc in data.get("per_class_accuracy_clean", {}).items():

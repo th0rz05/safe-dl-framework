@@ -1,8 +1,8 @@
 {
   "defense": "gradient_masking",
   "attack": "spsa",
-  "masked_accuracy_clean": 0.6708,
-  "masked_accuracy_adversarial": 0.035,
+  "accuracy_clean": 0.6708,
+  "accuracy_adversarial": 0.035,
   "per_class_accuracy_clean": {
     "airplane": 0.67,
     "automobile": 0.777,

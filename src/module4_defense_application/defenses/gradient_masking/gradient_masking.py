@@ -65,8 +65,8 @@ def run_gradient_masking_defense(profile, trainset, testset, valset, class_names
     results = {
         "defense": "gradient_masking",
         "attack": attack_type,
-        "masked_accuracy_clean": acc_clean,
-        "masked_accuracy_adversarial": acc_adv,
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
         "per_class_accuracy_clean": per_class_clean,
         "per_class_accuracy_adversarial": per_class_adv,
         "params": {
