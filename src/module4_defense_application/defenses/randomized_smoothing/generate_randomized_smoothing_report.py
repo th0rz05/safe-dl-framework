@@ -15,15 +15,15 @@ def generate_randomized_smoothing_report(json_file, md_file):
     lines.append(f"- **Number of Samples:** {data.get('num_samples', 'N/A')}\n")
 
     lines.append("## Evaluation Results")
-    lines.append(f"- **Smoothed Accuracy on Clean Test Set:** {data.get('smoothed_accuracy_clean', 0.0):.4f}")
-    lines.append(f"- **Smoothed Accuracy on Adversarial Test Set:** {data.get('smoothed_accuracy_adversarial', 0.0):.4f}\n")
+    lines.append(f"- **Smoothed Accuracy on Clean Test Set:** {data.get('accuracy_clean', 0.0):.4f}")
+    lines.append(f"- **Smoothed Accuracy on Adversarial Test Set:** {data.get('accuracy_adversarial', 0.0):.4f}\n")
 
     lines.append("### Per-Class Accuracy (Clean + Smoothed)")
-    for cls, acc in data.get("per_class_smoothed_accuracy_clean", {}).items():
+    for cls, acc in data.get("per_class_accuracy_clean", {}).items():
         lines.append(f"- **{cls}**: {acc:.4f}")
 
     lines.append("\n### Per-Class Accuracy (Adversarial + Smoothed)")
-    for cls, acc in data.get("per_class_smoothed_accuracy_adversarial", {}).items():
+    for cls, acc in data.get("per_class_accuracy_adversarial", {}).items():
         lines.append(f"- **{cls}**: {acc:.4f}")
 
     with open(md_file, "w") as f:

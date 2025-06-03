@@ -3,9 +3,9 @@
   "evaluated_attack": "pgd",
   "sigma": 0.25,
   "num_samples": 25,
-  "smoothed_accuracy_clean": 0.2472,
-  "smoothed_accuracy_adversarial": 0.0476,
-  "per_class_smoothed_accuracy_clean": {
+  "accuracy_clean": 0.2472,
+  "accuracy_adversarial": 0.0476,
+  "per_class_accuracy_clean": {
     "airplane": 0.348,
     "automobile": 0.864,
     "bird": 0.085,
@@ -17,7 +17,7 @@
     "ship": 0.103,
     "truck": 0.457
   },
-  "per_class_smoothed_accuracy_adversarial": {
+  "per_class_accuracy_adversarial": {
     "airplane": 0.095,
     "automobile": 0.167,
     "bird": 0.005,

@@ -64,10 +64,10 @@ def run_randomized_smoothing_defense(profile, trainset, testset, valset, class_n
         "evaluated_attack": attack_type,
         "sigma": sigma,
         "num_samples": num_samples,
-        "smoothed_accuracy_clean": acc_clean,
-        "smoothed_accuracy_adversarial": acc_adv,
-        "per_class_smoothed_accuracy_clean": per_class_clean,
-        "per_class_smoothed_accuracy_adversarial": per_class_adv
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
+        "per_class_accuracy_clean": per_class_clean,
+        "per_class_accuracy_adversarial": per_class_adv
     }
 
     json_path = f"results/evasion/{attack_type}/randomized_smoothing_results.json"
