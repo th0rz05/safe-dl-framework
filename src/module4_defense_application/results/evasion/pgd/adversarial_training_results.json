@@ -1,9 +1,9 @@
 {
   "defense_name": "adversarial_training",
   "evaluated_attack": "pgd",
-  "clean_test_accuracy": 0.4439,
-  "adversarial_test_accuracy": 0.1942,
-  "per_class_clean_accuracy": {
+  "accuracy_clean": 0.4439,
+  "accuracy_adversarial": 0.1942,
+  "per_class_accuracy_clean": {
     "airplane": 0.636,
     "automobile": 0.771,
     "bird": 0.197,
@@ -15,7 +15,7 @@
     "ship": 0.535,
     "truck": 0.39
   },
-  "per_class_adversarial_accuracy": {
+  "per_class_accuracy_adversarial": {
     "3": 0.005,
     "8": 0.203,
     "0": 0.367,

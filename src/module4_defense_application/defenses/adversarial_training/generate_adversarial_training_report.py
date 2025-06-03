@@ -17,15 +17,15 @@ def generate_adversarial_training_report(json_file, md_file):
     lines.append(f"- **Mixed with Clean Samples:** {params.get('mixed_with_clean', False)}\n")
 
     lines.append("## Evaluation Results\n")
-    lines.append(f"- **Clean Test Accuracy:** {data.get('clean_test_accuracy', 0.0):.4f}")
-    lines.append(f"- **Adversarial Test Accuracy:** {data.get('adversarial_test_accuracy', 0.0):.4f}\n")
+    lines.append(f"- **Clean Test Accuracy:** {data.get('accuracy_clean', 0.0):.4f}")
+    lines.append(f"- **Adversarial Test Accuracy:** {data.get('accuracy_adversarial', 0.0):.4f}\n")
 
     lines.append("### Per-Class Accuracy (Clean)")
-    for cls, acc in data.get("per_class_clean_accuracy", {}).items():
+    for cls, acc in data.get("per_class_accuracy_clean", {}).items():
         lines.append(f"- **{cls}**: {acc:.4f}")
 
     lines.append("\n### Per-Class Accuracy (Adversarial)")
-    for cls, acc in data.get("per_class_adversarial_accuracy", {}).items():
+    for cls, acc in data.get("per_class_accuracy_adversarial", {}).items():
         lines.append(f"- **{cls}**: {acc:.4f}")
 
     with open(md_file, "w") as f:

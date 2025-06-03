@@ -63,10 +63,10 @@ def run_adversarial_training_defense(profile, trainset, testset, valset, class_n
     results = {
         "defense_name": "adversarial_training",
         "evaluated_attack": attack_type,
-        "clean_test_accuracy": clean_acc,
-        "adversarial_test_accuracy": robust_acc,
-        "per_class_clean_accuracy": per_class_clean,
-        "per_class_adversarial_accuracy": per_class_robust,
+        "accuracy_clean": clean_acc,
+        "accuracy_adversarial": robust_acc,
+        "per_class_accuracy_clean": per_class_clean,
+        "per_class_accuracy_adversarial": per_class_robust,
         "parameters": {
             "epsilon": epsilon,
             "base_attack_used_for_training": base_attack,
