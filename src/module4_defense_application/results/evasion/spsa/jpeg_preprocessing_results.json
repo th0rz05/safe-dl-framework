@@ -1,0 +1,33 @@
+{
+  "defense": "jpeg_preprocessing",
+  "attack": "spsa",
+  "jpeg_accuracy_clean": 0.6445,
+  "jpeg_accuracy_adversarial": 0.365,
+  "per_class_accuracy_clean": {
+    "airplane": 0.606,
+    "automobile": 0.711,
+    "bird": 0.555,
+    "cat": 0.394,
+    "deer": 0.602,
+    "dog": 0.547,
+    "frog": 0.68,
+    "horse": 0.732,
+    "ship": 0.877,
+    "truck": 0.741
+  },
+  "per_class_accuracy_adversarial": {
+    "airplane": 0.3,
+    "automobile": 0.5,
+    "bird": 0.4762,
+    "cat": 0.0526,
+    "deer": 0.1333,
+    "dog": 0.1111,
+    "frog": 0.4231,
+    "horse": 0.2778,
+    "ship": 0.6786,
+    "truck": 0.4762
+  },
+  "params": {
+    "quality": 75
+  }
+}
