@@ -15,7 +15,6 @@ from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profi
 from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
 
 
-
 def extract_layer_activations(model, dataloader, layer_name):
     activations = []
     indices = []
@@ -138,11 +137,9 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
     # Accuracy in clean test set
     acc_clean, per_class_clean = evaluate_model(clean_model, testset, class_names=class_names)
 
-    # Accuracy in adversarial test set (if exists)
-    adv_path = f"module2_attack_simulation/results/backdoor/{attack_type}/adv_testset.pt"
-    if os.path.exists(adv_path):
-        adv_testset = torch.load(adv_path)
-        loader_adv = DataLoader(adv_testset, batch_size=64, shuffle=False)
+    # Accuracy in adversarial test set (patched)
+    if patched_testset is not None:
+        loader_adv = DataLoader(patched_testset, batch_size=64, shuffle=False)
         acc_adv, per_class_adv = evaluate_model(clean_model, loader_adv, class_names=class_names)
     else:
         acc_adv, per_class_adv = None, None
@@ -172,3 +169,4 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
 
     md_path = f"results/backdoor/{attack_type}/activation_clustering_report.md"
     generate_activation_clustering_report(json_file=result_path, md_file=md_path)
+    print(f"[✔] Report generated at {md_path}")

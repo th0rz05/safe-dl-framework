@@ -56,5 +56,3 @@ def generate_activation_clustering_report(json_file, md_file):
     os.makedirs(os.path.dirname(md_file), exist_ok=True)
     with open(md_file, "w") as f:
         f.write("\n".join(lines))
-
-    print(f"[✔] Report generated at {md_file}")
