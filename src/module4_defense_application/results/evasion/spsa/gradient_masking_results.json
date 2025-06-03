@@ -1,0 +1,33 @@
+{
+  "defense": "gradient_masking",
+  "attack": "spsa",
+  "masked_accuracy_clean": 0.6708,
+  "masked_accuracy_adversarial": 0.035,
+  "per_class_accuracy_clean": {
+    "airplane": 0.67,
+    "automobile": 0.777,
+    "bird": 0.624,
+    "cat": 0.355,
+    "deer": 0.634,
+    "dog": 0.598,
+    "frog": 0.693,
+    "horse": 0.776,
+    "ship": 0.856,
+    "truck": 0.725
+  },
+  "per_class_accuracy_adversarial": {
+    "airplane": 0.0,
+    "automobile": 0.1429,
+    "bird": 0.0,
+    "cat": 0.0,
+    "deer": 0.0,
+    "dog": 0.0556,
+    "frog": 0.0,
+    "horse": 0.1111,
+    "ship": 0.0357,
+    "truck": 0.0476
+  },
+  "params": {
+    "strength": 0.5
+  }
+}
