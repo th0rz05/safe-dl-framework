@@ -1,9 +1,9 @@
 import os
 import json
 import torch
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, TensorDataset
 from tqdm import tqdm
-from evasion_utils import load_clean_model, apply_attack_spsa_to_dataset
+from evasion_utils import load_clean_model, apply_attack_to_dataset, apply_attack_spsa_to_dataset
 from defenses.gradient_masking.generate_gradient_masking_report import generate_gradient_masking_report
 
 def masked_inference(model, dataloader, strength, device, class_names):
@@ -30,7 +30,10 @@ def masked_inference(model, dataloader, strength, device, class_names):
                 per_class[cls]["correct"] += 1
 
     acc = round(correct / total, 4)
-    per_class_acc = {cls: round(c["correct"] / c["total"], 4) if c["total"] > 0 else 0.0 for cls, c in per_class.items()}
+    per_class_acc = {
+        cls: round(c["correct"] / c["total"], 4) if c["total"] > 0 else 0.0
+        for cls, c in per_class.items()
+    }
     return acc, per_class_acc
 
 def run_gradient_masking_defense(profile, trainset, testset, valset, class_names, attack_type):
@@ -46,9 +49,15 @@ def run_gradient_masking_defense(profile, trainset, testset, valset, class_names
     print("[*] Evaluating masked model on clean test set...")
     acc_clean, per_class_clean = masked_inference(model, loader_clean, strength, device, class_names)
 
-    print("[*] Generating adversarial examples with SPSA...")
-    adv_testset = apply_attack_spsa_to_dataset(model, testset, profile, device)
-    loader_adv = DataLoader(adv_testset, batch_size=64, shuffle=False)
+    print(f"[*] Generating adversarial examples with {attack_type.upper()}...")
+    if attack_type == "spsa":
+        adv_testset = apply_attack_spsa_to_dataset(model, testset, profile, device)
+    else:
+        adv_testset = apply_attack_to_dataset(model, testset, attack_type, epsilon=0.03, device=device)
+
+    x_adv = torch.cat([x for x, _ in adv_testset], dim=0)
+    y_adv = torch.cat([y for _, y in adv_testset], dim=0)
+    loader_adv = DataLoader(TensorDataset(x_adv, y_adv), batch_size=64, shuffle=False)
 
     print("[*] Evaluating masked model on adversarial test set...")
     acc_adv, per_class_adv = masked_inference(model, loader_adv, strength, device, class_names)
