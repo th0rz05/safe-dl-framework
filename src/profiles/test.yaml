@@ -1,4 +1,13 @@
 attack_overrides:
+  backdoor:
+    static_patch:
+      blend_alpha: 1.0
+      label_mode: corrupted
+      patch_position: bottom_right
+      patch_size_ratio: 0.15
+      patch_type: white_square
+      poison_fraction: 0.05
+      target_class: 3
   evasion_attacks:
     pgd:
       alpha: 0.01
