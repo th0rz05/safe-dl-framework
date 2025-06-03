@@ -3,24 +3,37 @@
 ## 1. Overview
 - **Defense:** activation_clustering
 - **Attack Type:** static_patch
-- **Number of Removed Samples:** 17196
+- **Number of Removed Samples:** 16388
 - **Defense Parameters:**
   - `num_clusters`: 2
 
 ## 2. Accuracy After Defense
-- **Overall Accuracy:** `0.4461`
+- **Clean Test Set Accuracy:** `0.4356`
+- **Adversarial Test Set Accuracy:** `0.1232`
 
-### Per-Class Accuracy
-- **airplane**: `0.7300`
-- **automobile**: `0.0030`
-- **bird**: `0.4040`
-- **cat**: `0.6140`
-- **deer**: `0.5320`
-- **dog**: `0.6910`
-- **frog**: `0.5790`
-- **horse**: `0.6430`
-- **ship**: `0.2650`
-- **truck**: `0.0000`
+### Per-Class Accuracy (Clean)
+- **airplane**: `0.5660`
+- **automobile**: `0.0090`
+- **bird**: `0.2350`
+- **cat**: `0.5120`
+- **deer**: `0.6090`
+- **dog**: `0.5760`
+- **frog**: `0.8550`
+- **horse**: `0.7860`
+- **ship**: `0.1570`
+- **truck**: `0.0510`
+
+### Per-Class Accuracy (Adversarial)
+- **airplane**: `0.0710`
+- **automobile**: `0.0010`
+- **bird**: `0.0150`
+- **cat**: `0.9850`
+- **deer**: `0.0120`
+- **dog**: `0.0200`
+- **frog**: `0.0600`
+- **horse**: `0.0650`
+- **ship**: `0.0000`
+- **truck**: `0.0030`
 
 ## 3. Removed Sample Examples (Cluster-based)
 
@@ -28,18 +41,18 @@
 
 ![Removed](activation_removed/removed_0_6.png)
 
-**Removed Sample — Class: truck**
-
-![Removed](activation_removed/removed_1_9.png)
-
-**Removed Sample — Class: deer**
-
-![Removed](activation_removed/removed_3_4.png)
-
 **Removed Sample — Class: automobile**
 
 ![Removed](activation_removed/removed_4_1.png)
 
-**Removed Sample — Class: bird**
+**Removed Sample — Class: horse**
 
-![Removed](activation_removed/removed_6_2.png)
+![Removed](activation_removed/removed_7_7.png)
+
+**Removed Sample — Class: horse**
+
+![Removed](activation_removed/removed_11_7.png)
+
+**Removed Sample — Class: cat**
+
+![Removed](activation_removed/removed_17_3.png)

@@ -139,8 +139,7 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
 
     # Accuracy in adversarial test set (patched)
     if patched_testset is not None:
-        loader_adv = DataLoader(patched_testset, batch_size=64, shuffle=False)
-        acc_adv, per_class_adv = evaluate_model(clean_model, loader_adv, class_names=class_names)
+        acc_adv, per_class_adv = evaluate_model(clean_model, patched_testset, class_names=class_names)
     else:
         acc_adv, per_class_adv = None, None
 
