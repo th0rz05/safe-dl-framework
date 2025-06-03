@@ -1,8 +1,8 @@
 {
   "defense": "jpeg_preprocessing",
   "attack": "spsa",
-  "jpeg_accuracy_clean": 0.6445,
-  "jpeg_accuracy_adversarial": 0.365,
+  "accuracy_clean": 0.6445,
+  "accuracy_adversarial": 0.365,
   "per_class_accuracy_clean": {
     "airplane": 0.606,
     "automobile": 0.711,

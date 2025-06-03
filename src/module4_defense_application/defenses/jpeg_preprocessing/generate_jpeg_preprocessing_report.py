@@ -13,8 +13,8 @@ def generate_jpeg_preprocessing_report(json_file, md_file):
     lines.append(f"**JPEG Quality:** {params.get('quality', 'N/A')}\n")
 
     lines.append("## Accuracy After Defense\n")
-    lines.append(f"- **Accuracy on Clean Images:** {data.get('jpeg_accuracy_clean', 0.0):.4f}")
-    lines.append(f"- **Accuracy on Adversarial Images:** {data.get('jpeg_accuracy_adversarial', 0.0):.4f}\n")
+    lines.append(f"- **Accuracy on Clean Images:** {data.get('accuracy_clean', 0.0):.4f}")
+    lines.append(f"- **Accuracy on Adversarial Images:** {data.get('accuracy_adversarial', 0.0):.4f}\n")
 
     lines.append("### Per-Class Accuracy (Clean)")
     for cls, acc in data.get("per_class_accuracy_clean", {}).items():

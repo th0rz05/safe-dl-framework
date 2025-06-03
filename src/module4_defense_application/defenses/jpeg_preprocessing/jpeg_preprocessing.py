@@ -98,8 +98,8 @@ def run_jpeg_preprocessing_defense(profile, trainset, testset, valset, class_nam
     results = {
         "defense": "jpeg_preprocessing",
         "attack": attack_type,
-        "jpeg_accuracy_clean": acc_clean,
-        "jpeg_accuracy_adversarial": acc_adv,
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
         "per_class_accuracy_clean": per_class_acc_clean,
         "per_class_accuracy_adversarial": per_class_acc_adv,
         "params": {
