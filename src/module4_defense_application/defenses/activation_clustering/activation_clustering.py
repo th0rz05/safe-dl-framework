@@ -135,7 +135,17 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
     print("[*] Retraining model on cleaned dataset...")
     train_model(clean_model, cleaned_trainset, valset=valset, epochs=3, class_names=class_names)
 
-    acc, per_class = evaluate_model(clean_model, testset, class_names=class_names)
+    # Accuracy in clean test set
+    acc_clean, per_class_clean = evaluate_model(clean_model, testset, class_names=class_names)
+
+    # Accuracy in adversarial test set (if exists)
+    adv_path = f"module2_attack_simulation/results/backdoor/{attack_type}/adv_testset.pt"
+    if os.path.exists(adv_path):
+        adv_testset = torch.load(adv_path)
+        loader_adv = DataLoader(adv_testset, batch_size=64, shuffle=False)
+        acc_adv, per_class_adv = evaluate_model(clean_model, loader_adv, class_names=class_names)
+    else:
+        acc_adv, per_class_adv = None, None
 
     os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
     example_log = save_removed_examples(poisoned_trainset.dataset, removed_indices,
@@ -145,8 +155,10 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
     results = {
         "defense": "activation_clustering",
         "attack": attack_type,
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
+        "per_class_accuracy_clean": per_class_clean,
+        "per_class_accuracy_adversarial": per_class_adv,
         "num_removed": len(removed_indices),
         "removed_indices": removed_indices,
         "example_removed": example_log,

@@ -19,11 +19,26 @@ def generate_activation_clustering_report(json_file, md_file):
     lines.append("")
 
     lines.append("## 2. Accuracy After Defense")
-    lines.append(f"- **Overall Accuracy:** `{results['accuracy_after_defense']:.4f}`\n")
 
-    lines.append("### Per-Class Accuracy")
-    for cls, acc in results["per_class_accuracy"].items():
+    if results.get("accuracy_clean") is not None:
+        lines.append(f"- **Clean Test Set Accuracy:** `{results['accuracy_clean']:.4f}`")
+    else:
+        lines.append("- **Clean Test Set Accuracy:** _Not available_")
+
+    if results.get("accuracy_adversarial") is not None:
+        lines.append(f"- **Adversarial Test Set Accuracy:** `{results['accuracy_adversarial']:.4f}`")
+    else:
+        lines.append("- **Adversarial Test Set Accuracy:** _Not available_")
+    lines.append("")
+
+    lines.append("### Per-Class Accuracy (Clean)")
+    for cls, acc in results.get("per_class_accuracy_clean", {}).items():
         lines.append(f"- **{cls}**: `{acc:.4f}`")
+
+    if results.get("per_class_accuracy_adversarial"):
+        lines.append("\n### Per-Class Accuracy (Adversarial)")
+        for cls, acc in results["per_class_accuracy_adversarial"].items():
+            lines.append(f"- **{cls}**: `{acc:.4f}`")
     lines.append("")
 
     example_removed = results.get("example_removed", [])
