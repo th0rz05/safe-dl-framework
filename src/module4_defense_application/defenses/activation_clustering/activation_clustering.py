@@ -172,4 +172,3 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
 
     md_path = f"results/backdoor/{attack_type}/activation_clustering_report.md"
     generate_activation_clustering_report(json_file=result_path, md_file=md_path)
-    print(f"[✔] Report generated at {md_path}")
