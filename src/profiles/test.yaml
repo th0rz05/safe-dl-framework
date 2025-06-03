@@ -21,10 +21,7 @@ defense_config:
   evasion_attacks:
     spsa:
       defenses:
-      - gradient_masking
       - jpeg_preprocessing
-      gradient_masking:
-        strength: 0.5
       jpeg_preprocessing:
         quality: 75
 model:
