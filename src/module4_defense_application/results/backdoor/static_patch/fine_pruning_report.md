@@ -8,20 +8,33 @@
 - **Pruning Ratio:** 0.2
 - **Pruned Layer:** fc.3
 - **Number of Neurons Pruned:** 2
-- **Pruned Neuron Indices:** 9, 4
+- **Pruned Neuron Indices:** 5, 1
 
 ## Accuracy After Defense
 
-- **Overall Accuracy:** 0.6573
+- **Clean Accuracy:** 0.6000
+- **Adversarial Accuracy:** 0.3533
 
-### Per-Class Accuracy
-- **airplane**: 0.6510
-- **automobile**: 0.7580
-- **bird**: 0.3390
-- **cat**: 0.5880
-- **deer**: 0.6930
-- **dog**: 0.7030
-- **frog**: 0.7070
-- **horse**: 0.6920
-- **ship**: 0.6600
-- **truck**: 0.7820
+### Per-Class Accuracy (Clean)
+- **airplane**: 0.4240
+- **automobile**: 0.7090
+- **bird**: 0.4100
+- **cat**: 0.5340
+- **deer**: 0.4370
+- **dog**: 0.7430
+- **frog**: 0.5370
+- **horse**: 0.8430
+- **ship**: 0.5960
+- **truck**: 0.7670
+
+### Per-Class Accuracy (Adversarial)
+- **airplane**: 0.1870
+- **automobile**: 0.2950
+- **bird**: 0.2380
+- **cat**: 0.9350
+- **deer**: 0.2260
+- **dog**: 0.1870
+- **frog**: 0.2120
+- **horse**: 0.5470
+- **ship**: 0.3130
+- **truck**: 0.3930
