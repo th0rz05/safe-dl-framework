@@ -23,23 +23,6 @@ def apply_pruning(model, amount=0.5):
             total += module.weight_mask.numel()
     return pruned / total if total > 0 else 0.0
 
-def plot_weight_histograms(model, output_path):
-    weights = []
-    for name, module in model.named_modules():
-        if hasattr(module, 'weight'):
-            weights.append(module.weight.detach().cpu().flatten().numpy())
-
-    weights = [w for w in weights if len(w) > 0]
-    all_weights = torch.tensor([item for sublist in weights for item in sublist])
-
-    plt.figure(figsize=(8, 4))
-    plt.hist(all_weights.numpy(), bins=100, alpha=0.7, color='blue')
-    plt.title("Histogram of Weights After Pruning")
-    plt.xlabel("Weight Value")
-    plt.ylabel("Frequency")
-    plt.tight_layout()
-    plt.savefig(output_path)
-    plt.close()
 
 def run_pruning_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Pruning defense for {attack_type}...")
@@ -63,10 +46,6 @@ def run_pruning_defense(profile, trainset, testset, valset, class_names, attack_
     pruned_fraction = apply_pruning(model, amount)
     print(f"[✔] Fraction of parameters pruned: {pruned_fraction:.4f}")
 
-    os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
-    hist_path = f"results/backdoor/{attack_type}/pruning_weights_histogram.png"
-    plot_weight_histograms(model, hist_path)
-    print(f"[✔] Weight histogram saved to {hist_path}")
 
     acc_clean, per_class_clean = evaluate_model(model, testset, class_names=class_names)
     if patched_testset is not None:
@@ -82,7 +61,6 @@ def run_pruning_defense(profile, trainset, testset, valset, class_names, attack_
         "per_class_accuracy_clean": per_class_clean,
         "per_class_accuracy_adversarial": per_class_adv,
         "pruned_params_fraction": round(pruned_fraction, 4),
-        "histogram_path": hist_path,
         "params": cfg
     }
 
