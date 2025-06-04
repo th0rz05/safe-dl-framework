@@ -2,82 +2,95 @@ import os
 import sys
 import json
 import torch
-import torch.nn as nn
 import torch.nn.utils.prune as prune
-from torch.utils.data import Subset
+import matplotlib.pyplot as plt
+
+from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
+from torch.utils.data import DataLoader
+from defenses.pruning.generate_pruning_report import generate_pruning_report
 
 # Add module2 path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
-
-from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
 from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
-from defenses.pruning.generate_pruning_report import generate_pruning_report
 
+def apply_pruning(model, amount=0.5):
+    pruned = 0
+    total = 0
+    for name, module in model.named_modules():
+        if isinstance(module, torch.nn.Conv2d) or isinstance(module, torch.nn.Linear):
+            prune.l1_unstructured(module, name='weight', amount=amount)
+            pruned += torch.sum(module.weight_mask == 0).item()
+            total += module.weight_mask.numel()
+    return pruned / total if total > 0 else 0.0
 
-def apply_pruning(model, ratio, scope="last_layer_only"):
-    pruned_layers = []
-    if scope == "last_layer_only":
-        # Última camada linear
-        linear_layers = [m for m in model.modules() if isinstance(m, nn.Linear)]
-        if not linear_layers:
-            raise RuntimeError("No Linear layers found in the model.")
-        target_layer = linear_layers[-1]
-        prune.ln_structured(target_layer, name="weight", amount=ratio, n=1, dim=0)
-        pruned_layers.append(target_layer)
-    elif scope == "all_layers":
-        for module in model.modules():
-            if isinstance(module, (nn.Linear, nn.Conv2d)):
-                prune.ln_structured(module, name="weight", amount=ratio, n=1, dim=0)
-                pruned_layers.append(module)
-    else:
-        raise ValueError(f"Unknown pruning scope: {scope}")
-    return pruned_layers
+def plot_weight_histograms(model, output_path):
+    weights = []
+    for name, module in model.named_modules():
+        if hasattr(module, 'weight'):
+            weights.append(module.weight.detach().cpu().flatten().numpy())
 
+    weights = [w for w in weights if len(w) > 0]
+    all_weights = torch.tensor([item for sublist in weights for item in sublist])
+
+    plt.figure(figsize=(8, 4))
+    plt.hist(all_weights.numpy(), bins=100, alpha=0.7, color='blue')
+    plt.title("Histogram of Weights After Pruning")
+    plt.xlabel("Weight Value")
+    plt.ylabel("Frequency")
+    plt.tight_layout()
+    plt.savefig(output_path)
+    plt.close()
 
 def run_pruning_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Pruning defense for {attack_type}...")
 
-    # Carregar config
     cfg = profile["defense_config"]["backdoor"][attack_type]["pruning"]
-    pruning_ratio = cfg.get("pruning_ratio", 0.2)
-    scope = cfg.get("scope", "last_layer_only")
+    amount = cfg.get("amount", 0.5)
 
-    # Simular ataque e treinar modelo
     model = load_model_cfg_from_profile(profile)
+
     if attack_type == "static_patch":
-        poisoned_trainset, _, _ = simulate_static_patch_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, trigger_info = simulate_static_patch_attack(profile, trainset, testset, class_names)
     elif attack_type == "learned_trigger":
-        poisoned_trainset, _, _ = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, trigger_info = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
     else:
         raise ValueError(f"Unsupported backdoor attack: {attack_type}")
 
     print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=3, class_names=class_names)
+    train_model(model, poisoned_trainset, valset=valset, epochs=3, class_names=class_names)
 
-    # Aplicar pruning
-    print(f"[*] Applying structured pruning (ratio={pruning_ratio}, scope={scope})...")
-    pruned_layers = apply_pruning(model, pruning_ratio, scope)
+    print(f"[*] Applying pruning with amount = {amount}...")
+    pruned_fraction = apply_pruning(model, amount)
+    print(f"[✔] Fraction of parameters pruned: {pruned_fraction:.4f}")
 
-    # Avaliar
-    print("[*] Evaluating pruned model...")
-    acc, per_class = evaluate_model(model, testset, class_names=class_names)
-
-    # Guardar resultados
     os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
-    result_path = f"results/backdoor/{attack_type}/pruning_results.json"
+    hist_path = f"results/backdoor/{attack_type}/pruning_weights_histogram.png"
+    plot_weight_histograms(model, hist_path)
+    print(f"[✔] Weight histogram saved to {hist_path}")
+
+    acc_clean, per_class_clean = evaluate_model(model, testset, class_names=class_names)
+    if patched_testset is not None:
+        acc_adv, per_class_adv = evaluate_model(model, patched_testset, class_names=class_names)
+    else:
+        acc_adv, per_class_adv = None, None
+
     results = {
         "defense": "pruning",
         "attack": attack_type,
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
-        "params": cfg,
-        "pruned_layers": [str(layer.__class__.__name__) for layer in pruned_layers]
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
+        "per_class_accuracy_clean": per_class_clean,
+        "per_class_accuracy_adversarial": per_class_adv,
+        "pruned_params_fraction": round(pruned_fraction, 4),
+        "histogram_path": hist_path,
+        "params": cfg
     }
+
+    result_path = f"results/backdoor/{attack_type}/pruning_results.json"
     with open(result_path, "w") as f:
         json.dump(results, f, indent=2)
     print(f"[✔] Results saved to {result_path}")
 
-    # Gerar relatório
     md_path = f"results/backdoor/{attack_type}/pruning_report.md"
     generate_pruning_report(json_file=result_path, md_file=md_path)
     print(f"[✔] Report generated at {md_path}")
