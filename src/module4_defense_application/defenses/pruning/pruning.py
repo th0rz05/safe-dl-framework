@@ -27,6 +27,8 @@ def apply_pruning(model, amount=0.5):
 def run_pruning_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Pruning defense for {attack_type}...")
 
+    """
+
     cfg = profile["defense_config"]["backdoor"][attack_type]["pruning"]
     amount = cfg.get("amount", 0.5)
 
@@ -67,8 +69,8 @@ def run_pruning_defense(profile, trainset, testset, valset, class_names, attack_
     result_path = f"results/backdoor/{attack_type}/pruning_results.json"
     with open(result_path, "w") as f:
         json.dump(results, f, indent=2)
-    print(f"[✔] Results saved to {result_path}")
-
+    print(f"[✔] Results saved to {result_path}")"""
+    result_path = f"results/backdoor/{attack_type}/pruning_results.json"
     md_path = f"results/backdoor/{attack_type}/pruning_report.md"
     generate_pruning_report(json_file=result_path, md_file=md_path)
     print(f"[✔] Report generated at {md_path}")

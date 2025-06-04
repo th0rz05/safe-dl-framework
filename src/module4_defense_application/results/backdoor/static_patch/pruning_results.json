@@ -1,27 +1,35 @@
 {
   "defense": "pruning",
   "attack": "static_patch",
-  "accuracy_after_defense": 0.4996,
-  "per_class_accuracy": {
-    "airplane": 0.0,
-    "automobile": 0.932,
-    "bird": 0.618,
-    "cat": 0.413,
-    "deer": 0.013,
-    "dog": 0.738,
-    "frog": 0.668,
-    "horse": 0.73,
-    "ship": 0.483,
-    "truck": 0.401
+  "accuracy_clean": 0.3349,
+  "accuracy_adversarial": 0.1143,
+  "per_class_accuracy_clean": {
+    "airplane": 0.794,
+    "automobile": 0.177,
+    "bird": 0.312,
+    "cat": 0.624,
+    "deer": 0.008,
+    "dog": 0.374,
+    "frog": 0.164,
+    "horse": 0.494,
+    "ship": 0.13,
+    "truck": 0.272
   },
+  "per_class_accuracy_adversarial": {
+    "airplane": 0.137,
+    "automobile": 0.004,
+    "bird": 0.001,
+    "cat": 0.991,
+    "deer": 0.0,
+    "dog": 0.003,
+    "frog": 0.001,
+    "horse": 0.001,
+    "ship": 0.001,
+    "truck": 0.004
+  },
+  "pruned_params_fraction": 0.5,
   "params": {
     "pruning_ratio": 0.2,
     "scope": "all_layers"
-  },
-  "pruned_layers": [
-    "Conv2d",
-    "Conv2d",
-    "Linear",
-    "Linear"
-  ]
+  }
 }
