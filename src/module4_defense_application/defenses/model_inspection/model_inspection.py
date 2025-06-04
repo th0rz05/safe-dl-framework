@@ -23,6 +23,7 @@ def inspect_layer_weights(model: Module, layer_names: list, output_dir: str):
     os.makedirs(output_dir, exist_ok=True)
 
     for name, param in model.named_parameters():
+        print(f"[*] Inspecting layer: {name}")
         if not any(layer in name for layer in layer_names):
             continue
 
