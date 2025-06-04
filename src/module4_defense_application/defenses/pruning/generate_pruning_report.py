@@ -16,7 +16,7 @@ def generate_pruning_report(json_file, md_file):
         f.write("# Pruning Defense Report\n\n")
         f.write(f"**Attack type:** `{results.get('attack')}`\n\n")
         f.write(f"**Pruning ratio:** `{results['params'].get('pruning_ratio', 'N/A')}`\n\n")
-        f.write(f"**Pruned Parameters Function:** `{results.get('pruned_params_function', 'N/A')}`\n\n")
+        f.write(f"**Pruned Parameters Fraction:** `{results.get('pruned_params_fraction', 'N/A')}`\n\n")
 
         if acc_clean is not None:
             f.write(f"**Accuracy on clean test set:** `{acc_clean:.4f}`\n\n")
