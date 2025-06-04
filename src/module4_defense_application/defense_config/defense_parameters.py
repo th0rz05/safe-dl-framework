@@ -56,8 +56,20 @@ def configure_fine_pruning():
 
 
 def configure_model_inspection():
-    layers_to_inspect = text("Comma-separated layer names to inspect:", default="fc1,fc2").ask()
-    return {"layers": [l.strip() for l in layers_to_inspect.split(",")]}
+    base_layers = text(
+        "Comma-separated base layer names to inspect (e.g., conv.0, fc.1):",
+        default="conv.0,fc.1"
+    ).ask()
+
+    # Expand base layers to include weights and biases
+    base_layers = [l.strip() for l in base_layers.split(",") if l.strip()]
+    expanded_layers = []
+    for base in base_layers:
+        expanded_layers.append(f"{base}.weight")
+        expanded_layers.append(f"{base}.bias")
+
+    return {"layers": expanded_layers}
+
 
 
 def configure_anomaly_detection():
