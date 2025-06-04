@@ -4,8 +4,7 @@ import json
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import Subset, DataLoader
 from collections import defaultdict
 from sklearn.ensemble import IsolationForest
 from sklearn.neighbors import LocalOutlierFactor
@@ -17,20 +16,18 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
 from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
 
-
-def extract_layer_activations(model, dataloader, layer_name):
-    activations = []
+def extract_features(model, dataloader, layer_name):
+    features = []
     indices = []
 
     def hook(module, input, output):
-        activations.append(output.detach().cpu())
+        features.append(output.detach().cpu())
 
     target_layer = dict(model.named_modules()).get(layer_name)
     if not target_layer:
         raise ValueError(f"Layer {layer_name} not found in model.")
 
     handle = target_layer.register_forward_hook(hook)
-
     device = next(model.parameters()).device
     model.eval()
 
@@ -41,9 +38,7 @@ def extract_layer_activations(model, dataloader, layer_name):
             indices.extend(range(idx * x.size(0), idx * x.size(0) + x.size(0)))
 
     handle.remove()
-    activations_tensor = torch.cat(activations, dim=0)
-    return activations_tensor.numpy(), indices
-
+    return torch.cat(features, dim=0).numpy(), indices
 
 def save_removed_examples(dataset, removed_indices, output_dir, class_names=None, max_examples=5):
     os.makedirs(output_dir, exist_ok=True)
@@ -90,56 +85,58 @@ def save_removed_examples(dataset, removed_indices, output_dir, class_names=None
 
     return example_log
 
-
 def run_anomaly_detection_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Anomaly Detection defense for {attack_type}...")
 
     cfg = profile["defense_config"]["backdoor"][attack_type]["anomaly_detection"]
-    method = cfg.get("type", "isolation_forest")
+    method = cfg.get("method", "isolation_forest")
+    contamination = cfg.get("contamination", 0.1)
 
-    # Load and poison
     model = load_model_cfg_from_profile(profile)
 
     if attack_type == "static_patch":
-        poisoned_trainset, _, _ = simulate_static_patch_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, trigger_info = simulate_static_patch_attack(profile, trainset, testset, class_names)
     elif attack_type == "learned_trigger":
-        poisoned_trainset, _, _ = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, trigger_info = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
     else:
         raise ValueError(f"Unsupported backdoor attack: {attack_type}")
 
-    train_model(model, poisoned_trainset, valset, epochs=3, class_names=class_names)
+    train_model(model, poisoned_trainset, valset=valset, epochs=3, class_names=class_names)
 
-    linear_layers = [name for name, module in model.named_modules() if isinstance(module, torch.nn.Linear)]
-    if not linear_layers:
-        raise RuntimeError("No Linear layers found in model.")
-    layer_to_use = linear_layers[-2] if len(linear_layers) >= 2 else linear_layers[0]
+    layer_to_use = [name for name, m in model.named_modules() if isinstance(m, torch.nn.Linear)][-1]
+    print(f"[*] Extracting features from layer: {layer_to_use}")
+    loader = DataLoader(poisoned_trainset, batch_size=64, shuffle=False)
+    feats, indices = extract_features(model, loader, layer_to_use)
 
-    print(f"[*] Extracting activations from layer: {layer_to_use}")
-    dataloader = DataLoader(poisoned_trainset, batch_size=64, shuffle=False)
-    feats, indices = extract_layer_activations(model, dataloader, layer_to_use)
-
+    print(f"[*] Running anomaly detection using {method}...")
     if method == "isolation_forest":
-        detector = IsolationForest(contamination=0.1, random_state=0)
-        preds = detector.fit_predict(feats)
-        outlier_mask = preds == -1
+        detector = IsolationForest(contamination=contamination, random_state=0)
     elif method == "lof":
-        detector = LocalOutlierFactor(novelty=True)
+        detector = LocalOutlierFactor(n_neighbors=20, contamination=contamination)
+    else:
+        raise ValueError("Unknown anomaly detection method.")
+
+    if method == "lof":
+        preds = detector.fit_predict(feats)
+    else:
         detector.fit(feats)
         preds = detector.predict(feats)
-        outlier_mask = preds == -1
-    else:
-        raise ValueError(f"Unsupported anomaly detection method: {method}")
 
-    retained_indices = [idx for idx, is_outlier in zip(indices, outlier_mask) if not is_outlier]
-    removed_indices = [idx for idx, is_outlier in zip(indices, outlier_mask) if is_outlier]
+    removed_indices = [idx for idx, p in zip(indices, preds) if p == -1]
+    retained_indices = [idx for idx, p in zip(indices, preds) if p != -1]
 
-    print(f"[✔] Removed {len(removed_indices)} suspected samples using {method}.")
-
+    print(f"[✔] Removed {len(removed_indices)} anomalous samples")
     cleaned_trainset = Subset(poisoned_trainset, retained_indices)
 
     clean_model = load_model_cfg_from_profile(profile)
-    train_model(clean_model, cleaned_trainset, valset, epochs=3, class_names=class_names)
-    acc, per_class = evaluate_model(clean_model, testset, class_names=class_names)
+    print("[*] Retraining model on cleaned dataset...")
+    train_model(clean_model, cleaned_trainset, valset=valset, epochs=3, class_names=class_names)
+
+    acc_clean, per_class_clean = evaluate_model(clean_model, testset, class_names=class_names)
+    if patched_testset is not None:
+        acc_adv, per_class_adv = evaluate_model(clean_model, patched_testset, class_names=class_names)
+    else:
+        acc_adv, per_class_adv = None, None
 
     os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
     example_log = save_removed_examples(poisoned_trainset.dataset, removed_indices,
@@ -149,9 +146,10 @@ def run_anomaly_detection_defense(profile, trainset, testset, valset, class_name
     results = {
         "defense": "anomaly_detection",
         "attack": attack_type,
-        "method": method,
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
+        "per_class_accuracy_clean": per_class_clean,
+        "per_class_accuracy_adversarial": per_class_adv,
         "num_removed": len(removed_indices),
         "removed_indices": removed_indices,
         "example_removed": example_log,
