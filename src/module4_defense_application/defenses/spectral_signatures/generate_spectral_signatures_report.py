@@ -1,47 +1,54 @@
-import json
 import os
+import json
 
 def generate_spectral_signatures_report(json_file, md_file):
     with open(json_file, "r") as f:
         data = json.load(f)
 
-    lines = []
-    lines.append("# Spectral Signatures Defense Report\n")
-    lines.append(f"**Attack Type:** {data.get('attack', 'Unknown')}")
-    lines.append(f"**Defense Method:** Spectral Signatures")
-    lines.append(f"**Threshold Used:** {data['params'].get('threshold', 'N/A')}")
-    lines.append(f"**Number of Removed Samples:** {data.get('num_removed', 0)}\n")
+    acc_clean = data.get("accuracy_clean")
+    acc_adv = data.get("accuracy_adversarial")
+    per_class_clean = data.get("per_class_accuracy_clean", {})
+    per_class_adv = data.get("per_class_accuracy_adversarial", {})
+    num_removed = data.get("num_removed")
+    removed_examples = data.get("example_removed", [])
+    histogram_path = data.get("histogram_path")
+    params = data.get("params", {})
 
-    # Accuracy section
-    lines.append("## Accuracy After Defense\n")
-    lines.append(f"- **Overall Accuracy:** {data.get('accuracy_after_defense', 0.0):.4f}")
-    lines.append("\n### Per-Class Accuracy")
-    for cls, acc in data.get("per_class_accuracy", {}).items():
-        lines.append(f"- **{cls}**: {acc:.4f}")
+    lines = [
+        f"# Spectral Signatures Defense Report\n",
+        f"**Attack Type:** {data.get('attack')}\n",
+        f"**Defense:** {data.get('defense')}\n",
+        "\n",
+        f"## Defense Parameters\n",
+    ]
+    for k, v in params.items():
+        lines.append(f"- `{k}`: {v}")
 
-    # Histograms
-    lines.append("\n## Spectral Histograms\n")
-    lines.append("The following histograms illustrate the spectral signature magnitudes for each class.\n")
+    lines.append("\n## Accuracy After Defense\n")
+    lines.append(f"- **Clean Accuracy:** {acc_clean:.4f}" if acc_clean is not None else "- **Clean Accuracy:** N/A")
+    lines.append(f"- **Adversarial Accuracy:** {acc_adv:.4f}" if acc_adv is not None else "- **Adversarial Accuracy:** N/A")
 
-    attack_type = data.get("attack", "unknown_attack")
-    hist_dir = f"results/backdoor/{attack_type}/spectral_histograms"
-    if os.path.exists(hist_dir):
-        for fname in sorted(os.listdir(hist_dir)):
-            if fname.endswith(".png"):
-                lines.append(f"### {fname.replace('_', ' ').replace('.png', '').capitalize()}")
-                lines.append(f"![{fname}]({os.path.join('spectral_histograms', fname)})\n")
+    lines.append("\n## Per-Class Accuracy (Clean)\n")
+    for cls, acc in per_class_clean.items():
+        lines.append(f"- {cls}: {acc:.4f}")
 
-    # Removed samples
-    lines.append("\n## Removed Examples\n")
-    lines.append("The following examples were identified as suspicious and removed from the training set.\n")
-    for ex in data.get("example_removed", [])[:5]:
-        label = ex.get("original_label_name", ex.get("original_label", "Unknown"))
-        path = ex.get("image_path", "")
-        lines.append(f"**Label:** {label} — **Index:** {ex['index']}")
-        lines.append(f"![Removed Example]({path})\n")
+    if per_class_adv:
+        lines.append("\n## Per-Class Accuracy (Adversarial)\n")
+        for cls, acc in per_class_adv.items():
+            lines.append(f"- {cls}: {acc:.4f}")
 
-    # Write file
+    lines.append("\n## Removed Samples Summary\n")
+    lines.append(f"- **Total Removed:** {num_removed}")
+
+    if histogram_path:
+        lines.append("\n## Spectral Signature Histogram\n")
+        lines.append(f"![Spectral Histogram](./{histogram_path})\n")
+
+    if removed_examples:
+        lines.append("\n## Examples of Removed Samples\n")
+        for ex in removed_examples:
+            lines.append(f"- **Index**: {ex['index']}, **Label**: {ex['original_label_name']}\n")
+            lines.append(f"  ![Removed](./{ex['image_path']})\n")
+
     with open(md_file, "w") as f:
         f.write("\n".join(lines))
-
-    print(f"[✔] Report written to {md_file}")

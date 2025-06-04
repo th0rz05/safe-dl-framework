@@ -4,10 +4,10 @@ import json
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-
-from torch.utils.data import DataLoader, Subset
-from sklearn.decomposition import TruncatedSVD
+from torch.utils.data import Subset, DataLoader
 from collections import defaultdict
+from sklearn.decomposition import PCA
+from sklearn.covariance import EmpiricalCovariance
 
 from defenses.spectral_signatures.generate_spectral_signatures_report import generate_spectral_signatures_report
 
@@ -16,8 +16,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
 from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
 
-
-def extract_layer_activations(model, dataloader, layer_name):
+def extract_activations(model, dataloader, layer_name):
     activations = []
     indices = []
 
@@ -29,7 +28,6 @@ def extract_layer_activations(model, dataloader, layer_name):
         raise ValueError(f"Layer {layer_name} not found in model.")
 
     handle = target_layer.register_forward_hook(hook)
-
     device = next(model.parameters()).device
     model.eval()
 
@@ -42,7 +40,6 @@ def extract_layer_activations(model, dataloader, layer_name):
     handle.remove()
     activations_tensor = torch.cat(activations, dim=0)
     return activations_tensor.numpy(), indices
-
 
 def save_removed_examples(dataset, removed_indices, output_dir, class_names=None, max_examples=5):
     os.makedirs(output_dir, exist_ok=True)
@@ -89,104 +86,84 @@ def save_removed_examples(dataset, removed_indices, output_dir, class_names=None
 
     return example_log
 
-
 def run_spectral_signatures_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Spectral Signatures defense for {attack_type}...")
 
     cfg = profile["defense_config"]["backdoor"][attack_type]["spectral_signatures"]
-    threshold = cfg.get("threshold", 0.9)
+    threshold = cfg.get("threshold", 3.0)
 
     model = load_model_cfg_from_profile(profile)
 
     if attack_type == "static_patch":
-        poisoned_trainset, _, _ = simulate_static_patch_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, trigger_info = simulate_static_patch_attack(profile, trainset, testset, class_names)
     elif attack_type == "learned_trigger":
-        poisoned_trainset, _, _ = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, trigger_info = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
     else:
         raise ValueError(f"Unsupported backdoor attack: {attack_type}")
 
-    train_model(model, poisoned_trainset, valset, epochs=3, class_names=class_names)
+    train_model(model, poisoned_trainset, valset=valset, epochs=3, class_names=class_names)
 
-    linear_layers = [name for name, module in model.named_modules() if isinstance(module, torch.nn.Linear)]
-    if not linear_layers:
-        raise RuntimeError("No Linear layers found in model.")
-    layer_to_use = linear_layers[-2] if len(linear_layers) >= 2 else linear_layers[0]
+    layer_to_use = [name for name, m in model.named_modules() if isinstance(m, torch.nn.Linear)][-1]
     print(f"[*] Extracting activations from layer: {layer_to_use}")
+    loader = DataLoader(poisoned_trainset, batch_size=64, shuffle=False)
+    feats, indices = extract_activations(model, loader, layer_to_use)
 
-    dataloader = DataLoader(poisoned_trainset, batch_size=64, shuffle=False)
-    feats, indices = extract_layer_activations(model, dataloader, layer_to_use)
+    print("[*] Computing spectral signatures...")
+    pca = PCA(n_components=1)
+    spectral_values = pca.fit_transform(feats).flatten()
 
-    label_list = [poisoned_trainset[i][1] for i in range(len(poisoned_trainset))]
-    class_to_feats = defaultdict(list)
-    class_to_indices = defaultdict(list)
-    for feat, label, idx in zip(feats, label_list, indices):
-        class_to_feats[label].append(feat)
-        class_to_indices[label].append(idx)
+    # Normalize and compute threshold
+    spectral_values = (spectral_values - spectral_values.mean()) / spectral_values.std()
+    removed_indices = [i for i, val in zip(indices, spectral_values) if abs(val) > threshold]
+    retained_indices = [i for i in indices if i not in removed_indices]
 
-    retained_indices = set()
-    removed_indices = []
-
-    output_dir = f"results/backdoor/{attack_type}/spectral_histograms"
-    os.makedirs(output_dir, exist_ok=True)
-
-    for cls in class_to_feats:
-        X = np.stack(class_to_feats[cls])
-        X_centered = X - X.mean(axis=0)
-
-        svd = TruncatedSVD(n_components=1, random_state=0)
-        svd.fit(X_centered)
-        projections = svd.transform(X_centered).squeeze()
-
-        abs_proj = np.abs(projections)
-        cutoff = np.quantile(abs_proj, threshold)
-        retained = [idx for idx, val in zip(class_to_indices[cls], abs_proj) if val <= cutoff]
-        removed = [idx for idx, val in zip(class_to_indices[cls], abs_proj) if val > cutoff]
-
-        retained_indices.update(retained)
-        removed_indices.extend(removed)
-
-        # Plot
-        plt.figure()
-        plt.hist(abs_proj, bins=40, color='blue', alpha=0.7)
-        plt.axvline(cutoff, color='red', linestyle='--', label=f"Cutoff (q={threshold})")
-        plt.title(f"Spectral Signatures - Class {class_names[cls]}")
-        plt.xlabel("Projection magnitude")
-        plt.ylabel("Frequency")
-        plt.legend()
-        plt.tight_layout()
-        plt.savefig(os.path.join(output_dir, f"class_{cls}_hist.png"))
-        plt.close()
-
-    print(f"[✔] Removed {len(removed_indices)} suspected samples across all classes.")
-
-    cleaned_trainset = Subset(poisoned_trainset, sorted(retained_indices))
+    print(f"[✔] Removed {len(removed_indices)} samples above threshold {threshold}")
+    cleaned_trainset = Subset(poisoned_trainset, retained_indices)
 
     clean_model = load_model_cfg_from_profile(profile)
     print("[*] Retraining model on cleaned dataset...")
     train_model(clean_model, cleaned_trainset, valset=valset, epochs=3, class_names=class_names)
 
-    acc, per_class = evaluate_model(clean_model, testset, class_names=class_names)
+    acc_clean, per_class_clean = evaluate_model(clean_model, testset, class_names=class_names)
+    if patched_testset is not None:
+        acc_adv, per_class_adv = evaluate_model(clean_model, patched_testset, class_names=class_names)
+    else:
+        acc_adv, per_class_adv = None, None
 
     os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
     example_log = save_removed_examples(poisoned_trainset.dataset, removed_indices,
                                         output_dir=f"results/backdoor/{attack_type}/spectral_removed",
                                         class_names=class_names, max_examples=5)
 
+    # Save histogram
+    plt.hist(spectral_values, bins=100)
+    plt.axvline(x=threshold, color="red", linestyle="--", label="Threshold")
+    plt.axvline(x=-threshold, color="red", linestyle="--")
+    plt.title("Spectral Signature Histogram")
+    plt.xlabel("Spectral Value (z-score)")
+    plt.ylabel("Frequency")
+    plt.legend()
+    hist_path = f"results/backdoor/{attack_type}/spectral_histogram.png"
+    plt.savefig(hist_path, dpi=300, bbox_inches="tight")
+    plt.close()
+
     results = {
         "defense": "spectral_signatures",
         "attack": attack_type,
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
+        "per_class_accuracy_clean": per_class_clean,
+        "per_class_accuracy_adversarial": per_class_adv,
         "num_removed": len(removed_indices),
         "removed_indices": removed_indices,
         "example_removed": example_log,
+        "histogram_path": os.path.basename(hist_path),
         "params": cfg
     }
 
     result_path = f"results/backdoor/{attack_type}/spectral_signatures_results.json"
     with open(result_path, "w") as f:
         json.dump(results, f, indent=2)
-
     print(f"[✔] Results saved to {result_path}")
 
     md_path = f"results/backdoor/{attack_type}/spectral_signatures_report.md"
