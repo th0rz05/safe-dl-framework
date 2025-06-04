@@ -1,45 +1,49 @@
 # Anomaly Detection Defense Report
 
-**Attack Type:** static_patch
-**Defense Method:** Anomaly Detection (isolation_forest)
-**Number of Removed Samples:** 4500
+**Attack Type:** `static_patch`  
+**Defense Method:** `anomaly_detection`  
+**Clean Accuracy:** `0.6618`  
+**Adversarial Accuracy:** `0.1976`  
 
-## Accuracy After Defense
+## Parameters
 
-- **Overall Accuracy:** 0.6460
+- **type**: `isolation_forest`
 
-### Per-Class Accuracy
-- **airplane**: 0.7600
-- **automobile**: 0.6270
-- **bird**: 0.4650
-- **cat**: 0.6110
-- **deer**: 0.6080
-- **dog**: 0.5140
-- **frog**: 0.7920
-- **horse**: 0.5650
-- **ship**: 0.8280
-- **truck**: 0.6900
+## Per-Class Accuracy (Clean)
 
-## Visual Examples of Removed Samples
+- **airplane**: `0.7430`
+- **automobile**: `0.7920`
+- **bird**: `0.5310`
+- **cat**: `0.5410`
+- **deer**: `0.6070`
+- **dog**: `0.5320`
+- **frog**: `0.8710`
+- **horse**: `0.6270`
+- **ship**: `0.7310`
+- **truck**: `0.6430`
 
-The following are examples of samples removed by the anomaly detection method.
+## Per-Class Accuracy (Adversarial)
 
-**Removed Sample — Label: truck**
+- **airplane**: `0.1640`
+- **automobile**: `0.1610`
+- **bird**: `0.0850`
+- **cat**: `0.9710`
+- **deer**: `0.0450`
+- **dog**: `0.0300`
+- **frog**: `0.1880`
+- **horse**: `0.1020`
+- **ship**: `0.0500`
+- **truck**: `0.1800`
 
-![removed](anomaly_removed/removed_2_9.png)
+## Removed Samples
 
-**Removed Sample — Label: automobile**
+**Number of removed samples:** `4500`
 
-![removed](anomaly_removed/removed_4_1.png)
 
-**Removed Sample — Label: bird**
+### Examples
 
-![removed](anomaly_removed/removed_18_2.png)
-
-**Removed Sample — Label: bird**
-
-![removed](anomaly_removed/removed_41_2.png)
-
-**Removed Sample — Label: bird**
-
-![removed](anomaly_removed/removed_42_2.png)
+- `horse`: ![](anomaly_removed/removed_7_7.png)
+- `bird`: ![](anomaly_removed/removed_24_2.png)
+- `frog`: ![](anomaly_removed/removed_25_6.png)
+- `dog`: ![](anomaly_removed/removed_27_5.png)
+- `horse`: ![](anomaly_removed/removed_43_7.png)
