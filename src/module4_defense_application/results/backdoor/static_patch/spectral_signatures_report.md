@@ -1,76 +1,73 @@
 # Spectral Signatures Defense Report
 
 **Attack Type:** static_patch
-**Defense Method:** Spectral Signatures
-**Threshold Used:** 0.9
-**Number of Removed Samples:** 4503
+
+**Defense:** spectral_signatures
+
+
+
+## Defense Parameters
+
+- `threshold`: 0.9
 
 ## Accuracy After Defense
 
-- **Overall Accuracy:** 0.5983
+- **Clean Accuracy:** 0.5565
+- **Adversarial Accuracy:** 0.1704
 
-### Per-Class Accuracy
-- **airplane**: 0.4740
-- **automobile**: 0.7280
-- **bird**: 0.5910
-- **cat**: 0.5590
-- **deer**: 0.4400
-- **dog**: 0.6280
-- **frog**: 0.7980
-- **horse**: 0.5410
-- **ship**: 0.6530
-- **truck**: 0.5710
+## Per-Class Accuracy (Clean)
 
-## Spectral Histograms
+- airplane: 0.7670
+- automobile: 0.2340
+- bird: 0.4910
+- cat: 0.2780
+- deer: 0.7400
+- dog: 0.3500
+- frog: 0.6050
+- horse: 0.7640
+- ship: 0.7170
+- truck: 0.6190
 
-The following histograms illustrate the spectral signature magnitudes for each class.
+## Per-Class Accuracy (Adversarial)
 
-### Class 0 hist
-![class_0_hist.png](spectral_histograms/class_0_hist.png)
+- airplane: 0.1780
+- automobile: 0.0200
+- bird: 0.0650
+- cat: 0.9660
+- deer: 0.0510
+- dog: 0.0240
+- frog: 0.0770
+- horse: 0.0930
+- ship: 0.1040
+- truck: 0.1260
 
-### Class 1 hist
-![class_1_hist.png](spectral_histograms/class_1_hist.png)
+## Removed Samples Summary
 
-### Class 2 hist
-![class_2_hist.png](spectral_histograms/class_2_hist.png)
+- **Total Removed:** 20877
 
-### Class 3 hist
-![class_3_hist.png](spectral_histograms/class_3_hist.png)
+## Spectral Signature Histogram
 
-### Class 4 hist
-![class_4_hist.png](spectral_histograms/class_4_hist.png)
-
-### Class 5 hist
-![class_5_hist.png](spectral_histograms/class_5_hist.png)
-
-### Class 6 hist
-![class_6_hist.png](spectral_histograms/class_6_hist.png)
-
-### Class 7 hist
-![class_7_hist.png](spectral_histograms/class_7_hist.png)
-
-### Class 8 hist
-![class_8_hist.png](spectral_histograms/class_8_hist.png)
-
-### Class 9 hist
-![class_9_hist.png](spectral_histograms/class_9_hist.png)
+![Spectral Histogram](./spectral_histogram.png)
 
 
-## Removed Examples
+## Examples of Removed Samples
 
-The following examples were identified as suspicious and removed from the training set.
+- **Index**: 0, **Label**: frog
 
-**Label:** airplane — **Index:** 29
-![Removed Example](spectral_removed/removed_29_0.png)
+  ![Removed](./spectral_removed/removed_0_6.png)
 
-**Label:** truck — **Index:** 208
-![Removed Example](spectral_removed/removed_208_9.png)
+- **Index**: 6, **Label**: bird
 
-**Label:** airplane — **Index:** 215
-![Removed Example](spectral_removed/removed_215_0.png)
+  ![Removed](./spectral_removed/removed_6_2.png)
 
-**Label:** dog — **Index:** 297
-![Removed Example](spectral_removed/removed_297_5.png)
+- **Index**: 7, **Label**: horse
 
-**Label:** truck — **Index:** 306
-![Removed Example](spectral_removed/removed_306_9.png)
+  ![Removed](./spectral_removed/removed_7_7.png)
+
+- **Index**: 14, **Label**: truck
+
+  ![Removed](./spectral_removed/removed_14_9.png)
+
+- **Index**: 16, **Label**: truck
+
+  ![Removed](./spectral_removed/removed_16_9.png)
