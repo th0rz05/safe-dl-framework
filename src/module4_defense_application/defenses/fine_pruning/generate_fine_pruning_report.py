@@ -1,5 +1,5 @@
-import json
 import os
+import json
 
 def generate_fine_pruning_report(json_file, md_file):
     with open(json_file, "r") as f:
@@ -21,18 +21,22 @@ def generate_fine_pruning_report(json_file, md_file):
     lines.append("")
 
     lines.append("## Accuracy After Defense\n")
-    lines.append(f"- **Accuracy on Clean Test Set:** {data.get('accuracy_clean', 0.0):.4f}")
-    lines.append(f"- **Accuracy on Adversarial Test Set:** {data.get('accuracy_adversarial', 0.0):.4f}")
-
-    lines.append("\n### Per-Class Accuracy (Clean)")
-    for cls, acc in data.get("per_class_accuracy_clean", {}).items():
-        lines.append(f"- **{cls}**: {acc:.4f}")
-
-    lines.append("\n### Per-Class Accuracy (Adversarial)")
-    for cls, acc in data.get("per_class_accuracy_adversarial", {}).items():
-        lines.append(f"- **{cls}**: {acc:.4f}")
-
+    lines.append(f"- **Clean Accuracy:** {data.get('accuracy_clean', 0.0):.4f}")
+    if data.get("accuracy_adversarial") is not None:
+        lines.append(f"- **Adversarial Accuracy:** {data.get('accuracy_adversarial', 0.0):.4f}")
     lines.append("")
+
+    if "per_class_accuracy_clean" in data:
+        lines.append("### Per-Class Accuracy (Clean)")
+        for cls, acc in data["per_class_accuracy_clean"].items():
+            lines.append(f"- **{cls}**: {acc:.4f}")
+        lines.append("")
+
+    if "per_class_accuracy_adversarial" in data and data["per_class_accuracy_adversarial"]:
+        lines.append("### Per-Class Accuracy (Adversarial)")
+        for cls, acc in data["per_class_accuracy_adversarial"].items():
+            lines.append(f"- **{cls}**: {acc:.4f}")
+        lines.append("")
 
     with open(md_file, "w") as f:
         f.write("\n".join(lines))
