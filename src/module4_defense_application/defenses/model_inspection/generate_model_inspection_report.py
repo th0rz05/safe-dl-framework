@@ -19,13 +19,22 @@ def generate_model_inspection_report(json_file, md_file):
         lines.append(f"- {', '.join(suspicious)}")
     lines.append("")
 
-    lines.append("## Accuracy After Defense\n")
-    lines.append(f"- **Overall Accuracy:** {data.get('accuracy_after_defense', 0.0):.4f}")
-
-    lines.append("\n### Per-Class Accuracy")
-    for cls, acc in data.get("per_class_accuracy", {}).items():
+    # === Clean Evaluation ===
+    lines.append("## Clean Accuracy After Defense\n")
+    lines.append(f"- **Overall Accuracy:** {data.get('accuracy_clean', 0.0):.4f}")
+    lines.append("\n### Per-Class Accuracy (Clean)")
+    for cls, acc in data.get("per_class_accuracy_clean", {}).items():
         lines.append(f"- **{cls}**: {acc:.4f}")
 
+    # === Adversarial Evaluation ===
+    if data.get("accuracy_adversarial") is not None:
+        lines.append("\n## Adversarial Accuracy After Defense")
+        lines.append(f"- **Overall Accuracy:** {data.get('accuracy_adversarial', 0.0):.4f}")
+        lines.append("\n### Per-Class Accuracy (Adversarial)")
+        for cls, acc in data.get("per_class_accuracy_adversarial", {}).items():
+            lines.append(f"- **{cls}**: {acc:.4f}")
+
+    # === Histograms ===
     lines.append("\n## Weight Histograms")
     lines.append("The following histograms visualize the weight distributions of the inspected layers.\n")
 

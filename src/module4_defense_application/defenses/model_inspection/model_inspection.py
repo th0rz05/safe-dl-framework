@@ -64,9 +64,9 @@ def run_model_inspection_defense(profile, trainset, testset, valset, class_names
     model = load_model_cfg_from_profile(profile)
 
     if attack_type == "static_patch":
-        poisoned_trainset, _, _ = simulate_static_patch_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, _ = simulate_static_patch_attack(profile, trainset, testset, class_names)
     elif attack_type == "learned_trigger":
-        poisoned_trainset, _, _ = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
+        poisoned_trainset, patched_testset, _ = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
     else:
         raise ValueError(f"Unsupported backdoor attack: {attack_type}")
 
@@ -77,7 +77,12 @@ def run_model_inspection_defense(profile, trainset, testset, valset, class_names
     hist_dir = f"results/backdoor/{attack_type}/inspection_histograms"
     suspicious_layers, stats = inspect_layer_weights(model, layers_to_inspect, hist_dir)
 
-    acc, per_class = evaluate_model(model, testset, class_names=class_names)
+    # Evaluation (clean and adversarial)
+    acc_clean, per_class_clean = evaluate_model(model, testset, class_names=class_names)
+    if patched_testset is not None:
+        acc_adv, per_class_adv = evaluate_model(model, patched_testset, class_names=class_names)
+    else:
+        acc_adv, per_class_adv = None, None
 
     os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
     result = {
@@ -86,9 +91,12 @@ def run_model_inspection_defense(profile, trainset, testset, valset, class_names
         "layers_inspected": layers_to_inspect,
         "suspicious_layers": suspicious_layers,
         "layer_stats": stats,
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
-        "params": cfg
+        "accuracy_clean": acc_clean,
+        "accuracy_adversarial": acc_adv,
+        "per_class_accuracy_clean": per_class_clean,
+        "per_class_accuracy_adversarial": per_class_adv,
+        "params": cfg,
+        "histogram_path": hist_dir
     }
 
     json_path = f"results/backdoor/{attack_type}/model_inspection_results.json"
