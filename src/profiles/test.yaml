@@ -18,13 +18,6 @@ dataset:
 defense_config:
   backdoor: {}
   data_poisoning:
-    clean_label:
-      defenses: null
-      influence_functions:
-        method: grad_influence
-        sample_size: 500
-      provenance_tracking:
-        granularity: sample
     label_flipping:
       data_cleaning:
         method: loss_filtering
