@@ -36,11 +36,13 @@ def run_per_class_monitoring_defense(profile, attack_type):
     results = {
         "defense": "per_class_monitoring",
         "attack": attack_type,
-        "accuracy_mean": round(acc_mean, 4),
+        "accuracy_clean": round(acc_mean, 4),
+        "accuracy_adversarial": None,
+        "per_class_accuracy_clean": per_class_acc,
+        "per_class_accuracy_adversarial": None,
         "accuracy_std": round(acc_std, 4),
         "threshold": threshold,
         "flagged_classes": flagged,
-        "per_class_accuracy": per_class_acc
     }
 
     output_dir = f"results/data_poisoning/{attack_type}"

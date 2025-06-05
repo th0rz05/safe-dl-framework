@@ -12,7 +12,7 @@ def generate_per_class_monitoring_report(json_file, md_file):
     lines.append(f"- **Defense:** {data['defense']}")
     lines.append(f"- **Attack Targeted:** {data['attack']}")
     lines.append(f"- **Standard Deviation Threshold:** {data['threshold']}")
-    lines.append(f"- **Mean Accuracy:** {data['accuracy_mean']:.4f}")
+    lines.append(f"- **Mean Accuracy:** {data['accuracy_clean']:.4f}")
     lines.append(f"- **Std Dev of Accuracy:** {data['accuracy_std']:.4f}\n")
 
     lines.append("## Flagged Classes\n")
@@ -27,7 +27,7 @@ def generate_per_class_monitoring_report(json_file, md_file):
     lines.append("\n## Full Per-Class Accuracy\n")
     lines.append("| Class | Accuracy |")
     lines.append("|-------|----------|")
-    for cls, acc in data["per_class_accuracy"].items():
+    for cls, acc in data["per_class_accuracy_clean"].items():
         lines.append(f"| {cls} | {acc:.4f} |")
 
     os.makedirs(os.path.dirname(md_file), exist_ok=True)
