@@ -202,8 +202,10 @@ def run_robust_loss_defense(
             "defense": "robust_loss",
             "attack": attack_type,
             **cfg,
-            "clean_accuracy": test_acc,
-            "per_class_accuracy": per_class_acc
+            "accuracy_clean": test_acc,
+            "accuracy_adversarial": None,
+            "per_class_accuracy_clean": per_class_acc,
+            "per_class_accuracy_adversarial": None,
         }, fp, indent=2)
     print(f"[✔] Results JSON saved to {json_path}")
 

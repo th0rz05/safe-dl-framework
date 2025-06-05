@@ -10,8 +10,8 @@ def generate_report(json_path: str, md_path: str):
 
     attack = data.get('attack', 'unknown')
     loss_type = data.get('type', 'unknown')
-    clean_acc = data.get('clean_accuracy', None)
-    per_class = data.get('per_class_accuracy', {})
+    clean_acc = data.get('accuracy_clean', None)
+    per_class = data.get('per_class_accuracy_clean', {})
 
     # Start building the report lines
     lines = []
@@ -21,7 +21,7 @@ def generate_report(json_path: str, md_path: str):
     lines.append(f"**Robust loss type:** `{loss_type}`  ")
 
     # List configuration parameters
-    config_keys = set(data.keys()) - {'attack', 'defense', 'type', 'clean_accuracy', 'per_class_accuracy'}
+    config_keys = set(data.keys()) - {'attack', 'defense', 'type', 'accuracy_clean', 'per_class_accuracy_clean'}
     if config_keys:
         lines.append("## Defense Configuration")
         lines.append("")
