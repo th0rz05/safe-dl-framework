@@ -4,8 +4,9 @@
   "method": "grad_influence",
   "sample_size": 500,
   "num_removed": 1881,
-  "accuracy_after_defense": 0.655,
-  "per_class_accuracy": {
+  "accuracy_clean": 0.655,
+  "accuracy_adversarial": null,
+  "per_class_accuracy_clean": {
     "airplane": 0.741,
     "automobile": 0.751,
     "bird": 0.368,
@@ -17,6 +18,7 @@
     "ship": 0.825,
     "truck": 0.751
   },
+  "per_class_accuracy_adversarial": null,
   "example_removed": [
     {
       "index": 49,

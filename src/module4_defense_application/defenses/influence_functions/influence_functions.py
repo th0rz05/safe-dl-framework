@@ -140,8 +140,10 @@ def run_influence_functions_defense(profile, trainset, testset, valset, class_na
         "method": method,
         "sample_size": sample_size,
         "num_removed": len(to_remove),
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
+        "accuracy_clean": acc,
+        "accuracy_adversarial": None,
+        "per_class_accuracy_clean": per_class,
+        "per_class_accuracy_adversarial": None,
         "example_removed": removed_examples
     }
 
