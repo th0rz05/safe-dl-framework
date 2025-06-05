@@ -1,8 +1,8 @@
 {
   "defense": "data_cleaning",
   "attack": "label_flipping",
-  "accuracy_after_defense": 0.6104,
-  "per_class_accuracy": {
+  "accuracy_clean": 0.6104,
+  "per_class_accuracy_clean": {
     "airplane": 0.716,
     "automobile": 0.687,
     "bird": 0.407,

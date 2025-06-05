@@ -15,12 +15,12 @@ def generate_data_cleaning_report(json_file, md_file):
     lines.append(f"- **Threshold:** {data['cleaning_params']['threshold']}\n")
 
     lines.append("## Performance Metrics\n")
-    lines.append(f"- **Accuracy After Defense:** {data['accuracy_after_defense']:.4f}\n")
+    lines.append(f"- **Accuracy After Defense:** {data['accuracy_clean']:.4f}\n")
 
     lines.append("### Per‑Class Accuracy\n")
     lines.append("| Class | Accuracy |")
     lines.append("|-------|----------|")
-    for cls, acc in data["per_class_accuracy"].items():
+    for cls, acc in data["per_class_accuracy_clean"].items():
         lines.append(f"| {cls} | {acc:.4f} |")
 
     lines.append("\n## Cleaning Summary\n")

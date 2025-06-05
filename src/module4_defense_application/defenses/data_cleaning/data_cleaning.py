@@ -174,8 +174,8 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
     results = {
         "defense": "data_cleaning",
         "attack": attack_type,
-        "accuracy_after_defense": acc,
-        "per_class_accuracy": per_class,
+        "accuracy_clean": acc,
+        "per_class_accuracy_clean": per_class,
         "cleaning_params": defense_cfg,
         "num_removed": len(removed_indices),
         "example_removed": example_flips
