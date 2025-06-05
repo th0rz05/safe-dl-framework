@@ -6,6 +6,7 @@
   "clip_norm": 1.0,
   "epsilon_spent": 1.992692688984611,
   "accuracy_clean": 0.3653,
+  "accuracy_adversarial": null,
   "per_class_accuracy_clean": {
     "airplane": 0.63,
     "automobile": 0.486,
@@ -17,5 +18,6 @@
     "horse": 0.37,
     "ship": 0.46,
     "truck": 0.475
-  }
+  },
+  "per_class_accuracy_adversarial": null
 }
