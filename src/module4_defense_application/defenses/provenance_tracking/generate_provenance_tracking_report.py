@@ -18,10 +18,8 @@ def generate_report(json_path: str, md_path: str):
     lines.append(f"**Clean test accuracy after defense:** **{data.get('clean_accuracy'):.4f}**  ")
     lines.append("")
 
-    lines.append("## Accuracy Metrics\n")
-    lines.append(f"*Overall clean accuracy:* **{data.get('clean_accuracy'):.4f}**\n")
 
-    per_class = data.get("per_class_accuracy", {})
+    per_class = data.get("per_class_accuracy_clean", {})
     if per_class:
         lines.append("### Per-Class Accuracy")
         lines.append("| Class | Accuracy |")

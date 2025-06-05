@@ -3,8 +3,9 @@
   "attack": "clean_label",
   "granularity": "batch",
   "num_removed": 1544,
-  "clean_accuracy": 0.6544,
-  "per_class_accuracy": {
+  "accuracy_clean": 0.6544,
+  "accuracy_adversarial": null,
+  "per_class_accuracy_clean": {
     "airplane": 0.621,
     "automobile": 0.823,
     "bird": 0.514,
@@ -16,6 +17,7 @@
     "ship": 0.788,
     "truck": 0.753
   },
+  "per_class_accuracy_adversarial": null,
   "example_removed": [
     {
       "index": 11910,

@@ -3,11 +3,7 @@
 **Attack type:** `clean_label`  
 **Granularity:** `batch`  
 **Number of removed samples:** 1544  
-**Clean test accuracy after defense:** **0.6544**  
-
-## Accuracy Metrics
-
-*Overall clean accuracy:* **0.6544**
+**Clean test accuracy after defense:** **0.6544**
 
 ### Per-Class Accuracy
 | Class | Accuracy |
