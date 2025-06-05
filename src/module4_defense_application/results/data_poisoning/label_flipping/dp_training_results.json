@@ -5,8 +5,8 @@
   "delta_target": 1e-05,
   "clip_norm": 1.0,
   "epsilon_spent": 1.992692688984611,
-  "clean_accuracy": 0.3653,
-  "per_class_accuracy": {
+  "accuracy_clean": 0.3653,
+  "per_class_accuracy_clean": {
     "airplane": 0.63,
     "automobile": 0.486,
     "bird": 0.284,
