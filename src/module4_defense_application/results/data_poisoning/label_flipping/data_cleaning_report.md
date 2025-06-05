@@ -9,26 +9,26 @@
 
 ## Performance Metrics
 
-- **Accuracy After Defense:** 0.6104
+- **Accuracy After Defense:** 0.6251
 
 ### Per‑Class Accuracy
 
 | Class | Accuracy |
 |-------|----------|
-| airplane | 0.7160 |
-| automobile | 0.6870 |
-| bird | 0.4070 |
-| cat | 0.1540 |
+| airplane | 0.6530 |
+| automobile | 0.7290 |
+| bird | 0.3520 |
+| cat | 0.3810 |
 | deer | 0.6560 |
-| dog | 0.4000 |
-| frog | 0.7880 |
-| horse | 0.7520 |
-| ship | 0.6960 |
-| truck | 0.8480 |
+| dog | 0.3480 |
+| frog | 0.8870 |
+| horse | 0.7040 |
+| ship | 0.7370 |
+| truck | 0.8040 |
 
 ## Cleaning Summary
 
-- **Total Samples Removed:** 20358
+- **Total Samples Removed:** 18607
 
 ## Example Removed Samples
 
@@ -43,8 +43,8 @@ removed_<index>_<label>.png
 
 <div style="display: flex; gap: 10px; flex-wrap: wrap;">
 <div style="text-align:center;"><small>cleaned_examples/removed_0_6.png</small><br><img src="cleaned_examples/removed_0_6.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>cleaned_examples/removed_4_1.png</small><br><img src="cleaned_examples/removed_4_1.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>cleaned_examples/removed_5_0.png</small><br><img src="cleaned_examples/removed_5_0.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>cleaned_examples/removed_9_3.png</small><br><img src="cleaned_examples/removed_9_3.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>cleaned_examples/removed_11_0.png</small><br><img src="cleaned_examples/removed_11_0.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>cleaned_examples/removed_2_9.png</small><br><img src="cleaned_examples/removed_2_9.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>cleaned_examples/removed_32770_5.png</small><br><img src="cleaned_examples/removed_32770_5.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>cleaned_examples/removed_32771_6.png</small><br><img src="cleaned_examples/removed_32771_6.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>cleaned_examples/removed_6_2.png</small><br><img src="cleaned_examples/removed_6_2.png" style="width: 120px;"></div>
 </div>
