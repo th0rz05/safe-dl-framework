@@ -91,11 +91,6 @@ The framework is divided into six modular stages, each responsible for a specifi
 
 > All modules are optional and can be run independently, but using the full pipeline ensures maximum coverage and insight.
 
-----------
-
-Ótimo! Aqui vai a secção **Getting Started**, escrita para que qualquer pessoa com experiência mínima em ML consiga correr a framework:
-
-
 ## Getting Started
 
 ### Requirements
