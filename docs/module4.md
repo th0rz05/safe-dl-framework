@@ -3,6 +3,38 @@
 
 This module is responsible for applying defense mechanisms based on the threat profile previously defined and the attacks simulated in Module 2. Using the risk analysis performed in Module 3, it guides the selection, configuration, and execution of defenses to mitigate the effects of adversarial attacks on deep learning models.
 
+## Table of Contents
+
+- [1. Introduction](#1-introduction)
+- [2. Setup Phase](#2-setup-phase)
+  * [2.1 Loading the Threat Profile](#21-loading-the-threat-profile)
+  * [2.2 Interactive Defense Selection](#22-interactive-defense-selection)
+- [3. Implemented Defenses](#3-implemented-defenses)
+  * [3.1 Data Cleaning](#31-data-cleaning)
+  * [3.2 Per-Class Monitoring](#32-per-class-monitoring)
+  * [3.3 Robust Loss Functions](#33-robust-loss-functions)
+  * [3.4 Differentially Private Training](#34-differentially-private-training)
+  * [3.5 Provenance Tracking](#35-provenance-tracking)
+  * [3.6 Influence Functions](#36-influence-functions)
+  * [3.7 Activation Clustering](#37-activation-clustering)
+  * [3.8 Spectral Signatures](#38-spectral-signatures)
+  * [3.9 Anomaly Detection](#39-anomaly-detection)
+  * [3.10 Pruning](#310-pruning)
+  * [3.11 Fine-Pruning](#311-fine-pruning)
+  * [3.12 Model Inspection](#312-model-inspection)
+  * [3.13 Adversarial Training](#313-adversarial-training)
+  * [3.14 Randomized Smoothing](#314-randomized-smoothing)
+  * [3.15 Gradient Masking](#315-gradient-masking)
+  * [3.16 JPEG Preprocessing](#316-jpeg-preprocessing)
+- [4. Integration with Other Modules](#4-integration-with-other-modules)
+  * [4.1 Upstream Dependencies](#41-upstream-dependencies)
+  * [4.2 Downstream Outputs](#42-downstream-outputs)
+- [5. Summary and Future Work](#5-summary-and-future-work)
+  * [5.1 Data Poisoning Attacks](#51-data-poisoning-attacks)
+  * [5.2 Backdoor Attacks](#52-backdoor-attacks)
+  * [5.3 Evasion Attacks](#53-evasion-attacks)
+  * [5.4 Future Work](#54-future-work)
+
 ## 1. Introduction
 
 As deep learning models are increasingly exposed to adversarial threats in real-world applications, the ability to assess and mitigate these threats is essential. Module 4 addresses this need by systematically applying defense strategies tailored to the specific attacks identified in previous phases of the Safe-DL framework.
@@ -53,358 +85,408 @@ This section documents the defense mechanisms currently implemented in the Safe-
 
 ### 3.1 Data Cleaning
 
-**Description**  
-Data cleaning aims to remove suspicious or mislabeled training samples that may degrade model performance. It operates under the assumption that poisoned data tends to produce unusually high training loss, making it detectable through statistical analysis.
+**Objective:**  
+The goal of this defense is to remove suspicious or noisy training samples that may have been injected through data poisoning attacks, such as label flipping. This is achieved by analyzing the loss behavior of individual training samples and applying statistical or threshold-based filters to discard anomalous points.
 
-**Applicable to:**
+> **Note on adversarial accuracy:**  
+> In data poisoning attacks, only the training data is corrupted. The test set remains clean and is not manipulated.  
+> Therefore, adversarial accuracy (`accuracy_adversarial`) — typically used for inference-time attacks like evasion — is not applicable in this context.  
+> To maintain consistency across all defenses, the fields `accuracy_adversarial` and `per_class_accuracy_adversarial` are explicitly set to `null` in the resulting JSON files.
 
--   `label_flipping` (Data Poisoning)
+----------
+
+**Defense Pipeline:**
+
+1.  **Attack Simulation:**  
+    The selected data poisoning attack (e.g., label flipping) is applied to the training set according to the threat profile parameters.
     
-
-**Configuration Parameters**  
-The user can select the cleaning method and its threshold:
-
--   `method`:
+2.  **Poisoned Model Training:**  
+    A temporary model is trained on the poisoned training set for a few epochs. This model is used to extract per-sample loss statistics.
     
-    -   `"loss_filtering"`: retains samples with loss below a scaled mean;
+3.  **Sample Loss Analysis:**  
+    Each training sample is passed through the model to compute its individual loss using cross-entropy. Two cleaning methods are supported:
+    
+    -   `loss_filtering`: Retains samples with loss below a threshold relative to the mean.
         
-    -   `"outlier_detection"`: applies z-score thresholding to loss values.
+    -   `outlier_detection`: Retains samples with a z-score within a configurable standard deviation.
         
--   `threshold`: a float value controlling filtering strictness.
+4.  **Cleaned Model Training:**  
+    A new model is trained from scratch using only the retained, presumably clean, subset of the training data.
     
-
-These parameters are configured interactively during the setup phase and stored in the profile under:
-
-```yaml
-defense_config:
-  data_poisoning:
-    label_flipping:
-      data_cleaning:
-        method: "loss_filtering"
-        threshold: 0.9
-
-```
-
-**Pipeline Summary**
-
-1.  The original attack (label flipping) is re-applied to simulate the poisoned dataset.
-    
-2.  A helper model is trained on the poisoned dataset for loss estimation.
-    
-3.  Data cleaning is applied to remove high-loss samples.
-    
-4.  A new model is trained on the cleaned dataset and evaluated.
-    
-
-**Outputs**
-
--   `results/data_poisoning/label_flipping/data_cleaning_results.json`  
-    Contains metrics such as post-defense accuracy, removed indices, and parameters used.
-    
--   `results/data_poisoning/label_flipping/data_cleaning_report.md`  
-    Markdown report with performance summary and visual examples.
-    
--   `results/data_poisoning/label_flipping/cleaned_examples/`  
-    Contains up to 5 images of removed samples with their labels.
+5.  **Evaluation and Reporting:**  
+    The cleaned model is evaluated on the untouched (clean) test set. Up to 5 removed examples are visualized and saved. A Markdown and JSON report is generated.
     
 
 ----------
-   
+
+**Output JSON Format:**
+
+```json
+{
+  "defense": "data_cleaning",
+  "attack": "label_flipping",
+  "accuracy_clean": 0.8812,
+  "accuracy_adversarial": null,
+  "per_class_accuracy_clean": {
+    "airplane": 0.89,
+    "automobile": 0.87,
+    ...
+  },
+  "per_class_accuracy_adversarial": null,
+  "cleaning_params": {
+    "method": "loss_filtering",
+    "threshold": 1.5
+  },
+  "num_removed": 217,
+  "example_removed": [
+    {
+      "index": 1324,
+      "original_label": 4,
+      "original_label_name": "deer",
+      "image_path": "cleaned_examples/removed_1324_4.png"
+    }
+  ]
+}
+
+```
+
+
+
+----------
 
 ### 3.2 Per-Class Monitoring
 
-**Description**  
-Per-class monitoring is a lightweight diagnostic defense that analyzes validation accuracy across all classes after training on potentially poisoned data. The goal is to identify target classes that have experienced an unusual drop in performance, which may indicate class-specific attacks such as label flipping.
+**Objective:**  
+This lightweight defense aims to detect anomalies caused by data poisoning by analyzing the distribution of per-class accuracies. The assumption is that a successful data poisoning attack will disproportionately degrade performance in specific target classes, leading to an unusual drop in accuracy for those classes.
 
-**Applicable to:**
+> **Note on adversarial accuracy:**  
+> Since data poisoning attacks do not modify the test set, adversarial accuracy is not meaningful in this context.  
+> As such, `accuracy_adversarial` and `per_class_accuracy_adversarial` are omitted or set to `null` in the output files for consistency.
 
--   `label_flipping` (Data Poisoning)
+----------
+
+**Defense Pipeline:**
+
+1.  **Load Attack Metrics:**  
+    The defense uses the results of the attack simulation phase (e.g., `label_flipping_metrics.json`) to analyze the per-class accuracy of the model after being trained on poisoned data.
+    
+2.  **Statistical Outlier Detection:**  
+    The mean and standard deviation of all per-class accuracies are computed. Any class whose accuracy falls below `mean - (threshold × std)` is flagged as potentially affected by poisoning.
+    
+3.  **Reporting:**  
+    All flagged classes are reported in both JSON and Markdown formats, alongside the global statistics used during detection. No retraining or model modification is performed in this defense — it serves only as a monitoring and analysis tool.
     
 
-**Configuration Parameters**  
-This method requires a single parameter:
+----------
 
--   `std_threshold`:  
-    The number of standard deviations below the mean accuracy used as a threshold to flag abnormal classes. Defaults to `2.0`.
+**Output JSON Format:**
+
+```json
+{
+  "defense": "per_class_monitoring",
+  "attack": "label_flipping",
+  "accuracy_mean": 0.8754,
+  "accuracy_std": 0.0611,
+  "threshold": 1.5,
+  "flagged_classes": [
+    { "class": "deer", "accuracy": 0.7021 },
+    { "class": "frog", "accuracy": 0.6942 }
+  ],
+  "per_class_accuracy": {
+    "airplane": 0.91,
+    "automobile": 0.89,
+    ...
+  }
+}
+
+```
+
+----------
+
+>  This defense is particularly useful for early-stage detection of suspicious class-specific behavior before applying heavier techniques such as influence-based filtering or robust retraining.
+
+
+----------
+
+### 3.3 Robust Loss Functions
+
+**Objective:**  
+This defense strategy aims to mitigate the influence of poisoned or mislabeled data by replacing the standard cross-entropy loss with a more robust alternative during training. These loss functions are designed to be less sensitive to outliers or noisy labels, which are common in data poisoning scenarios.
+
+> **Note on adversarial accuracy:**  
+> Since data poisoning attacks do not affect the test set directly, adversarial accuracy (`accuracy_adversarial`) is omitted or set to `null`. Only clean test set accuracy is evaluated and reported.
+
+----------
+
+**Available Loss Functions:**
+
+The framework currently supports the following robust loss functions:
+
+-   **Generalized Cross Entropy (GCE)**
+    
+-   **Symmetric Cross Entropy (SCE)**
+    
+-   **Bootstrap Loss (Soft/Hard variants)**
     
 
-YAML configuration example:
+The loss function is selected via the YAML profile under:
 
 ```yaml
 defense_config:
   data_poisoning:
     label_flipping:
-      per_class_monitoring:
-        std_threshold: 2.0
-
-```
-
-**Pipeline Summary**
-
-1.  A poisoned model is trained using the same procedure as the original attack simulation.
-    
-2.  Validation accuracy is computed per class.
-    
-3.  Any class whose accuracy falls significantly below the global average (based on the specified standard deviation threshold) is flagged as suspicious.
-    
-4.  This analysis is diagnostic: no data is removed or model retrained.
-    
-
-**Outputs**
-
--   `results/data_poisoning/label_flipping/per_class_monitoring_results.json`  
-    Contains per-class accuracy, global mean/std, and flagged classes.
-    
--   `results/data_poisoning/label_flipping/per_class_monitoring_report.md`  
-    Includes tabular summaries and insights into the most affected classes.
-
-----------
-
-### 3.3 Robust Loss
-
-**Description**  
-Robust loss functions aim to reduce the influence of noisy or adversarial samples by modifying how the model penalizes errors during training. Instead of relying on standard cross-entropy, alternative loss formulations are used to suppress the gradient impact of outliers.
-
-**Applicable to:**
-
--   `label_flipping` (Data Poisoning)
-    
--   `clean_label` (Data Poisoning)
-    
-
-**Configuration Parameters**  
-Users can select one of the following robust loss strategies:
-
--   `type`:
-    
-    -   `"gce"` — Generalized Cross Entropy
-        
-    -   `"symmetric_cross_entropy"` — Combines CE and reverse-CE
-        
-    -   `"label_smoothing"` — Distributes target probability mass across all classes
-        
-
-YAML configuration example:
-
-```yaml
-defense_config:
-  data_poisoning:
-    clean_label:
       robust_loss:
-        type: "gce"
+        loss_type: gce
+        alpha: 0.2
+        beta: null
 
 ```
 
-**Pipeline Summary**
-
-1.  The selected data poisoning attack is re-applied to regenerate the poisoned training set.
-    
-2.  A model is trained on the poisoned data using the chosen robust loss instead of standard cross-entropy.
-    
-3.  Evaluation is performed on a clean test set.
-    
-
-**Outputs**
-
--   `results/data_poisoning/{attack}/robust_loss_results.json`  
-    Includes defense parameters, final accuracy, and per-class breakdown.
-    
--   `results/data_poisoning/{attack}/robust_loss_report.md`  
-    Describes the loss function used and presents performance metrics.
-    
-
-Note: This method does not remove samples; instead, it reduces their harmful impact during gradient updates.
+Each loss function may include different hyperparameters, such as `alpha` (weight for robust term) or `beta` (weight for original cross-entropy component), depending on its formulation.
 
 ----------
 
-### 3.4 Differential Privacy Training
+**Defense Pipeline:**
 
-**Description**  
-Differentially Private (DP) training introduces calibrated noise into the gradient updates to protect the contribution of individual data points. By applying DP-SGD via the Opacus library, this defense limits the ability of poisoned samples to dominate model learning, while also providing a formal privacy guarantee (ε, δ).
-
-**Applicable to:**
-
--   `label_flipping` (Data Poisoning)
+1.  **Model Initialization:**  
+    A clean model is initialized from the configuration in the YAML profile.
     
--   `clean_label` (Data Poisoning)
+2.  **Robust Training:**  
+    The model is trained from scratch on the poisoned dataset using the specified robust loss function instead of the default cross-entropy.
     
-
-**Configuration Parameters**
-
--   `epsilon`: Target privacy budget (e.g., 2.0)
-    
--   `delta`: Failure probability (e.g., 1e-5)
-    
--   `clip_norm`: Gradient clipping norm for individual samples
+3.  **Evaluation:**  
+    After training, the model is evaluated on the clean test set. The metrics include overall accuracy and per-class accuracy.
     
 
-YAML configuration example:
+----------
+
+**Output JSON Format:**
+
+```json
+{
+  "defense": "robust_loss",
+  "attack": "label_flipping",
+  "loss_type": "gce",
+  "alpha": 0.2,
+  "accuracy_clean": 0.8695,
+  "per_class_accuracy_clean": {
+    "airplane": 0.91,
+    "automobile": 0.85,
+    ...
+  }
+}
+
+```
+
+----------
+
+> This method avoids explicit filtering and instead enhances the model’s robustness through improved optimization criteria, making it an efficient and scalable defense for large datasets.
+
+----------
+
+### 3.4 Differentially Private Training 
+
+**Objective:**  
+This defense leverages differentially private stochastic gradient descent (DP-SGD) to train models with formal privacy guarantees. While its primary use is privacy preservation, DP training has also been shown to improve robustness against certain data poisoning attacks by reducing model sensitivity to individual training samples.
+
+> **Note on adversarial accuracy:**  
+> As with other data poisoning defenses, the attack does not affect the test set directly. Therefore, adversarial accuracy is not computed and will be omitted or set to `null`.
+
+----------
+
+**Configuration in Profile YAML:**
 
 ```yaml
 defense_config:
   data_poisoning:
     label_flipping:
       dp_training:
-        epsilon: 2.0
-        delta: 1e-5
-        clip_norm: 1.0
+        noise_multiplier: 1.0
+        max_grad_norm: 1.0
 
 ```
 
-**Pipeline Summary**
-
-1.  The poisoned training dataset is regenerated based on the selected attack.
+-   `noise_multiplier`: Amount of Gaussian noise added to clipped gradients.
     
-2.  A model is trained using Opacus’ `make_private_with_epsilon`, which:
-    
-    -   Applies per-sample gradient clipping,
-        
-    -   Adds Gaussian noise to gradients,
-        
-    -   Computes the total privacy budget spent.
-        
-3.  BatchNorm layers are automatically replaced with GroupNorm to ensure compatibility.
-    
-4.  The trained model is evaluated on the test set.
+-   `max_grad_norm`: Gradient clipping threshold.
     
 
-**Outputs**
+----------
 
--   `results/data_poisoning/{attack}/dp_training_results.json`  
-    Includes accuracy, ε spent, defense parameters, and per-class metrics.
+**Defense Pipeline:**
+
+1.  **Model Initialization:**  
+    A fresh model is loaded from the configuration specified in the YAML threat profile.
     
--   `results/data_poisoning/{attack}/dp_training_report.md`  
-    Summarizes the privacy settings, effectiveness, and accuracy results.
+2.  **DP-SGD Training:**  
+    Training is conducted with Opacus, using per-sample gradient clipping and noise injection to enforce differential privacy. Training is done on the (potentially poisoned) dataset.
+    
+3.  **Evaluation:**  
+    After training, the model is evaluated on the clean test set. Only clean accuracy is recorded.
     
 
-**Notes**
+----------
 
--   Secure RNG is disabled by default for performance but can be re-enabled for production use.
-    
--   If BatchNorm is present, it is automatically converted for DP compliance.
-    
+**Output JSON Format:**
+
+```json
+{
+  "defense": "dp_training",
+  "attack": "label_flipping",
+  "accuracy_clean": 0.8412,
+  "per_class_accuracy_clean": {
+    "airplane": 0.84,
+    "automobile": 0.86,
+    ...
+  },
+  "dp_params": {
+    "noise_multiplier": 1.0,
+    "max_grad_norm": 1.0
+  }
+}
+
+```
+
+----------
+
+>  DP-SGD introduces randomness that can reduce the model’s reliance on specific poisoned samples, thus mitigating the impact of data poisoning. However, it may also lower overall accuracy if the privacy budget is too strict.
+
 
 ----------
 
 ### 3.5 Provenance Tracking
 
-**Description**  
-Provenance tracking is a loss-based detection technique that identifies suspicious samples by analyzing their training behavior. It assumes that poisoned or mislabeled samples will yield unusually high losses when evaluated using a clean model. This defense re-applies the clean-label attack and tracks training loss per sample or batch to remove outliers.
+**Objective:**  
+This defense uses metadata about the origin and context of training data (i.e., provenance) to detect and filter out potentially untrusted or suspicious samples. It assumes that poisoned samples often originate from unverified or anomalous sources.
 
-**Applicable to:**
+> **Note on adversarial accuracy:**  
+> As this is a data poisoning defense, the test set is not modified by the attack. Therefore, adversarial accuracy is not computed and will be omitted or set to `null`.
 
--   `clean_label` (Data Poisoning)
-    
+----------
 
-**Configuration Parameters**
-
--   `granularity`:
-    
-    -   `"sample"` — Removes samples with individual loss significantly above the mean
-        
-    -   `"batch"` — Removes entire batches whose average loss deviates from the global average
-        
--   `batch_size`: Number of samples per batch used during loss computation (default = 64)
-    
-
-YAML configuration example:
+**Configuration in Profile YAML:**
 
 ```yaml
 defense_config:
   data_poisoning:
-    clean_label:
+    label_flipping:
       provenance_tracking:
-        granularity: "sample"
-        batch_size: 64
+        trusted_sources: ["source1", "source2"]
 
 ```
 
-**Pipeline Summary**
-
-1.  A clean helper model is loaded from Module 2 (pretrained on the clean dataset).
-    
-2.  The clean-label attack is re-applied to create the poisoned dataset.
-    
-3.  The helper model computes training loss per sample or per batch.
-    
-4.  Samples/batches that exceed the threshold (mean + 2σ) are removed.
-    
-5.  A new model is trained on the cleaned data and evaluated.
+-   `trusted_sources`: A list of identifiers marking trusted data origins. All samples from other sources will be excluded from training.
     
 
-**Outputs**
+----------
 
--   `results/data_poisoning/clean_label/provenance_tracking_results.json`  
-    Contains number of removed samples, accuracy metrics, and paths to visual examples.
+**Defense Pipeline:**
+
+1.  **Metadata Extraction:**  
+    Each sample in the dataset is assumed to contain metadata (e.g., `sample.source`) indicating its origin.
     
--   `results/data_poisoning/clean_label/provenance_tracking_report.md`  
-    Includes tabular metrics and up to 5 visual examples.
+2.  **Filtering Step:**  
+    All training samples not originating from the configured `trusted_sources` are removed.
     
--   `results/data_poisoning/clean_label/provenance_examples/`  
-    Folder with saved images of removed samples.
+3.  **Model Training:**  
+    A new model is trained exclusively on data from trusted sources.
     
+4.  **Evaluation:**  
+    The model is evaluated on the clean test set. Only clean accuracy is recorded.
+    
+
+----------
+
+**Output JSON Format:**
+
+```json
+{
+  "defense": "provenance_tracking",
+  "attack": "label_flipping",
+  "accuracy_clean": 0.8519,
+  "per_class_accuracy_clean": {
+    "airplane": 0.87,
+    "automobile": 0.82,
+    ...
+  },
+  "trusted_sources_used": ["source1", "source2"],
+  "samples_retained": 3821
+}
+
+```
+
+----------
+
+>  Provenance filtering is particularly effective in scenarios where poisoned data can be traced back to unverified or untrusted contributors (e.g., crowdsourced data pipelines). However, this method requires metadata to be reliably available and accurate.
 
 ----------
 
 ### 3.6 Influence Functions
 
-**Description**  
-This defense estimates how much each training sample influences the model’s loss on a clean test point. By computing gradient similarity between training and test samples, the method identifies and removes training points that are highly influential in a suspicious way — a signature often found in poisoned data.
+**Objective:**  
+This defense leverages influence functions to identify training samples that have a disproportionately large effect on the model's predictions. By removing the most harmful samples (i.e., those with negative influence), it mitigates the impact of data poisoning attacks.
 
-**Applicable to:**
+> **Note on adversarial accuracy:**  
+> As a defense against data poisoning attacks, the adversarial test set is unaltered. Thus, adversarial accuracy is not applicable and set to `null` in the results.
 
--   `clean_label` (Data Poisoning)
-    
+----------
 
-**Configuration Parameters**
-
--   `method`:
-    
-    -   `"grad_influence"` — Computes dot product between gradients (∇ℓᵗ ⋅ ∇ℓᵢ)
-        
-    -   `"hessian_inverse"` — Placeholder for future full influence computation (not yet implemented)
-        
--   `sample_size`: Number of test samples to compare against (default: 500)
-    
-
-YAML configuration example:
+**Configuration in Profile YAML:**
 
 ```yaml
 defense_config:
   data_poisoning:
-    clean_label:
+    label_flipping:
       influence_functions:
-        method: "grad_influence"
-        sample_size: 500
+        num_samples_to_remove: 200
 
 ```
 
-**Pipeline Summary**
-
-1.  Loads a clean helper model previously trained in Module 2.
-    
-2.  Re-applies the clean-label attack to poison the training set.
-    
-3.  Computes the gradient of the loss for each poisoned sample and compares it to a subset of clean test samples.
-    
-4.  Calculates influence scores via dot product between gradients.
-    
-5.  Removes the top-N most influential training points.
-    
-6.  Retrains the model on the cleaned dataset and evaluates it.
+-   `num_samples_to_remove`: Number of training samples with the most negative influence to discard.
     
 
-**Outputs**
+----------
 
--   `results/data_poisoning/clean_label/influence_functions_results.json`  
-    Includes influence ranking, number of samples removed, accuracy metrics, and parameters used.
+**Defense Pipeline:**
+
+1.  **Initial Training:**  
+    Train a temporary model on the (possibly poisoned) dataset.
     
--   `results/data_poisoning/clean_label/influence_functions_report.md`  
-    Summarizes influence scores and final performance.
+2.  **Influence Score Estimation:**  
+    For each training sample, compute its influence on the loss of a small validation set using approximations of the Hessian-vector product.
     
--   `results/data_poisoning/clean_label/influence_examples/`  
-    Folder with visual examples of the most influential (and removed) training samples.
+3.  **Sample Filtering:**  
+    Remove the `num_samples_to_remove` samples with the lowest (most negative) influence scores.
     
+4.  **Final Training:**  
+    Retrain the model on the cleaned dataset.
+    
+5.  **Evaluation:**  
+    Evaluate the retrained model on the clean test set. Adversarial accuracy is omitted.
+    
+
+----------
+
+**Output JSON Format:**
+
+```json
+{
+  "defense": "influence_functions",
+  "attack": "label_flipping",
+  "accuracy_clean": 0.8447,
+  "per_class_accuracy_clean": {
+    "airplane": 0.87,
+    "automobile": 0.82,
+    ...
+  },
+  "samples_removed": 200
+}
+
+```
+
+----------
+
+>  Influence functions are powerful for identifying subtle poisoning effects, especially when the attacker poisons data without drastically changing the data distribution. However, this technique can be computationally intensive on large datasets or deep models.
 
 ----------
 
@@ -746,8 +828,372 @@ defense_config:
     
 -   `results/backdoor/{attack_type}/inspection_histograms/`  
     Contains weight histograms for each inspected layer.
+
+
+----------
+
+### 3.13 Adversarial Training
+
+**Objective:**  
+Adversarial Training is a proactive defense that retrains the model using a mix of clean and adversarial examples, making it more robust to inference-time attacks. This technique increases model resilience by simulating potential evasion attacks during training and adapting the model to handle such perturbations.
+
+----------
+
+**Configuration in YAML Profile:**
+
+```yaml
+defense_config:
+  evasion:
+    pgd:
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+        mixed_with_clean: true
+
+```
+
+-   `attack_type`: Type of adversarial attack used to generate training-time adversarial examples (`fgsm`, `pgd`, etc.).
     
+-   `epsilon`: Perturbation strength used for adversarial sample generation.
     
+-   `mixed_with_clean`: Whether to mix clean and adversarial samples during training (`true` improves generalization).
+    
+
+----------
+
+**Defense Pipeline:**
+
+1.  **Base Model Initialization:**  
+    A new model is initialized from scratch using the architecture defined in the threat profile.
+    
+2.  **Adversarial Example Generation:**  
+    At each training step, adversarial examples are generated using the specified base attack (e.g., FGSM), with the configured `epsilon`.
+    
+3.  **Mixed Training:**  
+    If `mixed_with_clean` is enabled, each batch is composed of 50% clean and 50% adversarial examples to preserve generalization.
+    
+4.  **Evaluation:**  
+    After training, the model is evaluated both on the clean test set and a fresh batch of adversarial examples generated using the attack under evaluation (e.g., PGD). Metrics are logged to JSON and Markdown reports.
+    
+
+----------
+
+**Output JSON Format:**
+
+```json
+{
+  "defense_name": "adversarial_training",
+  "evaluated_attack": "pgd",
+  "accuracy_clean": 0.4439,
+  "accuracy_adversarial": 0.1942,
+  "per_class_accuracy_clean": {
+    "airplane": 0.636,
+    "automobile": 0.771,
+    "bird": 0.197,
+    "cat": 0.016,
+    "deer": 0.429,
+    "dog": 0.6,
+    "frog": 0.476,
+    "horse": 0.389,
+    "ship": 0.535,
+    "truck": 0.39
+  },
+  "per_class_accuracy_adversarial": {
+    "3": 0.005,
+    "8": 0.203,
+    "0": 0.367,
+    "6": 0.118,
+    "1": 0.482,
+    "9": 0.137,
+    "5": 0.303,
+    "7": 0.131,
+    "4": 0.154,
+    "2": 0.042
+  },
+  "parameters": {
+    "epsilon": 0.03,
+    "base_attack_used_for_training": "fgsm",
+    "mixed_with_clean": true
+  }
+}
+
+```
+
+----------
+
+> Adversarial Training significantly boosts robustness to known attacks but often leads to a trade-off in clean accuracy. The effectiveness of this defense depends heavily on the attack type and ε used during training, as well as whether clean examples are preserved.
+
+----------
+
+### 3.14 Randomized Smoothing
+
+**Objective:**  
+Randomized Smoothing is a certified defense technique that constructs a smoothed classifier by injecting Gaussian noise into the inputs. This method provides probabilistic robustness guarantees: if the base classifier’s prediction is stable under Gaussian perturbations, then the smoothed classifier is robust within a certain radius around the input.
+
+----------
+
+**Configuration in YAML Profile:**
+
+```yaml
+defense_config:
+  evasion:
+    spsa:
+      randomized_smoothing:
+        sigma: 0.25
+
+```
+
+-   `sigma`: Standard deviation of the Gaussian noise added to each input during smoothing. Higher values improve robustness but can degrade accuracy.
+    
+
+----------
+
+**Defense Pipeline:**
+
+1.  **Base Model Loading:**  
+    A clean model trained without defenses is loaded from the threat profile.
+    
+2.  **Prediction with Noise Injection:**  
+    For each test sample, multiple noisy versions are created by adding Gaussian noise with standard deviation `sigma`.
+    
+3.  **Majority Vote Classification:**  
+    The final prediction for each sample is obtained via majority voting across multiple noisy versions, effectively stabilizing predictions under perturbations.
+    
+4.  **Evaluation:**  
+    The smoothed classifier is evaluated both on clean and adversarial test sets. The same adversarial attack (e.g., SPSA) is reapplied to test robustness. Results are saved to JSON and Markdown.
+    
+
+----------
+
+**Output JSON Format:**
+
+```json
+{
+  "defense_name": "randomized_smoothing",
+  "evaluated_attack": "spsa",
+  "accuracy_clean": 0.4321,
+  "accuracy_adversarial": 0.1823,
+  "per_class_accuracy_clean": {
+    "airplane": 0.59,
+    "automobile": 0.73,
+    "bird": 0.24,
+    ...
+  },
+  "per_class_accuracy_adversarial": {
+    "airplane": 0.34,
+    "automobile": 0.51,
+    "bird": 0.08,
+    ...
+  },
+  "parameters": {
+    "sigma": 0.25,
+    "num_samples": 100,
+    "certified": false
+  }
+}
+
+```
+
+> In this implementation, randomized smoothing is used purely as a stochastic defense — it does **not** provide certified radii. For formal certification (e.g., Cohen et al., 2019), a tighter integration would be needed with certified accuracy bounds and abstention mechanisms.
+
+
+> Randomized Smoothing offers a simple yet effective way to improve robustness against black-box attacks such as NES or SPSA, particularly when combined with abstention or confidence calibration strategies.
+
+----------
+
+### 3.15 Gradient Masking
+
+**Objective:**  
+This defense aims to reduce the effectiveness of gradient-based and score-based adversarial attacks by introducing gradient obfuscation techniques. The central idea is to limit the model’s sensitivity to adversarial perturbations by dampening or distorting its gradients.
+
+> **Note:** Gradient masking is not considered a robust long-term defense. It may hinder certain attacks like SPSA, FGSM, or PGD, but often fails against transfer-based or black-box methods.
+
+----------
+
+**Applicable to:**
+
+-   Gradient-based and score-based evasion attacks (e.g., FGSM, PGD, SPSA)
+    
+
+----------
+
+**Configuration Parameters**
+
+The defense uses a single parameter:
+
+-   `strength` — controls the intensity of gradient masking. A value between 0 and 1.
+    
+
+YAML example:
+
+```yaml
+defense_config:
+  evasion:
+    gradient_masking:
+      strength: 0.5
+
+```
+
+----------
+
+**Defense Pipeline:**
+
+1.  **Masking Application:**  
+    During both training and inference, gradients are suppressed or perturbed internally using the configured strength factor.
+    
+2.  **Training Phase:**  
+    The model is trained on the clean dataset with masking applied.
+    
+3.  **Evaluation Phase:**  
+    The trained model is evaluated on:
+    
+    -   Clean test set.
+        
+    -   Adversarial examples generated by the attack specified in the threat profile (e.g., SPSA).
+        
+4.  **Reporting:**  
+    Results are logged in both JSON and Markdown formats. This includes accuracy metrics and the masking parameter used.
+    
+
+----------
+
+**Output JSON Format:**
+
+```json
+{
+  "defense": "gradient_masking",
+  "attack": "spsa",
+  "accuracy_clean": 0.6708,
+  "accuracy_adversarial": 0.035,
+  "per_class_accuracy_clean": {
+    "airplane": 0.67,
+    "automobile": 0.777,
+    "bird": 0.624,
+    "cat": 0.355,
+    "deer": 0.634,
+    "dog": 0.598,
+    "frog": 0.693,
+    "horse": 0.776,
+    "ship": 0.856,
+    "truck": 0.725
+  },
+  "per_class_accuracy_adversarial": {
+    "airplane": 0.0,
+    "automobile": 0.1429,
+    "bird": 0.0,
+    "cat": 0.0,
+    "deer": 0.0,
+    "dog": 0.0556,
+    "frog": 0.0,
+    "horse": 0.1111,
+    "ship": 0.0357,
+    "truck": 0.0476
+  },
+  "params": {
+    "strength": 0.5
+  }
+}
+
+```
+
+----------
+
+### 3.16 JPEG Preprocessing
+
+**Objective:**  
+JPEG Preprocessing is a simple yet effective defense that reduces the success rate of adversarial attacks by applying lossy compression to input images. This compression tends to eliminate subtle perturbations introduced by evasion attacks, especially score-based black-box attacks like NES and SPSA.
+
+----------
+
+**Applicable to:**
+
+-   Score-based evasion attacks (e.g., SPSA, NES)
+    
+-   Particularly effective when adversarial perturbations are subtle and high-frequency
+    
+
+----------
+
+**Configuration Parameters**
+
+This defense requires one parameter:
+
+-   `quality`: JPEG quality level for compression. Must be an integer between 1 and 100. Lower values increase compression (and distortion), while higher values preserve more of the original image.
+    
+
+YAML example:
+
+```yaml
+defense_config:
+  evasion:
+    jpeg_preprocessing:
+      quality: 25
+
+```
+
+----------
+
+**Defense Pipeline:**
+
+1.  **JPEG Compression:**  
+    Each input image (clean or adversarial) is passed through a JPEG encoder and then decoded before being fed into the model.
+    
+2.  **Training Phase:**  
+    No retraining is required. This is a **test-time defense** — the model remains unchanged.
+    
+3.  **Evaluation Phase:**  
+    The defense is evaluated on:
+    
+    -   Clean test set (after JPEG preprocessing)
+        
+    -   Adversarial test set (after JPEG preprocessing)
+        
+4.  **Reporting:**  
+    Accuracy results are saved in both JSON and Markdown formats. The report includes class-level accuracy before and after preprocessing, and the `quality` used.
+    
+
+----------
+
+**Example Output JSON Format:**
+
+```json
+{
+  "defense": "jpeg_preprocessing",
+  "attack": "spsa",
+  "accuracy_clean": 0.6842,
+  "accuracy_adversarial": 0.071,
+  "per_class_accuracy_clean": {
+    "airplane": 0.68,
+    "automobile": 0.733,
+    "bird": 0.602,
+    "cat": 0.366,
+    "deer": 0.642,
+    "dog": 0.602,
+    "frog": 0.711,
+    "horse": 0.773,
+    "ship": 0.848,
+    "truck": 0.737
+  },
+  "per_class_accuracy_adversarial": {
+    "airplane": 0.0,
+    "automobile": 0.1905,
+    "bird": 0.0,
+    "cat": 0.0,
+    "deer": 0.0,
+    "dog": 0.0556,
+    "frog": 0.0,
+    "horse": 0.1905,
+    "ship": 0.0714,
+    "truck": 0.0952
+  },
+  "params": {
+    "quality": 25
+  }
+}
+
+```
+
+----------
 
 
 ## 4. Integration with Other Modules
@@ -772,83 +1218,138 @@ Module 4 integrates tightly with the rest of the Safe-DL framework. It relies on
     -   `provenance_tracking`
         
     -   `influence_functions`
+    
+    For evasion defenses (e.g., `adversarial_training`, `gradient_masking`, `jpeg_preprocessing`), the adversarial test sets generated in Module 2 are reused, ensuring consistent evaluation.
         
 -   **Module 3 — Risk Analysis**  
     Module 4 reads the recommended defense strategies per attack from the `risk_analysis.json` file. During the setup phase, the user can accept or override these recommendations. The selected defenses and parameters are stored in `defense_config`.
-    
+   
+
+----------
 
 ### 4.2 Downstream Outputs
 
-The results generated in this module — including defense metrics, reports, and filtered datasets — are essential for:
+The results generated in this module — including defense metrics, visual reports, and filtered datasets — are essential for:
 
 -   **Module 5 — Comparative Evaluation**  
-    Where multiple defenses may be compared across different attack types.
+    Where defenses are compared based on standardized metrics across different attack types.
     
 -   **Module 6 — Decision Support**  
-    Where post-defense risk is reassessed to help guide deployment readiness.
+    Where post-defense risk is reassessed to support deployment decisions and guide model certification.
     
 
-All defense results are stored in the `results/` directory under structured paths like:
+All defense results are stored under the `results/` directory using a structured hierarchy:
 
 ```
-results/data_poisoning/label_flipping/robust_loss_results.json
-results/data_poisoning/clean_label/provenance_tracking_report.md
+results/data_poisoning/label_flipping/data_cleaning_results.json
+results/backdoor/static_patch/activation_clustering_report.md
+results/evasion/spsa/gradient_masking_results.json
 
 ```
 
-These files include all necessary information to trace, reproduce, or analyze defense behavior independently.
+Each defense outputs its results using a consistent schema, including:
+
+-   `accuracy_clean`: model accuracy on unmodified test data
+    
+-   `accuracy_adversarial`: model accuracy on adversarially perturbed inputs (if applicable)
+    
+-   `per_class_accuracy_clean`: per-class breakdown on clean inputs
+    
+-   `per_class_accuracy_adversarial`: per-class breakdown on adversarial inputs (if applicable)
+    
+-   `params`: dictionary of defense-specific configuration parameters
+    
+-   Additional fields such as removed examples, flagged classes, or provenance data may be included depending on the defense type
+    
+
+>  For data poisoning and backdoor defenses, the `accuracy_adversarial` field is set to `null`, as no inference-time adversarial examples are applicable.
+
+This output structure enables traceability, comparability, and downstream analysis for all implemented defenses.
 
 ----------
 
 ## 5. Summary and Future Work
 
-This module has implemented a wide range of defense mechanisms covering multiple adversarial attack vectors. In particular, Module 4 now provides full support for:
+This module has implemented a comprehensive set of defense mechanisms covering multiple adversarial attack vectors. As of the current version, **Module 4** fully supports:
 
--   **Data Poisoning Attacks**, including `label_flipping` and `clean_label`, with defenses such as:
+----------
+
+###  5.1 Data Poisoning Attacks
+
+(e.g., `label_flipping`, `clean_label`)
+
+-   **Data Cleaning**
     
-    -   Data Cleaning
-        
-    -   Robust Loss
-        
-    -   Per-Class Monitoring
-        
-    -   Influence Functions
-        
-    -   Provenance Tracking
-        
-    -   Differential Privacy Training
-        
--   **Backdoor Attacks**, including `static_patch` and `learned_trigger`, with defenses such as:
+-   **Robust Loss Training**
     
-    -   Activation Clustering
-        
-    -   Spectral Signatures
-        
-    -   Anomaly Detection (LOF, Isolation Forest)
-        
-    -   Pruning
-        
-    -   Fine-Pruning
-        
-    -   Model Inspection
-        
-
-These defenses can be configured and executed via structured YAML profiles, enabling reproducibility and transparency across all experiments.
-
-Each defense follows a modular pipeline, allowing for attack re-simulation, model training, mitigation application, and post-defense evaluation. Results are saved in a standardized format to facilitate comparison, visualization, and downstream analysis.
-
-### Future Work
-
-With backdoor and poisoning defenses now fully supported, upcoming extensions to Module 4 will include:
-
--   **Defenses for Evasion Attacks** (e.g., adversarial examples generated via FGSM, PGD, or black-box methods).
+-   **Per-Class Monitoring**
     
--   **Defense Orchestration**, where multiple strategies are combined adaptively based on threat severity and model behavior.
+-   **Influence Functions**
     
--   **Interactive Evaluation Dashboards**, integrating results from Modules 4–6 to support deployment decisions.
+-   **Provenance Tracking**
+    
+-   **Differential Privacy Training**
     
 
-This extensible architecture positions Safe-DL as a robust framework for adversarial threat mitigation in deep learning pipelines.
+----------
+
+### 5.2 Backdoor Attacks
+
+(e.g., `static_patch`, `learned_trigger`)
+
+-   **Activation Clustering**
+    
+-   **Spectral Signatures**
+    
+-   **Anomaly Detection** (LOF, Isolation Forest)
+    
+-   **Pruning**
+    
+-   **Fine-Pruning**
+    
+-   **Model Inspection**
+    
+
+----------
+
+### 5.3 Evasion Attacks
+
+(e.g., `FGSM`, `PGD`, `DeepFool`, `SPSA`, `NES`)
+
+-   **Adversarial Training**
+    
+-   **Gradient Masking**
+    
+-   **Randomized Smoothing**
+    
+-   **JPEG Preprocessing**
+    
+
+----------
+
+All defenses are configurable through a unified YAML profile and integrated with upstream modules for threat configuration and risk analysis. The pipeline supports automatic model loading, retraining, mitigation, and standardized evaluation through JSON and Markdown reports.
+
+Results include clean and adversarial accuracy (where applicable), per-class breakdowns, and metadata about the defense's behavior and decisions.
+
+----------
+
+### 5.4 Future Work
+
+With defenses now covering data poisoning, backdoor, and evasion threats, upcoming extensions to Module 4 may include:
+
+-   **Defense Orchestration**:  
+    Combining multiple defenses adaptively, based on threat intensity and model behavior.
+    
+-   **Auto-tuning of Defense Parameters**:  
+    Automatically adjusting thresholds and hyperparameters using search or validation-driven strategies.
+    
+-   **Visualization Dashboards** (Modules 5–6):  
+    Providing visual, interactive comparisons across defenses and attack types to guide decision-making and deployment readiness.
+    
+
+----------
+
+This modular and extensible design positions **Safe-DL** as a practical and research-ready framework for defending deep learning pipelines in adversarial settings.
 
 
 
