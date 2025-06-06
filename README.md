@@ -32,12 +32,16 @@ src/
 │   │   ├── data_poisoning/
 │   │   ├── backdoor/
 │   │   └── evasion/
-│   ├── model_loader.py
-│   ├── dataset_loader.py
+│   ├── setup_module2.py
 │   └── run_module2.py
 ├── module3_risk_analysis/
 │   └── run_module3.py
 ├── module4_defense_application/
+│   ├── defenses/
+│   │   ├── activation_clustering/
+│   │   ├── adversarial_training/
+│   │   └── ....
+│   ├── setup_module4.py
 │   └── run_module4.py
 ├── module5_benchmarking/
 │   └── run_module5.py
