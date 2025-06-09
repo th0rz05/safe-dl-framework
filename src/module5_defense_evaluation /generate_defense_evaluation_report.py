@@ -18,14 +18,14 @@ def generate_markdown_table(data):
                 lines.append(f"| {attack_name} | {defense_name} | {mitigation:.3f} | {cad:.3f} | {cost:.3f} | {final:.3f} |")
     return "\n".join(lines)
 
-
-def generate_report(profile_path,json_path,md_path) -> None:
+def generate_report(profile_path, json_path, md_path) -> None:
     if not os.path.exists(json_path):
         print(f"[!] Input file not found: {json_path}")
         return
 
     if not os.path.exists(profile_path):
         print(f"[!] Profile file not found: {profile_path}")
+        return
 
     with open(json_path, "r") as f:
         data = json.load(f)
@@ -33,30 +33,31 @@ def generate_report(profile_path,json_path,md_path) -> None:
     with open(profile_path, "r") as f:
         profile_data = yaml.safe_load(f)
 
-
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     report_lines = []
 
-
     report_lines.append("# Defense Evaluation Report\n")
-    report_lines.append(f"**Profile**: `{profile_path.name}`  ")
+    report_lines.append(f"**Profile**: `{os.path.basename(profile_path)}`  ")
     report_lines.append(f"**Dataset**: `{profile_data['dataset']['name']}`  ")
     report_lines.append(f"**Model**: `{profile_data['model']['name']}`  ")
-    report_lines.append(f"**Generated on**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+    report_lines.append(f"**Generated on**: {now}\n")
 
     report_lines.append("## Overview\n")
-    report_lines.append("This report summarizes the risk associated with each attack simulated in Module 2 of the Safe-DL framework. "
-                 "Each attack is evaluated based on its impact (severity), likelihood of success (probability), and perceptibility (visibility). "
-                 "A final risk score is computed to help prioritize mitigation strategies.\n")
+    report_lines.append(
+        "This report summarizes the evaluation of defenses applied to mitigate adversarial attacks "
+        "on deep learning models. Each defense is scored based on its mitigation effectiveness, "
+        "its impact on clean accuracy (CAD), and estimated computational cost. "
+        "The final score reflects an overall balance between effectiveness and efficiency.\n"
+    )
 
     report_lines.append("## Summary Table\n")
     report_lines.append(generate_markdown_table(data))
 
     report_lines.append("\n## Notes\n")
-    report_lines.append("- Mitigation Score: Improvement in model accuracy or class precision due to the defense.")
-    report_lines.append("- CAD (Clean Accuracy Drop): Trade-off cost on clean data.")
-    report_lines.append("- Cost Score: Relative computational/resource impact.")
-    report_lines.append("- Final Score: Aggregated score considering all metrics.\n")
+    report_lines.append("- **Mitigation Score**: Effectiveness in recovering model performance after an attack.")
+    report_lines.append("- **CAD (Clean Accuracy Drop)**: Degree of performance degradation on clean data.")
+    report_lines.append("- **Cost Score**: Relative computational/resource impact of the defense.")
+    report_lines.append("- **Final Score**: Aggregated score combining all metrics.\n")
 
     os.makedirs(os.path.dirname(md_path), exist_ok=True)
     with open(md_path, "w") as f:
@@ -65,4 +66,8 @@ def generate_report(profile_path,json_path,md_path) -> None:
     print(f"[✓] Report generated at: {md_path}")
 
 if __name__ == "__main__":
-    generate_report()
+    generate_report(
+        profile_path="../profiles/test.yaml",
+        json_path="results/defense_evaluation.json",
+        md_path="results/defense_evaluation_report.md"
+    )
