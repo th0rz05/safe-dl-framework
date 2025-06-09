@@ -1,0 +1,50 @@
+{
+  "backdoor": {
+    "static_patch": {
+      "activation_clustering": {
+        "mitigation_score": -0.251,
+        "cad_score": 0.0,
+        "defense_cost_score": 0.3,
+        "final_score": -0.0
+      },
+      "spectral_signatures": {
+        "mitigation_score": 3.501,
+        "cad_score": 0.507,
+        "defense_cost_score": 0.4,
+        "final_score": 1.268
+      },
+      "anomaly_detection": {
+        "mitigation_score": 3.345,
+        "cad_score": 1.56,
+        "defense_cost_score": 0.3,
+        "final_score": 4.014
+      },
+      "pruning": {
+        "mitigation_score": 3.823,
+        "cad_score": 0.0,
+        "defense_cost_score": 0.3,
+        "final_score": 0.0
+      },
+      "fine_pruning": {
+        "mitigation_score": 2.45,
+        "cad_score": 0.942,
+        "defense_cost_score": 0.4,
+        "final_score": 1.649
+      },
+      "model_inspection": {
+        "mitigation_score": 3.653,
+        "cad_score": 1.217,
+        "defense_cost_score": 0.2,
+        "final_score": 3.704
+      }
+    }
+  },
+  "data_poisoning": {
+    "clean_label": {},
+    "label_flipping": {}
+  },
+  "evasion": {
+    "pgd": {},
+    "spsa": {}
+  }
+}

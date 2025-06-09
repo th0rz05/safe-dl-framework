@@ -3,6 +3,7 @@ import yaml
 import json
 from glob import glob
 import questionary
+import importlib
 from defense_score_utils import (
     evaluate_activation_clustering,
     evaluate_spectral_signatures,
@@ -12,8 +13,11 @@ from defense_score_utils import (
     evaluate_model_inspection
 )
 
+
+
 RESULTS_BASE = "../module2_attack_simulation/results"
 DEFENSE_RESULTS_BASE = "../module4_defense_application/results"
+RESULTS_JSON_PATH = os.path.join("results", "defense_evaluation.json")
 
 def select_profile():
     profiles = glob("../profiles/*.yaml")
@@ -47,8 +51,11 @@ def main():
     baseline = load_json(baseline_path)
     print(f"[+] Baseline Accuracy: {baseline['overall_accuracy']}")
 
+    all_scores = {}
+
     for attack_category, attacks in attack_overrides.items():
         print(f"\n[+] Attack Category: {attack_category}")
+        all_scores[attack_category] = {}
 
         for attack_name in attacks:
             print(f"  - Attack: {attack_name}")
@@ -64,6 +71,8 @@ def main():
             config = defense_config.get(attack_category, {}).get(attack_name, {})
             defenses_applied = config.get("defenses", [])
             print(f"    > Defenses applied: {defenses_applied}")
+
+            all_scores[attack_category][attack_name] = {}
 
             for defense in defenses_applied:
                 defense_path = os.path.join(
@@ -88,6 +97,7 @@ def main():
 
                 try:
                     score = evaluate_fn(defense_data, attack_data)
+                    all_scores[attack_category][attack_name][defense] = score
                     print(f"      [✓] Scores for {defense}:")
                     print(f"         Mitigation Score : {score['mitigation_score']}")
                     print(f"         CAD Score        : {score['cad_score']}")
@@ -95,6 +105,13 @@ def main():
                     print(f"         Final Score      : {score['final_score']}")
                 except Exception as e:
                     print(f"      [!] Error evaluating {defense}: {e}")
+
+    # Save all scores to a single file
+    os.makedirs("results", exist_ok=True)
+    with open(RESULTS_JSON_PATH, "w") as f_out:
+        json.dump(all_scores, f_out, indent=2)
+
+    print(f"\n[✓] All scores saved to {RESULTS_JSON_PATH}")
 
 if __name__ == "__main__":
     main()
