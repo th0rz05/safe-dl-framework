@@ -82,7 +82,33 @@
     }
   },
   "evasion": {
-    "pgd": {},
-    "spsa": {}
+    "pgd": {
+      "adversarial_training": {
+        "mitigation_score": 0.288,
+        "cad_score": 0.0,
+        "defense_cost_score": 0.8,
+        "final_score": 0.0
+      },
+      "randomized_smoothing": {
+        "mitigation_score": 0.07,
+        "cad_score": 0.0,
+        "defense_cost_score": 0.5,
+        "final_score": 0.0
+      }
+    },
+    "spsa": {
+      "gradient_masking": {
+        "mitigation_score": 0.02,
+        "cad_score": 0.954,
+        "defense_cost_score": 0.4,
+        "final_score": 0.014
+      },
+      "jpeg_preprocessing": {
+        "mitigation_score": 0.525,
+        "cad_score": 0.691,
+        "defense_cost_score": 0.1,
+        "final_score": 0.33
+      }
+    }
   }
 }

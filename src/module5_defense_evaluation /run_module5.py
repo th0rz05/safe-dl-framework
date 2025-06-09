@@ -16,7 +16,11 @@ from defense_score_utils import (
     evaluate_data_cleaning,
     evaluate_influence_functions,
     evaluate_provenance_tracking,
-    evaluate_per_class_monitoring
+    evaluate_per_class_monitoring,
+    evaluate_adversarial_training,
+    evaluate_gradient_masking,
+    evaluate_randomized_smoothing,
+    evaluate_jpeg_preprocessing
 )
 
 

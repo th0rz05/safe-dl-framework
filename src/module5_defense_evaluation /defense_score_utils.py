@@ -312,3 +312,126 @@ def evaluate_influence_functions(defense_data, attack_data, baseline_data):
     }
 
 
+def evaluate_adversarial_training(defense_data, attack_data, baseline_data):
+    """
+    Evaluate the effectiveness of adversarial training as a defense.
+
+    Args:
+        defense_data (dict): JSON content of the defense results.
+        attack_data (dict): JSON content of the attack results.
+        baseline_data (dict): JSON with 'overall_accuracy' from the baseline.
+
+    Returns:
+        dict: Scores including mitigation_score, cad_score, defense_cost_score, final_score.
+    """
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_adversarial_testset"]
+    acc_defense_clean = defense_data["accuracy_clean"]
+    acc_defense_adv = defense_data["accuracy_adversarial"]
+
+    ms = compute_mitigation_score(acc_baseline, acc_attack, acc_defense_adv)
+    cad = compute_cad_score(acc_baseline, acc_defense_clean)
+    cost = estimate_defense_cost("adversarial_training")
+
+    final = compute_defense_score(ms, cad, dcs=cost)
+
+    return {
+        "mitigation_score": round(ms, 3),
+        "cad_score": round(cad, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+
+def evaluate_randomized_smoothing(defense_data, attack_data, baseline_data):
+    """
+    Evaluate the effectiveness of randomized smoothing as a defense.
+
+    Args:
+        defense_data (dict): JSON content of the defense results.
+        attack_data (dict): JSON content of the attack results.
+        baseline_data (dict): JSON with 'overall_accuracy' from the baseline.
+
+    Returns:
+        dict: Scores including mitigation_score, cad_score, defense_cost_score, final_score.
+    """
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_adversarial_testset"]
+    acc_defense_clean = defense_data["accuracy_clean"]
+    acc_defense_adv = defense_data["accuracy_adversarial"]
+
+    ms = compute_mitigation_score(acc_baseline, acc_attack, acc_defense_adv)
+    cad = compute_cad_score(acc_baseline, acc_defense_clean)
+    cost = estimate_defense_cost("randomized_smoothing")
+
+    final = compute_defense_score(ms, cad, dcs=cost)
+
+    return {
+        "mitigation_score": round(ms, 3),
+        "cad_score": round(cad, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+def evaluate_gradient_masking(defense_data, attack_data, baseline_data):
+    """
+    Evaluate the effectiveness of gradient masking as a defense.
+
+    Args:
+        defense_data (dict): JSON content of the defense results.
+        attack_data (dict): JSON content of the attack results.
+        baseline_data (dict): JSON with 'overall_accuracy' from the baseline.
+
+    Returns:
+        dict: Scores including mitigation_score, cad_score, defense_cost_score, final_score.
+    """
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_adversarial_testset"]
+    acc_defense_clean = defense_data["accuracy_clean"]
+    acc_defense_adv = defense_data["accuracy_adversarial"]
+
+    ms = compute_mitigation_score(acc_baseline, acc_attack, acc_defense_adv)
+    cad = compute_cad_score(acc_baseline, acc_defense_clean)
+    cost = estimate_defense_cost("gradient_masking")
+
+    final = compute_defense_score(ms, cad, dcs=cost)
+
+    return {
+        "mitigation_score": round(ms, 3),
+        "cad_score": round(cad, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+
+def evaluate_jpeg_preprocessing(defense_data, attack_data, baseline_data):
+    """
+    Evaluate the effectiveness of JPEG preprocessing as a defense.
+
+    Args:
+        defense_data (dict): JSON content of the defense results.
+        attack_data (dict): JSON content of the attack results.
+        baseline_data (dict): JSON with 'overall_accuracy' from the baseline.
+
+    Returns:
+        dict: Scores including mitigation_score, cad_score, defense_cost_score, final_score.
+    """
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_adversarial_testset"]
+    acc_defense_clean = defense_data["accuracy_clean"]
+    acc_defense_adv = defense_data["accuracy_adversarial"]
+
+    ms = compute_mitigation_score(acc_baseline, acc_attack, acc_defense_adv)
+    cad = compute_cad_score(acc_baseline, acc_defense_clean)
+    cost = estimate_defense_cost("jpeg_preprocessing")
+
+    final = compute_defense_score(ms, cad, dcs=cost)
+
+    return {
+        "mitigation_score": round(ms, 3),
+        "cad_score": round(cad, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+
