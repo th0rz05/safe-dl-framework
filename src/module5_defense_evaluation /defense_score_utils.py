@@ -190,3 +190,125 @@ def evaluate_model_inspection(defense_data: dict, attack_data: dict,_) -> dict:
         "final_score": round(final_score, 3)
     }
 
+def evaluate_data_cleaning(defense_data, attack_data, baseline_data):
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_after_attack"]
+    acc_defense = defense_data["accuracy_clean"]
+
+    mitigation = compute_mitigation_score(acc_baseline, acc_attack, acc_defense)
+    cad_score = compute_cad_score(acc_baseline, acc_defense)
+    cost = estimate_defense_cost("data_cleaning")
+
+    pcr = 1.0
+    cs = 1.0
+    final = compute_defense_score(mitigation, cad_score, pcr=pcr, cs=cs, dcs=cost)
+
+    return {
+        "mitigation_score": round(mitigation, 3),
+        "cad_score": round(cad_score, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+def evaluate_per_class_monitoring(defense_data, attack_data, baseline_data):
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_after_attack"]
+    acc_defense = defense_data["accuracy_clean"]
+
+    mitigation = compute_mitigation_score(acc_baseline, acc_attack, acc_defense)
+    cad_score = compute_cad_score(acc_baseline, acc_defense)
+    cost = estimate_defense_cost("per_class_monitoring")
+
+    pcr = 1.0
+    cs = 1.0
+    final = compute_defense_score(mitigation, cad_score, pcr=pcr, cs=cs, dcs=cost)
+
+    return {
+        "mitigation_score": round(mitigation, 3),
+        "cad_score": round(cad_score, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+def evaluate_robust_loss(defense_data, attack_data, baseline_data):
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_after_attack"]
+    acc_defense = defense_data["accuracy_clean"]
+
+    mitigation = compute_mitigation_score(acc_baseline, acc_attack, acc_defense)
+    cad_score = compute_cad_score(acc_baseline, acc_defense)
+    cost = estimate_defense_cost("robust_loss")
+
+    pcr = 1.0
+    cs = 1.0
+    final = compute_defense_score(mitigation, cad_score, pcr=pcr, cs=cs, dcs=cost)
+
+    return {
+        "mitigation_score": round(mitigation, 3),
+        "cad_score": round(cad_score, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+def evaluate_dp_training(defense_data, attack_data, baseline_data):
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_after_attack"]
+    acc_defense = defense_data["accuracy_clean"]
+
+    mitigation = compute_mitigation_score(acc_baseline, acc_attack, acc_defense)
+    cad_score = compute_cad_score(acc_baseline, acc_defense)
+    cost = estimate_defense_cost("dp_training")
+
+    pcr = 1.0
+    cs = 1.0
+    final = compute_defense_score(mitigation, cad_score, pcr=pcr, cs=cs, dcs=cost)
+
+    return {
+        "mitigation_score": round(mitigation, 3),
+        "cad_score": round(cad_score, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+def evaluate_provenance_tracking(defense_data, attack_data, baseline_data):
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_after_attack"]
+    acc_defense = defense_data["accuracy_clean"]
+
+    mitigation = compute_mitigation_score(acc_baseline, acc_attack, acc_defense)
+    cad_score = compute_cad_score(acc_baseline, acc_defense)
+    cost = estimate_defense_cost("provenance_tracking")
+
+    pcr = 1.0
+    cs = 1.0
+    final = compute_defense_score(mitigation, cad_score, pcr=pcr, cs=cs, dcs=cost)
+
+    return {
+        "mitigation_score": round(mitigation, 3),
+        "cad_score": round(cad_score, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+
+def evaluate_influence_functions(defense_data, attack_data, baseline_data):
+    acc_baseline = baseline_data["overall_accuracy"]
+    acc_attack = attack_data["accuracy_after_attack"]
+    acc_defense = defense_data["accuracy_clean"]
+
+    mitigation = compute_mitigation_score(acc_baseline, acc_attack, acc_defense)
+    cad_score = compute_cad_score(acc_baseline, acc_defense)
+    cost = estimate_defense_cost("influence_function")
+
+    pcr = 1.0
+    cs = 1.0
+    final = compute_defense_score(mitigation, cad_score, pcr=pcr, cs=cs, dcs=cost)
+
+    return {
+        "mitigation_score": round(mitigation, 3),
+        "cad_score": round(cad_score, 3),
+        "defense_cost_score": round(cost, 3),
+        "final_score": round(final, 3)
+    }
+
+

@@ -40,8 +40,46 @@
     }
   },
   "data_poisoning": {
-    "clean_label": {},
-    "label_flipping": {}
+    "clean_label": {
+      "provenance_tracking": {
+        "mitigation_score": 0.561,
+        "cad_score": 0.79,
+        "defense_cost_score": 0.5,
+        "final_score": 0.295
+      },
+      "influence_functions": {
+        "mitigation_score": 0.573,
+        "cad_score": 0.796,
+        "defense_cost_score": 0.6,
+        "final_score": 0.285
+      }
+    },
+    "label_flipping": {
+      "data_cleaning": {
+        "mitigation_score": 0.603,
+        "cad_score": 0.497,
+        "defense_cost_score": 0.2,
+        "final_score": 0.25
+      },
+      "per_class_monitoring": {
+        "mitigation_score": 0.0,
+        "cad_score": 0.0,
+        "defense_cost_score": 0.2,
+        "final_score": 0.0
+      },
+      "robust_loss": {
+        "mitigation_score": 0.675,
+        "cad_score": 0.588,
+        "defense_cost_score": 0.5,
+        "final_score": 0.264
+      },
+      "dp_training": {
+        "mitigation_score": -1.449,
+        "cad_score": 0.0,
+        "defense_cost_score": 0.7,
+        "final_score": -0.0
+      }
+    }
   },
   "evasion": {
     "pgd": {},

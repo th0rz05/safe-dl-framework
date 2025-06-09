@@ -10,7 +10,13 @@ from defense_score_utils import (
     evaluate_anomaly_detection,
     evaluate_pruning,
     evaluate_fine_pruning,
-    evaluate_model_inspection
+    evaluate_model_inspection,
+    evaluate_dp_training,
+    evaluate_robust_loss,
+    evaluate_data_cleaning,
+    evaluate_influence_functions,
+    evaluate_provenance_tracking,
+    evaluate_per_class_monitoring
 )
 
 
