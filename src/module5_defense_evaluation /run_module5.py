@@ -3,7 +3,14 @@ import yaml
 import json
 from glob import glob
 import questionary
-from defense_score_utils import evaluate_activation_clustering
+from defense_score_utils import (
+    evaluate_activation_clustering,
+    evaluate_spectral_signatures,
+    evaluate_anomaly_detection,
+    evaluate_pruning,
+    evaluate_fine_pruning,
+    evaluate_model_inspection
+)
 
 RESULTS_BASE = "../module2_attack_simulation/results"
 DEFENSE_RESULTS_BASE = "../module4_defense_application/results"
