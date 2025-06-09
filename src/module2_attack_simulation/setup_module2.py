@@ -936,7 +936,7 @@ def run_setup():
 
         if evasion_cfg:
             profile_data["attack_overrides"] = profile_data.get("attack_overrides", {})
-            profile_data["attack_overrides"]["evasion_attacks"] = evasion_cfg
+            profile_data["attack_overrides"]["evasion"] = evasion_cfg
 
 
     with open(profile_path, "w") as f:

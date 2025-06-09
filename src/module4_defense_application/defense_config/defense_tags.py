@@ -15,7 +15,7 @@ DEFENSE_TAGS = {
             "dp_training"
         ]
     },
-    "evasion_attacks": {
+    "evasion": {
         "fgsm": ["adversarial_training", "randomized_smoothing"],
         "pgd": ["adversarial_training", "randomized_smoothing"],
         "nes": ["gradient_masking", "jpeg_preprocessing"],

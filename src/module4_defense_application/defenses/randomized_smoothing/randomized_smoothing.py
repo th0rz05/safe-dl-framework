@@ -42,7 +42,7 @@ def evaluate_with_smoothing(model, dataset, sigma, device, class_names, num_samp
 
 def run_randomized_smoothing_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Randomized Smoothing defense for evasion attack: {attack_type}...")
-    cfg = profile["defense_config"]["evasion_attacks"][attack_type]["randomized_smoothing"]
+    cfg = profile["defense_config"]["evasion"][attack_type]["randomized_smoothing"]
     sigma = cfg.get("sigma", 0.25)
     num_samples = cfg.get("num_samples", 25)
 

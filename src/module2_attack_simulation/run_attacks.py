@@ -104,7 +104,7 @@ def run_attacks(profile,trainset, testset, valset, class_names):
     if "evasion_attacks" in threat_categories:
         print("[*] Running Evasion attacks...")
 
-        evasion_attacks = profile.get("attack_overrides", {}).get("evasion_attacks", {})
+        evasion_attacks = profile.get("attack_overrides", {}).get("evasion", {})
 
         if "fgsm" in evasion_attacks:
             print("  - Executing FGSM...")
@@ -153,7 +153,7 @@ def main():
     trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
 
     print("[*] Training clean model...")
-    #train_clean_model(profile, trainset, testset, valset, class_names)
+    train_clean_model(profile, trainset, testset, valset, class_names)
 
     print("[*] Starting attack simulations...\n")
     run_attacks(profile,trainset, testset, valset, class_names)

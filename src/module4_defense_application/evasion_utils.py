@@ -106,7 +106,7 @@ def apply_attack_to_dataset(model, testset, attack_type, epsilon, device):
 
 def apply_attack_spsa_to_dataset(model, testset, profile, device):
     print("[*] Applying SPSA attack to dataset...")
-    cfg = profile.get("attack_overrides", {}).get("evasion_attacks", {}).get("spsa", {})
+    cfg = profile.get("attack_overrides", {}).get("evasion", {}).get("spsa", {})
 
     epsilon = cfg.get("epsilon", 0.03)
     delta = cfg.get("delta", 0.01)

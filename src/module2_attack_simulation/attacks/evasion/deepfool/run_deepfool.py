@@ -65,7 +65,7 @@ def deepfool_attack(model, x, num_classes, max_iter=50, overshoot=0.02):
 
 def run_deepfool(testset, profile, class_names):
     # === Load DeepFool config ===
-    cfg = profile["attack_overrides"]["evasion_attacks"]["deepfool"]
+    cfg = profile["attack_overrides"]["evasion"]["deepfool"]
     max_iter = cfg["max_iter"]
     overshoot = cfg["overshoot"]
 

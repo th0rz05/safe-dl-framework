@@ -90,7 +90,7 @@ def main():
             analysis["learned_trigger"] = analyze_learned_trigger(data)
 
     # Evasion
-    ev_attacks = attack_overrides.get("evasion_attacks", {})
+    ev_attacks = attack_overrides.get("evasion", {})
 
     if "fgsm" in ev_attacks:
         path = EV_DIR / "fgsm" / "fgsm_metrics.json"

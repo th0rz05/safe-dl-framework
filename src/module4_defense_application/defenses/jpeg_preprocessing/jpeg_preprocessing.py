@@ -28,7 +28,7 @@ def jpeg_transform(tensor, quality):
 def run_jpeg_preprocessing_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running JPEG Preprocessing defense for evasion attack: {attack_type}...")
 
-    cfg = profile["defense_config"]["evasion_attacks"][attack_type]["jpeg_preprocessing"]
+    cfg = profile["defense_config"]["evasion"][attack_type]["jpeg_preprocessing"]
     quality = cfg.get("quality", 75)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

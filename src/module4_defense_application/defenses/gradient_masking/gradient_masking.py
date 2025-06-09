@@ -39,7 +39,7 @@ def masked_inference(model, dataloader, strength, device, class_names):
 def run_gradient_masking_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Gradient Masking defense for evasion attack: {attack_type}...")
 
-    cfg = profile["defense_config"]["evasion_attacks"][attack_type]["gradient_masking"]
+    cfg = profile["defense_config"]["evasion"][attack_type]["gradient_masking"]
     strength = cfg.get("strength", 0.5)
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

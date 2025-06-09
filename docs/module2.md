@@ -2462,11 +2462,11 @@ If the profile includes the threat category `"evasion_attacks"`, the script acti
 - `transfer`: Transfer-based evasion attack
 - `boundary`: Boundary attack (black-box decision-based)
 
-Each attack includes a dedicated configuration block under the `attack_overrides → evasion_attacks` section of the profile YAML. For example:
+Each attack includes a dedicated configuration block under the `attack_overrides → evasion` section of the profile YAML. For example:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     fgsm:
       epsilon: 0.03
     pgd:
@@ -2499,7 +2499,7 @@ Use this value? [Y/n] → n
 Enter epsilon value: → 0.02
 ```
 
-The final values are saved to the profile YAML under `evasion_attacks → fgsm → epsilon`.
+The final values are saved to the profile YAML under `evasion → fgsm → epsilon`.
 
 This centralized setup ensures that:
 
@@ -2572,7 +2572,7 @@ Once selected, the value is stored in the profile YAML under:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     fgsm:
       epsilon: 0.03
 ```
@@ -2596,13 +2596,13 @@ This configuration is then used directly in `run_fgsm.py` to generate adversaria
 
 #### 12.3.4 YAML Integration
 
-The FGSM attack configuration is stored inside the profile YAML file under the `attack_overrides → evasion_attacks → fgsm` section. This centralized configuration ensures that the attack is reproducible and traceable across different runs.
+The FGSM attack configuration is stored inside the profile YAML file under the `attack_overrides → evasion → fgsm` section. This centralized configuration ensures that the attack is reproducible and traceable across different runs.
 
 The structure looks like this:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     fgsm:
       epsilon: 0.03
 ```
@@ -2785,7 +2785,7 @@ These parameters are stored under:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     pgd:
       epsilon: 0.03
       alpha: 0.01
@@ -2817,13 +2817,13 @@ This configuration is then automatically loaded when executing `run_pgd.py`.
 
 #### 12.4.4 YAML Integration
 
-The PGD attack parameters are saved inside the YAML profile file under the `attack_overrides → evasion_attacks → pgd` section.
+The PGD attack parameters are saved inside the YAML profile file under the `attack_overrides → evasion → pgd` section.
 
 Example structure:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     pgd:
       epsilon: 0.03
       alpha: 0.01
@@ -3022,11 +3022,11 @@ Do you want to accept these suggestions? (y/n): y
 
 #### 12.5.4 YAML Integration
 
-The C&W attack configuration is stored under the `attack_overrides → evasion_attacks → cw` section of the profile YAML file:
+The C&W attack configuration is stored under the `attack_overrides → evasion → cw` section of the profile YAML file:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     cw:
       binary_search_steps: 9
       confidence: 0.1
@@ -3195,7 +3195,7 @@ The attack configuration is saved in the threat profile YAML under:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     deepfool:
       max_iter: 50
       overshoot: 0.02
@@ -3357,11 +3357,11 @@ Accept these settings? (y/n): y
 
 #### 12.7.4 YAML Integration
 
-The NES attack configuration is stored under the `attack_overrides → evasion_attacks → nes` section of the profile YAML file:
+The NES attack configuration is stored under the `attack_overrides → evasion → nes` section of the profile YAML file:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     nes:
       epsilon: 0.05
       sigma: 0.01
@@ -3560,13 +3560,13 @@ Accept these settings? (y/n): y
 
 #### 12.8.4 YAML Integration
 
-The SPSA attack settings are saved under the `attack_overrides → evasion_attacks → spsa` section of the profile YAML.
+The SPSA attack settings are saved under the `attack_overrides → evasion → spsa` section of the profile YAML.
 
 Example:
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     spsa:
       epsilon: 0.03
       delta: 0.01
@@ -3719,7 +3719,7 @@ During setup, the user is guided to define the substitute model and attack metho
 
 ```yaml
 attack_overrides:
-  evasion_attacks:
+  evasion:
     transfer:
       attack_method: fgsm
       substitute_model:

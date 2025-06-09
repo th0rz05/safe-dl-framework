@@ -20,7 +20,7 @@ def fgsm_attack(model, x, y, epsilon):
 
 def run_fgsm(testset, profile, class_names):
     # === Load FGSM config ===
-    cfg = profile["attack_overrides"]["evasion_attacks"]["fgsm"]
+    cfg = profile["attack_overrides"]["evasion"]["fgsm"]
     epsilon = cfg["epsilon"]
 
     # === Load clean model ===

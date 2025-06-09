@@ -68,7 +68,7 @@ def cw_attack(model, x, y, targeted, confidence, initial_const, learning_rate, m
 
 def run_cw(testset, profile, class_names):
     # === Load CW config ===
-    cfg = profile["attack_overrides"]["evasion_attacks"]["cw"]
+    cfg = profile["attack_overrides"]["evasion"]["cw"]
     targeted = cfg.get("targeted", False)
     confidence = cfg.get("confidence", 0.0)
     initial_const = cfg.get("initial_const", 0.001)

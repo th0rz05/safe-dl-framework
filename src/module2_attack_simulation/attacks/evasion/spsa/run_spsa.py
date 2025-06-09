@@ -44,7 +44,7 @@ def spsa_attack(model, x, y, epsilon, delta, learning_rate, num_steps, batch_siz
 
 def run_spsa(testset, profile, class_names):
     # === Load SPSA config ===
-    cfg = profile["attack_overrides"]["evasion_attacks"]["spsa"]
+    cfg = profile["attack_overrides"]["evasion"]["spsa"]
     epsilon = cfg["epsilon"]
     delta = cfg["delta"]
     learning_rate = cfg["learning_rate"]

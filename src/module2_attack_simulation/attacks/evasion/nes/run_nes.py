@@ -48,7 +48,7 @@ def nes_attack(model, x, y, epsilon, sigma, learning_rate, num_queries, batch_si
 
 def run_nes(testset, profile, class_names):
     # === Load NES config ===
-    cfg = profile["attack_overrides"]["evasion_attacks"]["nes"]
+    cfg = profile["attack_overrides"]["evasion"]["nes"]
     epsilon = cfg["epsilon"]
     sigma = cfg["sigma"]
     learning_rate = cfg["learning_rate"]

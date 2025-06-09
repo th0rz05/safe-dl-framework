@@ -96,7 +96,7 @@ def apply_backdoor_defenses(profile, trainset, testset, valset, class_names):
 
 
 def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
-    ev_defenses = profile.get("defense_config", {}).get("evasion_attacks", {})
+    ev_defenses = profile.get("defense_config", {}).get("evasion", {})
     for attack_type, config in ev_defenses.items():
         print(f"\n[*] Applying evasion defenses for: {attack_type}")
         for defense_name in config.get("defenses", []):

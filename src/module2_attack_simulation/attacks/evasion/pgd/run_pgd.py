@@ -33,7 +33,7 @@ def pgd_attack(model, x, y, epsilon, alpha, num_iter, random_start=True):
 
 def run_pgd(testset, profile, class_names):
     # === Load PGD config ===
-    cfg = profile["attack_overrides"]["evasion_attacks"]["pgd"]
+    cfg = profile["attack_overrides"]["evasion"]["pgd"]
     epsilon = cfg["epsilon"]
     alpha = cfg["alpha"]
     num_iter = cfg["num_iter"]

@@ -16,7 +16,7 @@ from attacks.evasion.pgd.run_pgd import pgd_attack
 
 def run_transfer(trainset,testset,valset, profile, class_names):
     # === Load Transfer config ===
-    cfg = profile["attack_overrides"]["evasion_attacks"]["transfer"]
+    cfg = profile["attack_overrides"]["evasion"]["transfer"]
     substitute_info = cfg["substitute_model"]
     attack_method = cfg["attack_method"]
 
@@ -65,7 +65,7 @@ def run_transfer(trainset,testset,valset, profile, class_names):
             os.remove(os.path.join(examples_dir, file))
 
     # === Attack parameters (if needed) ===
-    attack_params = profile["attack_overrides"]["evasion_attacks"].get(attack_method, {})
+    attack_params = profile["attack_overrides"]["evasion"].get(attack_method, {})
 
     example_log = []
     total = 0

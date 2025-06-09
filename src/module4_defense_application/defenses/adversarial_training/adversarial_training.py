@@ -16,7 +16,7 @@ from attacks.utils import load_model_cfg_from_profile, evaluate_model
 def run_adversarial_training_defense(profile, trainset, testset, valset, class_names, attack_type):
     print(f"[*] Running Adversarial Training defense for evasion attack: {attack_type}...")
 
-    cfg = profile["defense_config"]["evasion_attacks"][attack_type]["adversarial_training"]
+    cfg = profile["defense_config"]["evasion"][attack_type]["adversarial_training"]
     epsilon = cfg.get("epsilon", 0.03)
     base_attack = cfg.get("attack_type", "fgsm")
 
