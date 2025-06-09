@@ -5,7 +5,7 @@ from defense_utils import (
     compute_defense_score
 )
 
-def evaluate_activation_clustering(defense_data, attack_data):
+def evaluate_activation_clustering(defense_data, attack_data,_):
     """
     Evaluates the effectiveness of the 'activation_clustering' defense
     using standard metrics and scoring formulas.
@@ -40,7 +40,7 @@ def evaluate_activation_clustering(defense_data, attack_data):
     }
 
 
-def evaluate_spectral_signatures(defense_data: dict, attack_data: dict) -> dict:
+def evaluate_spectral_signatures(defense_data: dict, attack_data: dict,_) -> dict:
     """
     Evaluates the performance of the spectral signature defense against a backdoor attack.
 
@@ -76,7 +76,7 @@ def evaluate_spectral_signatures(defense_data: dict, attack_data: dict) -> dict:
     }
 
 
-def evaluate_anomaly_detection(defense_data: dict, attack_data: dict) -> dict:
+def evaluate_anomaly_detection(defense_data: dict, attack_data: dict,_) -> dict:
     """
     Evaluates the performance of the anomaly detection defense against a backdoor attack.
 
@@ -111,7 +111,7 @@ def evaluate_anomaly_detection(defense_data: dict, attack_data: dict) -> dict:
     }
 
 
-def evaluate_pruning(defense_data: dict, attack_data: dict) -> dict:
+def evaluate_pruning(defense_data: dict, attack_data: dict,_) -> dict:
     """
     Evaluates the performance of the pruning defense against a backdoor attack.
 
@@ -145,7 +145,7 @@ def evaluate_pruning(defense_data: dict, attack_data: dict) -> dict:
         "final_score": round(final_score, 3)
     }
 
-def evaluate_fine_pruning(defense_data: dict, attack_data: dict) -> dict:
+def evaluate_fine_pruning(defense_data: dict, attack_data: dict,_) -> dict:
     acc_baseline = attack_data.get("accuracy_clean_testset", 0.0)
     acc_attack = attack_data.get("attack_success_rate", 0.0)
     acc_defense_adv = defense_data.get("accuracy_adversarial", 0.0)
@@ -168,7 +168,7 @@ def evaluate_fine_pruning(defense_data: dict, attack_data: dict) -> dict:
     }
 
 
-def evaluate_model_inspection(defense_data: dict, attack_data: dict) -> dict:
+def evaluate_model_inspection(defense_data: dict, attack_data: dict,_) -> dict:
     acc_baseline = attack_data.get("accuracy_clean_testset", 0.0)
     acc_attack = attack_data.get("attack_success_rate", 0.0)
     acc_defense_adv = defense_data.get("accuracy_adversarial", 0.0)

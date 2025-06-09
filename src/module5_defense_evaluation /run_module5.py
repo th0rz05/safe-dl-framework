@@ -96,7 +96,7 @@ def main():
                     continue
 
                 try:
-                    score = evaluate_fn(defense_data, attack_data)
+                    score = evaluate_fn(defense_data, attack_data,baseline)
                     all_scores[attack_category][attack_name][defense] = score
                     print(f"      [✓] Scores for {defense}:")
                     print(f"         Mitigation Score : {score['mitigation_score']}")
