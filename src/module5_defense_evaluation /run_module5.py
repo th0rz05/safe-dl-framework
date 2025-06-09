@@ -23,6 +23,8 @@ from defense_score_utils import (
     evaluate_jpeg_preprocessing
 )
 
+from generate_defense_evaluation_report import generate_report
+
 
 
 RESULTS_BASE = "../module2_attack_simulation/results"
@@ -122,6 +124,13 @@ def main():
         json.dump(all_scores, f_out, indent=2)
 
     print(f"\n[✓] All scores saved to {RESULTS_JSON_PATH}")
+
+    generate_report(
+        profile_path="../profiles/test.yaml",
+        json_path="results/defense_evaluation.json",
+        md_path="results/defense_evaluation_report.md"
+    )
+
 
 if __name__ == "__main__":
     main()
