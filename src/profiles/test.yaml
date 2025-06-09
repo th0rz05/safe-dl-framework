@@ -1,14 +1,5 @@
 attack_overrides:
   backdoor:
-    learned_trigger:
-      epochs: 30
-      label_mode: corrupted
-      lambda_mask: 0.001
-      lambda_tv: 0.01
-      learning_rate: 0.1
-      patch_size_ratio: 0.05
-      poison_fraction: 0.05
-      target_class: 9
     static_patch:
       blend_alpha: 1.0
       label_mode: corrupted
@@ -24,13 +15,13 @@ attack_overrides:
       max_iterations: 100
       perturbation_method: feature_collision
       source_selection: random
-      target_class: 3
+      target_class: 5
     label_flipping:
       flip_rate: 0.08
       source_class: null
       strategy: many_to_one
-      target_class: 8
-  evasion_attacks:
+      target_class: 1
+  evasion:
     pgd:
       alpha: 0.01
       epsilon: 0.03
@@ -100,7 +91,7 @@ defense_config:
         std_threshold: 2.0
       robust_loss:
         type: gce
-  evasion_attacks:
+  evasion:
     pgd:
       adversarial_training:
         attack_type: fgsm
