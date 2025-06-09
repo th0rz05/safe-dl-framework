@@ -1,4 +1,22 @@
 attack_overrides:
+  backdoor:
+    learned_trigger:
+      epochs: 30
+      label_mode: corrupted
+      lambda_mask: 0.001
+      lambda_tv: 0.01
+      learning_rate: 0.1
+      patch_size_ratio: 0.05
+      poison_fraction: 0.05
+      target_class: 9
+    static_patch:
+      blend_alpha: 1.0
+      label_mode: corrupted
+      patch_position: bottom_right
+      patch_size_ratio: 0.15
+      patch_type: white_square
+      poison_fraction: 0.05
+      target_class: 7
   data_poisoning:
     clean_label:
       epsilon: 0.1
@@ -6,24 +24,74 @@ attack_overrides:
       max_iterations: 100
       perturbation_method: feature_collision
       source_selection: random
-      target_class: 2
+      target_class: 3
     label_flipping:
       flip_rate: 0.08
       source_class: null
       strategy: many_to_one
-      target_class: 6
+      target_class: 8
+  evasion_attacks:
+    pgd:
+      alpha: 0.01
+      epsilon: 0.03
+      num_iter: 50
+      random_start: true
+    spsa:
+      batch_size: 32
+      delta: 0.01
+      epsilon: 0.03
+      learning_rate: 0.01
+      max_samples: 500
+      num_steps: 150
 dataset:
   name: cifar10
   type: builtin
 defense_config:
-  backdoor: {}
+  backdoor:
+    static_patch:
+      activation_clustering:
+        num_clusters: 2
+      anomaly_detection:
+        type: isolation_forest
+      defenses:
+      - activation_clustering
+      - spectral_signatures
+      - anomaly_detection
+      - pruning
+      - fine_pruning
+      - model_inspection
+      fine_pruning:
+        pruning_ratio: 0.2
+      model_inspection:
+        layers:
+        - conv.0.weight
+        - conv.0.bias
+        - fc.1.weight
+        - fc.1.bias
+      pruning:
+        pruning_ratio: 0.2
+        scope: all_layers
+      spectral_signatures:
+        threshold: 0.9
   data_poisoning:
+    clean_label:
+      defenses:
+      - provenance_tracking
+      - influence_functions
+      influence_functions:
+        method: grad_influence
+        sample_size: 500
+      provenance_tracking:
+        granularity: sample
     label_flipping:
       data_cleaning:
         method: loss_filtering
         threshold: 0.9
       defenses:
       - data_cleaning
+      - per_class_monitoring
+      - robust_loss
+      - dp_training
       dp_training:
         clip_norm: 1.0
         delta: 1.0e-05
@@ -32,7 +100,24 @@ defense_config:
         std_threshold: 2.0
       robust_loss:
         type: gce
-  evasion_attacks: {}
+  evasion_attacks:
+    pgd:
+      adversarial_training:
+        attack_type: fgsm
+        epsilon: 0.03
+      defenses:
+      - adversarial_training
+      - randomized_smoothing
+      randomized_smoothing:
+        sigma: 0.25
+    spsa:
+      defenses:
+      - gradient_masking
+      - jpeg_preprocessing
+      gradient_masking:
+        strength: 0.5
+      jpeg_preprocessing:
+        quality: 75
 model:
   input_shape:
   - 3
