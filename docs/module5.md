@@ -7,6 +7,31 @@ After simulating attacks (Module 2) and applying countermeasures (Module 4), Mod
 It reads the raw metrics collected from previous modules and produces a structured evaluation report, both in `.json` and `.md` format, helping users make informed decisions about which defenses are most suitable for their threat model and deployment context.
 
 
+## Table of Contents
+
+- [1. Module Overview](#1-module-overview)
+- [2. Inputs and Outputs](#2-inputs-and-outputs)
+  * [2.1 Inputs](#21-inputs)
+  * [2.2 Outputs](#22-outputs)
+- [3. Scoring Methodology](#3-scoring-methodology)
+  * [3.1 Mitigation Score](#31-mitigation-score)
+  * [3.2 Clean Accuracy Drop (CAD) Score](#32-clean-accuracy-drop--cad--score)
+  * [3.3 Cost Score](#33-cost-score)
+  * [3.4 Final Score](#34-final-score)
+- [4. Implementation Details](#4-implementation-details)
+  * [4.1 Input Files](#41-input-files)
+  * [4.2 Output Files](#42-output-files)
+  * [4.3 Execution Flow](#43-execution-flow)
+  * [4.4 Modular Design](#44-modular-design)
+- [5. Results Summary](#5-results-summary)
+  * [5.1 Summary Table](#51-summary-table)
+  * [5.2 Notable Observations](#52-notable-observations)
+  * [5.3 Report Generation](#53-report-generation)
+- [6. Limitations and Future Work](#6-limitations-and-future-work)
+  * [6.1 Current Limitations](#61-current-limitations)
+  * [6.2 Planned Enhancements](#62-planned-enhancements)
+- [7. Conclusion](#7-conclusion)
+
 
 ## 1. Module Overview
 
