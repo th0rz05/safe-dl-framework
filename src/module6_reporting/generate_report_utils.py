@@ -330,13 +330,93 @@ def generate_attack_simulation_section(profile_data: dict) -> str:
         ]
         table_lines.append("| " + " | ".join(table_row) + " |")
 
+    # Process Evasion attacks
+    evasion_attacks = attack_overrides.get('evasion', {})
+
+    for method, params in evasion_attacks.items():
+        metrics_file_path = os.path.join(MODULE2_RESULTS_DIR, 'evasion', method, f"{method}_metrics.json")
+
+        report_md_file_name = f"{method}_report.md"
+        report_file_path_md = os.path.join(MODULE2_RESULTS_DIR, 'evasion', method, report_md_file_name)
+
+        current_dir = os.getcwd()
+        reports_abs_path = os.path.join(current_dir, REPORTS_DIR)
+
+        # Default link to JSON, will be updated to MD if MD exists
+        link_to_details_path = os.path.relpath(metrics_file_path, reports_abs_path)
+
+        if not os.path.exists(metrics_file_path):
+            print(f"[!] Warning: Metrics file not found for evasion/{method}: {metrics_file_path}")
+            continue
+
+        if os.path.exists(report_file_path_md):
+            link_to_details_path = os.path.relpath(report_file_path_md, reports_abs_path)
+        else:
+            print(
+                f"[!] Warning: Markdown report file not found for evasion/{method}: {report_file_path_md}. Linking to JSON instead.")
+
+        attack_metrics = load_json(metrics_file_path)
+
+        attack_category = "Evasion"
+        attack_method_display = method.replace('_', ' ').title()
+
+        clean_acc_post_evasion = attack_metrics.get("accuracy_clean_testset", None)
+        adversarial_accuracy = attack_metrics.get("accuracy_adversarial_testset", None)
+
+        clean_acc_pre_attack_display = f"{baseline_accuracy * 100:.2f}%"
+
+        if clean_acc_post_evasion is not None:
+            impact_on_clean_acc_display = f"{clean_acc_post_evasion * 100:.2f}%"
+        else:
+            impact_on_clean_acc_display = "N/A"
+
+        if adversarial_accuracy is not None:
+            attack_metric_display = f"{adversarial_accuracy * 100:.2f}% (Adv. Acc.)"  # Lower is better for attacker
+        else:
+            attack_metric_display = "N/A (Adv. Acc.)"
+
+        key_params_str = []
+        if method == 'pgd':
+            key_params_str.append(f"Epsilon: {params.get('epsilon', 'N/A')}")
+            key_params_str.append(f"Num Iter: {params.get('num_iter', 'N/A')}")
+        elif method == 'spsa':
+            key_params_str.append(f"Epsilon: {params.get('epsilon', 'N/A')}")
+            key_params_str.append(f"Num Steps: {params.get('num_steps', 'N/A')}")
+            key_params_str.append(f"Delta: {params.get('delta', 'N/A')}")  # Added delta
+        elif method == 'fgsm':
+            key_params_str.append(f"Epsilon: {params.get('epsilon', 'N/A')}")
+        elif method == 'cw':
+            key_params_str.append(f"Confidence: {params.get('confidence', 'N/A')}")
+            key_params_str.append(f"Max Iter: {params.get('max_iterations', 'N/A')}")
+        elif method == 'deepfool':
+            key_params_str.append(f"Max Iter: {params.get('max_iter', 'N/A')}")
+            key_params_str.append(f"Overshoot: {params.get('overshoot', 'N/A')}")
+        elif method == 'nes':
+            key_params_str.append(f"Epsilon: {params.get('epsilon', 'N/A')}")
+            key_params_str.append(f"Num Queries: {params.get('num_queries', 'N/A')}")
+        elif method == 'transfer':  # Assuming 'transfer_fgsm' might just be 'transfer' in profile
+            key_params_str.append(f"Substitute Model: {params.get('substitute_model', {}).get('name', 'N/A')}")
+            key_params_str.append(f"Epsilon: {params.get('epsilon', 'N/A')}")
+
+        table_row = [
+            attack_category,
+            attack_method_display,
+            clean_acc_pre_attack_display,
+            impact_on_clean_acc_display,
+            attack_metric_display,
+            ", ".join(key_params_str) if key_params_str else "N/A",
+            f"[Details]({link_to_details_path})"
+        ]
+        table_lines.append("| " + " | ".join(table_row) + " |")
+
     section_lines.extend(table_lines)
 
     section_lines.append(
         "\n**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. "
         "'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being subjected to the attack (e.g., trained with poisoned data, or backdoor injected). "
         "For Data Poisoning attacks, 'Attack Metric' displays the degraded accuracy of the model on clean inputs after poisoning. "
-        "For Backdoor attacks, 'Attack Metric' displays the Attack Success Rate (ASR), indicating the percentage of adversarial samples (with trigger) successfully misclassified to the target class.\n"
+        "For Backdoor attacks, 'Attack Metric' displays the Attack Success Rate (ASR), indicating the percentage of adversarial samples (with trigger) successfully misclassified to the target class. "
+        "For Evasion attacks, 'Attack Metric' displays the Adversarial Accuracy (Adv. Acc.) on perturbed inputs, where a lower value indicates a more successful attack.\n"
     )
 
     section_lines.append("\n")
