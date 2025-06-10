@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-10 19:58:33
+**Report Generated On**: 2025-06-10 20:12:00
 
 ---
 
@@ -21,3 +21,37 @@ This section details the core components of the system analyzed in this report, 
 ### 2.2 Dataset Details
 - **Name**: `cifar10`
 - **Type**: `builtin`
+
+## 3. Threat Profile (Module 1)
+This section outlines the specific characteristics of the system's environment and the anticipated adversary, as defined during the threat modeling phase (Module 1). These parameters guide the subsequent attack simulations, risk analysis, and defense applications.
+
+- **Model Access**: `white-box`
+  *Describes the level of access the adversary has to the model internals (e.g., weights, architecture).*
+
+- **Attack Goal**: `targeted`
+  *Defines the adversary's objective (e.g., targeted misclassification, untargeted denial of service).*
+
+- **Deployment Scenario**: `cloud`
+  *Indicates where the model is deployed (e.g., cloud, edge device, mobile).*
+
+- **Interface Exposed**: `api`
+  *How the model interacts with external entities (e.g., API, direct access, web application).*
+
+- **Model Type**: `cnn`
+  *The architectural type of the deep learning model.*
+
+- **Data Sensitivity**: `high`
+  *The sensitivity level of the data used by the model, impacting privacy concerns.*
+
+- **Training Data Source**: `internal_clean`
+  *Origin and cleanliness of the data used for training the model.*
+
+- **Threat Categories**:
+    - `data_poisoning`
+    - `backdoor_attacks`
+    - `evasion_attacks`
+    - `model_stealing`
+    - `membership_inference`
+    - `model_inversion`
+
+  *A list of attack types considered relevant for this threat profile.*

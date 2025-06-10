@@ -113,3 +113,51 @@ def generate_system_details_section(profile_data: dict) -> str:
         f"- **Type**: `{dataset_type}`\n"
     ])
     return "\n".join(section_lines)
+
+def generate_threat_profile_section(profile_data: dict) -> str:
+    """
+    Generates a Markdown section detailing the threat model from the profile.
+    Args:
+        profile_data (dict): The loaded data from the selected threat profile YAML.
+    Returns:
+        str: A Markdown string representing the threat profile section.
+    """
+    threat_model = profile_data.get('threat_model', {})
+
+    section_lines = [
+        "## 3. Threat Profile (Module 1)",
+        "This section outlines the specific characteristics of the system's environment and the anticipated adversary, "
+        "as defined during the threat modeling phase (Module 1). These parameters guide the subsequent attack simulations, "
+        "risk analysis, and defense applications.\n"
+    ]
+
+    # Define a mapping for display names and optional descriptions
+    # Using ordered list of tuples to maintain a consistent order in the report
+    threat_model_fields = [
+        ("model_access", "Model Access", "Describes the level of access the adversary has to the model internals (e.g., weights, architecture)."),
+        ("attack_goal", "Attack Goal", "Defines the adversary's objective (e.g., targeted misclassification, untargeted denial of service)."),
+        ("deployment_scenario", "Deployment Scenario", "Indicates where the model is deployed (e.g., cloud, edge device, mobile)."),
+        ("interface_exposed", "Interface Exposed", "How the model interacts with external entities (e.g., API, direct access, web application)."),
+        ("model_type", "Model Type", "The architectural type of the deep learning model."),
+        ("data_sensitivity", "Data Sensitivity", "The sensitivity level of the data used by the model, impacting privacy concerns."),
+        ("training_data_source", "Training Data Source", "Origin and cleanliness of the data used for training the model."),
+        ("threat_categories", "Threat Categories", "A list of attack types considered relevant for this threat profile.")
+    ]
+
+    for key, display_name, description in threat_model_fields:
+        value = threat_model.get(key, 'N/A')
+        if key == "threat_categories":
+            section_lines.append(f"- **{display_name}**:")
+            if isinstance(value, list) and value:
+                for item in value:
+                    section_lines.append(f"    - `{item}`")
+            else:
+                section_lines.append(f"    - `N/A`")
+            section_lines.append("")
+            section_lines.append(f"  *{description}*")
+        else:
+            section_lines.append(f"- **{display_name}**: `{value}`")
+            section_lines.append(f"  *{description}*")
+        section_lines.append("") # Add an empty line for spacing between items
+
+    return "\n".join(section_lines)
