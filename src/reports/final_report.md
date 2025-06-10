@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-10 21:21:40
+**Report Generated On**: 2025-06-10 22:33:42
 
 ---
 
@@ -56,7 +56,7 @@ This section outlines the specific characteristics of the system's environment a
 
   *A list of attack types considered relevant for this threat profile.*
   
-*Note: While listed in the threat profile, 'model_stealing', 'membership_inference', and 'model_inversion' attack simulations and their corresponding defenses are currently considered future work and are not yet fully implemented in subsequent Modules. *
+*Note: While listed in the threat profile, 'model_stealing', 'membership_inference', and 'model_inversion' attack simulations and their corresponding defenses are currently considered future work and are not yet fully implemented in subsequent Modules.*
 
 ## 4. Attack Simulation (Module 2)
 This section summarizes the outcomes of the adversarial attack simulations performed against the model based on the defined threat profile. These simulations quantify the model's vulnerability to various attack types before any defenses are applied.
@@ -74,3 +74,65 @@ This section summarizes the outcomes of the adversarial attack simulations perfo
 **Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being subjected to the attack (e.g., trained with poisoned data, or backdoor injected). For Data Poisoning attacks, 'Attack Metric' displays the degraded accuracy of the model on clean inputs after poisoning. For Backdoor attacks, 'Attack Metric' displays the Attack Success Rate (ASR), indicating the percentage of adversarial samples (with trigger) successfully misclassified to the target class. For Evasion attacks, 'Attack Metric' displays the Adversarial Accuracy (Adv. Acc.) on perturbed inputs, where a lower value indicates a more successful attack.
 
 
+
+## 5. Risk Analysis (Module 3)
+
+This section summarizes the risk assessment performed on the simulated attacks. Each attack is evaluated based on its severity, probability, and visibility. A final risk score is computed to help prioritize mitigation strategies, followed by specific defense recommendations.
+
+
+### 5.1 Risk Summary Table
+
+| Attack | Type | Severity | Probability | Visibility | Risk Score | Report |
+|:--------------|:--------------|:--------------|:--------------|:--------------|:--------------|:--------------|
+| Pgd | Evasion | 1.00 | 1.00 | 0.30 | 1.70 | [Details](../module2_attack_simulation/results/evasion/pgd/pgd_report.md) |
+| Spsa | Evasion | 1.00 | 0.80 | 0.20 | 1.44 | [Details](../module2_attack_simulation/results/evasion/spsa/spsa_report.md) |
+| Static Patch | Backdoor | 1.00 | 1.00 | 0.60 | 1.40 | [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md) |
+| Label Flipping | Data Poisoning | 0.42 | 1.00 | 0.70 | 0.55 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
+| Clean Label | Data Poisoning | 0.16 | 0.90 | 0.30 | 0.24 | [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md) |
+
+
+### 5.2 Risk Matrix (Qualitative)
+
+This matrix categorizes attacks based on their qualitative Severity and Probability levels.
+
+| Severity \ Probability | Low | Medium | High |
+|:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| High | - | - | Pgd, Spsa, Static Patch |
+| Medium | - | - | Label Flipping |
+| Low | - | - | Clean Label |
+
+
+### 5.3 Risk Ranking
+
+Attacks ranked by their calculated Risk Score, from highest to lowest.
+
+1. **Pgd** — Risk Score: 1.70 → [Details](../module2_attack_simulation/results/evasion/pgd/pgd_report.md)
+2. **Spsa** — Risk Score: 1.44 → [Details](../module2_attack_simulation/results/evasion/spsa/spsa_report.md)
+3. **Static Patch** — Risk Score: 1.40 → [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)
+4. **Label Flipping** — Risk Score: 0.55 → [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md)
+5. **Clean Label** — Risk Score: 0.24 → [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md)
+
+
+
+### 5.4 Defense Recommendations
+
+Based on the identified risks and threat profile, the following defense recommendations are provided:
+
+- **Clean Label**:
+  - provenance_tracking
+  - influence_functions
+- **Label Flipping**:
+  - data_cleaning
+  - per_class_monitoring
+- **Pgd**:
+  - adversarial_training
+  - randomized_smoothing
+- **Spsa**:
+  - gradient_masking
+  - jpeg_preprocessing
+
+
+
+### 5.5 Paths to Details
+
+For more in-depth information about individual attacks, including raw metrics, attack visualizations, and specific parameters, please refer to the detailed reports linked in the 'Risk Summary Table' and 'Risk Ranking' sections above.

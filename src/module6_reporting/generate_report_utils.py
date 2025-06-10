@@ -58,6 +58,20 @@ def load_baseline_accuracy() -> float:
     print(f"[!] Warning: Baseline accuracy file not found at {baseline_path}. Returning 0.0.")
     return 0.0
 
+def load_risk_analysis_results() -> dict:
+    """
+    Loads the risk_analysis.json file from the MODULE3_RESULTS_DIR.
+    Returns:
+        dict: The loaded risk analysis data.
+    Raises:
+        FileNotFoundError: If the risk_analysis.json file is not found.
+    """
+    risk_analysis_path = os.path.join(MODULE3_RESULTS_DIR, "risk_analysis.json")
+    if not os.path.exists(risk_analysis_path):
+        raise FileNotFoundError(f"Risk analysis results not found: {risk_analysis_path}. "
+                                f"Please ensure Module 3 has been run and 'risk_analysis.json' exists.")
+    return load_json(risk_analysis_path)
+
 # --- Report Section Generation Functions ---
 def generate_report_header(profile_data: dict, profile_name: str) -> str:
     """
@@ -424,5 +438,197 @@ def generate_attack_simulation_section(profile_data: dict) -> str:
     )
 
     section_lines.append("\n")
+
+    return "\n".join(section_lines)
+
+
+def generate_risk_analysis_section(profile_data: dict) -> str:
+    """
+    Generates the Risk Analysis section for the final report, including summary table,
+    risk matrix, ranking, and recommendations. It filters the risk_data to
+    only include attacks specified in the profile's attack_overrides.
+    """
+    section_lines = [
+        "## 5. Risk Analysis (Module 3)\n",
+        "This section summarizes the risk assessment performed on the simulated attacks. "
+        "Each attack is evaluated based on its severity, probability, and visibility. "
+        "A final risk score is computed to help prioritize mitigation strategies, "
+        "followed by specific defense recommendations.\n"
+    ]
+
+    risk_data = load_risk_analysis_results()
+
+    # --- Step 1: Filter risk_data based on attack_overrides in profile_data ---
+    # NEW LOGIC: Handle the nested dictionary structure of attack_overrides
+    profile_attack_overrides = profile_data.get('attack_overrides', {})
+
+    # Extract names of attacks defined in attack_overrides from the nested structure
+    filtered_attack_names = set()
+    for attack_type, attacks_by_type in profile_attack_overrides.items():
+        if isinstance(attacks_by_type, dict):  # Ensure it's a dict before iterating keys
+            for attack_name in attacks_by_type.keys():
+                filtered_attack_names.add(attack_name)
+
+    # Create a new dictionary containing only the risk data for relevant attacks
+    filtered_risk_data = {
+        name: data for name, data in risk_data.items()
+        if name in filtered_attack_names
+    }
+
+    # Use filtered_risk_data for all subsequent sections
+    current_risk_data = filtered_risk_data
+
+    # 4.1 Summary Table
+    section_lines.append("\n### 5.1 Risk Summary Table\n")
+    if not current_risk_data:
+        section_lines.append(
+            "No risk analysis data available for the attacks specified in the profile's `attack_overrides`.")
+    else:
+        headers = ["Attack", "Type", "Severity", "Probability", "Visibility", "Risk Score", "Report"]
+        table_rows = []
+        for attack_name, data in current_risk_data.items():
+            attack_type_folder = data.get('type')
+            if attack_type_folder == 'data_poisoning':
+                attack_type_folder_path = 'data_poisoning'
+            elif attack_type_folder == 'backdoor':
+                attack_type_folder_path = 'backdoor'
+            elif attack_type_folder == 'evasion':
+                attack_type_folder_path = 'evasion'
+            else:
+                attack_type_folder_path = 'unknown'  # Fallback
+
+            report_link = os.path.join(
+                "..", "module2_attack_simulation", "results",
+                attack_type_folder_path, attack_name, f"{attack_name}_report.md"
+            ).replace("\\", "/")
+
+            table_rows.append([
+                attack_name.replace('_', ' ').title(),
+                data.get('type', 'N/A').replace('_', ' ').title(),
+                f"{data.get('severity', 0.0):.2f}",
+                f"{data.get('probability', 0.0):.2f}",
+                f"{data.get('visibility', 0.0):.2f}",
+                f"{data.get('risk_score', 0.0):.2f}",
+                f"[Details]({report_link})"
+            ])
+
+        table_rows.sort(key=lambda x: float(x[5]), reverse=True)
+
+        table_str = "| " + " | ".join(headers) + " |\n"
+        table_str += "|:--------------" * len(headers) + "|\n"
+        for row in table_rows:
+            table_str += "| " + " | ".join(row) + " |\n"
+        section_lines.append(table_str)
+
+    # 4.2 Risk Matrix (Qualitative)
+    section_lines.append("\n### 5.2 Risk Matrix (Qualitative)\n")
+    section_lines.append(
+        "This matrix categorizes attacks based on their qualitative Severity and Probability levels.\n")
+
+    def bucketize_qualitative(value):
+        if value < 0.4:
+            return "Low"
+        elif value < 0.7:
+            return "Medium"
+        else:
+            return "High"
+
+    matrix = {
+        "High": {"High": [], "Medium": [], "Low": []},
+        "Medium": {"High": [], "Medium": [], "Low": []},
+        "Low": {"High": [], "Medium": [], "Low": []},
+    }
+
+    if current_risk_data:
+        for attack_name, data in current_risk_data.items():
+            severity_bucket = bucketize_qualitative(data.get('severity', 0.0))
+            probability_bucket = bucketize_qualitative(data.get('probability', 0.0))
+            if severity_bucket in matrix and probability_bucket in matrix[severity_bucket]:
+                matrix[severity_bucket][probability_bucket].append(attack_name.replace('_', ' ').title())
+
+    matrix_headers = ["Severity \\ Probability", "Low", "Medium", "High"]
+    matrix_table_str = "| " + " | ".join(matrix_headers) + " |\n"
+    matrix_table_str += "|:-----------------------" * len(matrix_headers) + "|\n"
+
+    severity_order = ["High", "Medium", "Low"]
+    probability_order = ["Low", "Medium", "High"]
+
+    for sev_bucket in severity_order:
+        row_content = [sev_bucket]
+        for prob_bucket in probability_order:
+            attacks_in_bucket = ", ".join(sorted(matrix[sev_bucket][prob_bucket]))
+            row_content.append(attacks_in_bucket if attacks_in_bucket else "-")
+        matrix_table_str += "| " + " | ".join(row_content) + " |\n"
+    section_lines.append(matrix_table_str)
+
+    # 4.3 Risk Ranking
+    section_lines.append("\n### 5.3 Risk Ranking\n")
+    section_lines.append("Attacks ranked by their calculated Risk Score, from highest to lowest.\n")
+
+    if current_risk_data:
+        ranked_attacks = []
+        for attack_name, data in current_risk_data.items():
+            attack_type_folder = data.get('type')
+            if attack_type_folder == 'data_poisoning':
+                attack_type_folder_path = 'data_poisoning'
+            elif attack_type_folder == 'backdoor':
+                attack_type_folder_path = 'backdoor'
+            elif attack_type_folder == 'evasion':
+                attack_type_folder_path = 'evasion'
+            else:
+                attack_type_folder_path = 'unknown'
+
+            report_link = os.path.join(
+                "..", "module2_attack_simulation", "results",
+                attack_type_folder_path, attack_name, f"{attack_name}_report.md"
+            ).replace("\\", "/")
+
+            ranked_attacks.append((
+                attack_name.replace('_', ' ').title(),
+                data.get('risk_score', 0.0),
+                report_link
+            ))
+
+        ranked_attacks.sort(key=lambda x: x[1], reverse=True)
+
+        for i, (name, score, link) in enumerate(ranked_attacks):
+            section_lines.append(f"{i + 1}. **{name}** — Risk Score: {score:.2f} → [Details]({link})")
+    else:
+        section_lines.append("No attacks to rank based on the profile's `attack_overrides`.")
+    section_lines.append("\n")
+
+    # 4.4 Defense Recommendations
+    section_lines.append("\n### 5.4 Defense Recommendations\n")
+    section_lines.append(
+        "Based on the identified risks and threat profile, the following defense recommendations are provided:\n")
+
+    all_recommendations = profile_data.get('risk_analysis', {}).get('recommendations', {})
+
+    # Filter recommendations to only include those for attacks in filtered_attack_names
+    filtered_recommendations = {
+        attack_name: rec_list
+        for attack_name, rec_list in all_recommendations.items()
+        if attack_name in filtered_attack_names
+    }
+
+    if filtered_recommendations:
+        for attack_name, rec_list in filtered_recommendations.items():
+            section_lines.append(f"- **{attack_name.replace('_', ' ').title()}**:")
+            for rec in rec_list:
+                if not rec.strip().startswith('-'):
+                    section_lines.append(f"  - {rec}")
+                else:
+                    section_lines.append(f"  {rec}")
+    else:
+        section_lines.append("No specific defense recommendations found for the selected attacks in the profile data.")
+    section_lines.append("\n")
+
+    # 4.5 Paths to Details
+    section_lines.append("\n### 5.5 Paths to Details\n")
+    section_lines.append(
+        "For more in-depth information about individual attacks, including raw metrics, "
+        "attack visualizations, and specific parameters, please refer to the detailed "
+        "reports linked in the 'Risk Summary Table' and 'Risk Ranking' sections above.\n"
+    )
 
     return "\n".join(section_lines)

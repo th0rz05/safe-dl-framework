@@ -14,6 +14,7 @@ from generate_report_utils import (
     generate_system_details_section,
     generate_threat_profile_section,
     generate_attack_simulation_section,
+    generate_risk_analysis_section,
     PROFILES_DIR,
     REPORTS_DIR,
     # MODULE2_RESULTS_DIR, MODULE3_RESULTS_DIR etc. will be used by report generation functions later
@@ -66,6 +67,7 @@ def main():
     report_lines.append(generate_system_details_section(profile_data))
     report_lines.append(generate_threat_profile_section(profile_data))
     report_lines.append(generate_attack_simulation_section(profile_data))
+    report_lines.append(generate_risk_analysis_section(profile_data))
 
 
     # --- END OF REPORT (for now) ---
