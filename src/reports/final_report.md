@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-10 20:12:00
+**Report Generated On**: 2025-06-10 21:00:16
 
 ---
 
@@ -55,3 +55,17 @@ This section outlines the specific characteristics of the system's environment a
     - `model_inversion`
 
   *A list of attack types considered relevant for this threat profile.*
+
+## 4. Attack Simulation (Module 2)
+This section summarizes the outcomes of the adversarial attack simulations performed against the model based on the defined threat profile. These simulations quantify the model's vulnerability to various attack types before any defenses are applied.
+
+### 4.1 Overview of Simulated Attacks
+
+| Attack Category | Attack Method | Clean Acc. (Pre-Attack) | Impact on Clean Acc. | Key Parameters | Full Results |
+|:----------------|:--------------|:------------------------|:---------------------|:---------------|:-------------|
+| Data Poisoning | Clean Label | 67.54% | 62.76% | Poison Fraction: 0.05, Target Class: 5 | [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_metrics.json) |
+| Data Poisoning | Label Flipping | 67.54% | 54.88% | Flip Rate: 0.08, Target Class: 1 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_metrics.json) |
+
+**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being trained with poisoned data, reflecting the attack's effectiveness in degrading performance.
+
+

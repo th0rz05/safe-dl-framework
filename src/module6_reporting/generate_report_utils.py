@@ -45,6 +45,19 @@ def load_json(path: str) -> dict:
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+def load_baseline_accuracy() -> float:
+    """
+    Loads the overall_accuracy from the baseline_accuracy.json file.
+    Returns:
+        float: The overall accuracy from the baseline, or 0.0 if not found.
+    """
+    baseline_path = os.path.join(MODULE2_RESULTS_DIR, "baseline_accuracy.json")
+    if os.path.exists(baseline_path):
+        data = load_json(baseline_path)
+        return data.get("overall_accuracy", 0.0)
+    print(f"[!] Warning: Baseline accuracy file not found at {baseline_path}. Returning 0.0.")
+    return 0.0
+
 # --- Report Section Generation Functions ---
 def generate_report_header(profile_data: dict, profile_name: str) -> str:
     """
@@ -159,5 +172,88 @@ def generate_threat_profile_section(profile_data: dict) -> str:
             section_lines.append(f"- **{display_name}**: `{value}`")
             section_lines.append(f"  *{description}*")
         section_lines.append("") # Add an empty line for spacing between items
+
+    return "\n".join(section_lines)
+
+
+def generate_attack_simulation_section(profile_data: dict) -> str:
+    """
+    Generates a Markdown section summarizing adversarial attack simulations (Module 2).
+    Focuses on Data Poisoning (Clean Label, Label Flipping) initially.
+    """
+    section_lines = [
+        "## 4. Attack Simulation (Module 2)",
+        "This section summarizes the outcomes of the adversarial attack simulations performed against the model "
+        "based on the defined threat profile. These simulations quantify the model's vulnerability to various "
+        "attack types before any defenses are applied.\n",
+        "### 4.1 Overview of Simulated Attacks\n"
+    ]
+
+    attack_overrides = profile_data.get('attack_overrides', {})
+
+    baseline_accuracy = load_baseline_accuracy()
+    if baseline_accuracy == 0.0:
+        section_lines.append("[!] Warning: Baseline accuracy not found or is 0.0. Attack metrics may be misleading.\n")
+
+    table_headers = ["Attack Category", "Attack Method", "Clean Acc. (Pre-Attack)", "Impact on Clean Acc.",
+                     "Key Parameters", "Full Results"]
+    table_lines = [
+        "| " + " | ".join(table_headers) + " |",
+        "|:----------------|:--------------|:------------------------|:---------------------|:---------------|:-------------|"
+    ]
+
+    data_poisoning_attacks = attack_overrides.get('data_poisoning', {})
+
+    for method, params in data_poisoning_attacks.items():
+        metrics_file_path = os.path.join(MODULE2_RESULTS_DIR, 'data_poisoning', method, f"{method}_metrics.json")
+
+        current_dir = os.getcwd()
+        reports_abs_path = os.path.join(current_dir, REPORTS_DIR)
+        relative_results_path = os.path.relpath(metrics_file_path, reports_abs_path)
+
+        if not os.path.exists(metrics_file_path):
+            print(f"[!] Warning: Metrics file not found for data_poisoning/{method}: {metrics_file_path}")
+            continue
+
+        attack_metrics = load_json(metrics_file_path)
+
+        attack_category = "Data Poisoning"
+        attack_method_display = method.replace('_', ' ').title()
+
+        clean_acc_after_attack_prep = attack_metrics.get("accuracy_after_attack", None)
+
+        # "Clean Acc. (Pre-Attack)" é a precisão do modelo limpo ANTES de ser envenenado (i.e., a baseline)
+        clean_acc_pre_attack_display = f"{baseline_accuracy * 100:.2f}%"
+
+        # "Impact on Clean Acc." é a precisão do modelo APÓS o envenenamento
+        if clean_acc_after_attack_prep is not None:
+            impact_on_clean_acc_display = f"{clean_acc_after_attack_prep * 100:.2f}%"
+        else:
+            impact_on_clean_acc_display = "N/A"
+
+        key_params_str = []
+        if method == 'clean_label':
+            key_params_str.append(f"Poison Fraction: {params.get('fraction_poison', 'N/A')}")
+            key_params_str.append(f"Target Class: {params.get('target_class', 'N/A')}")
+        elif method == 'label_flipping':
+            key_params_str.append(f"Flip Rate: {params.get('flip_rate', 'N/A')}")
+            key_params_str.append(f"Target Class: {params.get('target_class', 'N/A')}")
+
+        table_row = [
+            attack_category,
+            attack_method_display,
+            clean_acc_pre_attack_display,
+            impact_on_clean_acc_display,
+            ", ".join(key_params_str) if key_params_str else "N/A",
+            f"[Details]({relative_results_path})"
+        ]
+        table_lines.append("| " + " | ".join(table_row) + " |")
+
+    section_lines.extend(table_lines)
+
+    section_lines.append(
+        "\n**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being trained with poisoned data, reflecting the attack's effectiveness in degrading performance.\n")
+
+    section_lines.append("\n")
 
     return "\n".join(section_lines)
