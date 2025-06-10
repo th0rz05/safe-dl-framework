@@ -331,6 +331,7 @@ Functions include:
 - [Module 2 – Attack Simulation](docs/module2.md)  
 - [Module 3 – Risk Analysis](docs/module3.md)  
 - [Module 4 - Defense Application](docs/module4.md)  
+- [Module 5 - Defense Evaluation](docs/module5.md)
   
 
 ## Example Application
