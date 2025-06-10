@@ -207,6 +207,9 @@ def generate_attack_simulation_section(profile_data: dict) -> str:
     for method, params in data_poisoning_attacks.items():
         metrics_file_path = os.path.join(MODULE2_RESULTS_DIR, 'data_poisoning', method, f"{method}_metrics.json")
 
+        report_md_file_name = f"{method}_report.md"
+        report_file_path = os.path.join(MODULE2_RESULTS_DIR, 'data_poisoning', method, report_md_file_name)
+
         current_dir = os.getcwd()
         reports_abs_path = os.path.join(current_dir, REPORTS_DIR)
         relative_results_path = os.path.relpath(metrics_file_path, reports_abs_path)
@@ -215,6 +218,13 @@ def generate_attack_simulation_section(profile_data: dict) -> str:
             print(f"[!] Warning: Metrics file not found for data_poisoning/{method}: {metrics_file_path}")
             continue
 
+        if not os.path.exists(report_file_path):
+            print(f"[!] Warning: Markdown report file not found for data_poisoning/{method}: {report_file_path}. Linking to JSON instead.")
+            # If the report file is not found, link to the JSON file instead
+            relative_results_path = os.path.relpath(metrics_file_path, reports_abs_path)
+        else:  # Se o MD report existir, o link é para ele
+            relative_results_path = os.path.relpath(report_file_path,reports_abs_path)
+
         attack_metrics = load_json(metrics_file_path)
 
         attack_category = "Data Poisoning"
@@ -222,10 +232,8 @@ def generate_attack_simulation_section(profile_data: dict) -> str:
 
         clean_acc_after_attack_prep = attack_metrics.get("accuracy_after_attack", None)
 
-        # "Clean Acc. (Pre-Attack)" é a precisão do modelo limpo ANTES de ser envenenado (i.e., a baseline)
         clean_acc_pre_attack_display = f"{baseline_accuracy * 100:.2f}%"
 
-        # "Impact on Clean Acc." é a precisão do modelo APÓS o envenenamento
         if clean_acc_after_attack_prep is not None:
             impact_on_clean_acc_display = f"{clean_acc_after_attack_prep * 100:.2f}%"
         else:
