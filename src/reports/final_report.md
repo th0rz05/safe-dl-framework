@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-10 21:18:52
+**Report Generated On**: 2025-06-10 21:21:40
 
 ---
 
@@ -55,6 +55,8 @@ This section outlines the specific characteristics of the system's environment a
     - `model_inversion`
 
   *A list of attack types considered relevant for this threat profile.*
+  
+*Note: While listed in the threat profile, 'model_stealing', 'membership_inference', and 'model_inversion' attack simulations and their corresponding defenses are currently considered future work and are not yet fully implemented in subsequent Modules. *
 
 ## 4. Attack Simulation (Module 2)
 This section summarizes the outcomes of the adversarial attack simulations performed against the model based on the defined threat profile. These simulations quantify the model's vulnerability to various attack types before any defenses are applied.

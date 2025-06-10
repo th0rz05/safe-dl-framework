@@ -168,6 +168,10 @@ def generate_threat_profile_section(profile_data: dict) -> str:
                 section_lines.append(f"    - `N/A`")
             section_lines.append("")
             section_lines.append(f"  *{description}*")
+            section_lines.append(
+                "  \n*Note: While listed in the threat profile, 'model_stealing', 'membership_inference', "
+                "and 'model_inversion' attack simulations and their corresponding defenses are "
+                "currently considered future work and are not yet fully implemented in subsequent Modules.*")
         else:
             section_lines.append(f"- **{display_name}**: `{value}`")
             section_lines.append(f"  *{description}*")
