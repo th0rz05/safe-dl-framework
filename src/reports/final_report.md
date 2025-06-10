@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-10 21:07:29
+**Report Generated On**: 2025-06-10 21:14:23
 
 ---
 
@@ -61,11 +61,12 @@ This section summarizes the outcomes of the adversarial attack simulations perfo
 
 ### 4.1 Overview of Simulated Attacks
 
-| Attack Category | Attack Method | Clean Acc. (Pre-Attack) | Impact on Clean Acc. | Key Parameters | Full Results |
-|:----------------|:--------------|:------------------------|:---------------------|:---------------|:-------------|
-| Data Poisoning | Clean Label | 67.54% | 62.76% | Poison Fraction: 0.05, Target Class: 5 | [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md) |
-| Data Poisoning | Label Flipping | 67.54% | 54.88% | Flip Rate: 0.08, Target Class: 1 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
+| Attack Category | Attack Method | Clean Acc. (Pre-Attack) | Impact on Clean Acc. | Attack Metric | Key Parameters | Full Results |
+|:----------------|:--------------|:------------------------|:---------------------|:--------------|:---------------|:-------------|
+| Data Poisoning | Clean Label | 67.54% | 62.76% | 62.76% (Degraded Acc.) | Poison Fraction: 0.05, Target Class: 5 | [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md) |
+| Data Poisoning | Label Flipping | 67.54% | 54.88% | 54.88% (Degraded Acc.) | Flip Rate: 0.08, Target Class: 1 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
+| Backdoor | Static Patch | 67.54% | 60.58% | 77.99% (ASR) | Poison Frac.: 0.05, Target Class: 7, Patch Type: white_square | [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md) |
 
-**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being trained with poisoned data, reflecting the attack's effectiveness in degrading performance.
+**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being subjected to the attack (e.g., trained with poisoned data, or backdoor injected). For Data Poisoning attacks, 'Attack Metric' displays the degraded accuracy of the model on clean inputs after poisoning. For Backdoor attacks, 'Attack Metric' displays the Attack Success Rate (ASR), indicating the percentage of adversarial samples (with trigger) successfully misclassified to the target class.
 
 

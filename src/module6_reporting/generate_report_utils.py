@@ -179,7 +179,7 @@ def generate_threat_profile_section(profile_data: dict) -> str:
 def generate_attack_simulation_section(profile_data: dict) -> str:
     """
     Generates a Markdown section summarizing adversarial attack simulations (Module 2).
-    Focuses on Data Poisoning (Clean Label, Label Flipping) initially.
+    Focuses on Data Poisoning (Clean Label, Label Flipping) and Backdoor attacks.
     """
     section_lines = [
         "## 4. Attack Simulation (Module 2)",
@@ -196,48 +196,53 @@ def generate_attack_simulation_section(profile_data: dict) -> str:
         section_lines.append("[!] Warning: Baseline accuracy not found or is 0.0. Attack metrics may be misleading.\n")
 
     table_headers = ["Attack Category", "Attack Method", "Clean Acc. (Pre-Attack)", "Impact on Clean Acc.",
-                     "Key Parameters", "Full Results"]
+                     "Attack Metric", "Key Parameters", "Full Results"]  # 'Attack Metric' added
     table_lines = [
         "| " + " | ".join(table_headers) + " |",
-        "|:----------------|:--------------|:------------------------|:---------------------|:---------------|:-------------|"
+        "|:----------------|:--------------|:------------------------|:---------------------|:--------------|:---------------|:-------------|"
     ]
 
+    # Process Data Poisoning attacks
     data_poisoning_attacks = attack_overrides.get('data_poisoning', {})
 
     for method, params in data_poisoning_attacks.items():
         metrics_file_path = os.path.join(MODULE2_RESULTS_DIR, 'data_poisoning', method, f"{method}_metrics.json")
 
         report_md_file_name = f"{method}_report.md"
-        report_file_path = os.path.join(MODULE2_RESULTS_DIR, 'data_poisoning', method, report_md_file_name)
+        report_file_path_md = os.path.join(MODULE2_RESULTS_DIR, 'data_poisoning', method, report_md_file_name)
 
         current_dir = os.getcwd()
         reports_abs_path = os.path.join(current_dir, REPORTS_DIR)
-        relative_results_path = os.path.relpath(metrics_file_path, reports_abs_path)
+
+        # Default link to JSON, will be updated to MD if MD exists
+        link_to_details_path = os.path.relpath(metrics_file_path, reports_abs_path)
 
         if not os.path.exists(metrics_file_path):
             print(f"[!] Warning: Metrics file not found for data_poisoning/{method}: {metrics_file_path}")
             continue
 
-        if not os.path.exists(report_file_path):
-            print(f"[!] Warning: Markdown report file not found for data_poisoning/{method}: {report_file_path}. Linking to JSON instead.")
-            # If the report file is not found, link to the JSON file instead
-            relative_results_path = os.path.relpath(metrics_file_path, reports_abs_path)
-        else:  # Se o MD report existir, o link é para ele
-            relative_results_path = os.path.relpath(report_file_path,reports_abs_path)
+        if os.path.exists(report_file_path_md):
+            link_to_details_path = os.path.relpath(report_file_path_md, reports_abs_path)
+        else:
+            print(
+                f"[!] Warning: Markdown report file not found for data_poisoning/{method}: {report_file_path_md}. Linking to JSON instead.")
 
         attack_metrics = load_json(metrics_file_path)
 
         attack_category = "Data Poisoning"
         attack_method_display = method.replace('_', ' ').title()
 
-        clean_acc_after_attack_prep = attack_metrics.get("accuracy_after_attack", None)
+        clean_acc_after_attack = attack_metrics.get("accuracy_after_attack", None)  # Changed var name for clarity
 
         clean_acc_pre_attack_display = f"{baseline_accuracy * 100:.2f}%"
 
-        if clean_acc_after_attack_prep is not None:
-            impact_on_clean_acc_display = f"{clean_acc_after_attack_prep * 100:.2f}%"
+        if clean_acc_after_attack is not None:
+            impact_on_clean_acc_display = f"{clean_acc_after_attack * 100:.2f}%"
+            # For data poisoning, 'Attack Metric' is the accuracy after attack (i.e., degraded accuracy)
+            attack_metric_display = f"{clean_acc_after_attack * 100:.2f}% (Degraded Acc.)"
         else:
             impact_on_clean_acc_display = "N/A"
+            attack_metric_display = "N/A"
 
         key_params_str = []
         if method == 'clean_label':
@@ -252,15 +257,87 @@ def generate_attack_simulation_section(profile_data: dict) -> str:
             attack_method_display,
             clean_acc_pre_attack_display,
             impact_on_clean_acc_display,
+            attack_metric_display,  # Now includes Post-Poison Acc. for consistency
             ", ".join(key_params_str) if key_params_str else "N/A",
-            f"[Details]({relative_results_path})"
+            f"[Details]({link_to_details_path})"
+        ]
+        table_lines.append("| " + " | ".join(table_row) + " |")
+
+    # Process Backdoor attacks
+    backdoor_attacks = attack_overrides.get('backdoor', {})
+
+    for method, params in backdoor_attacks.items():
+        metrics_file_path = os.path.join(MODULE2_RESULTS_DIR, 'backdoor', method, f"{method}_metrics.json")
+
+        report_md_file_name = f"{method}_report.md"
+        report_file_path_md = os.path.join(MODULE2_RESULTS_DIR, 'backdoor', method, report_md_file_name)
+
+        current_dir = os.getcwd()
+        reports_abs_path = os.path.join(current_dir, REPORTS_DIR)
+
+        # Default link to JSON, will be updated to MD if MD exists
+        link_to_details_path = os.path.relpath(metrics_file_path, reports_abs_path)
+
+        if not os.path.exists(metrics_file_path):
+            print(f"[!] Warning: Metrics file not found for backdoor/{method}: {metrics_file_path}")
+            continue
+
+        if os.path.exists(report_file_path_md):
+            link_to_details_path = os.path.relpath(report_file_path_md, reports_abs_path)
+        else:
+            print(
+                f"[!] Warning: Markdown report file not found for backdoor/{method}: {report_file_path_md}. Linking to JSON instead.")
+
+        attack_metrics = load_json(metrics_file_path)
+
+        attack_category = "Backdoor"
+        attack_method_display = method.replace('_', ' ').title()
+
+        # For backdoor, these are from the backdoor JSON
+        clean_acc_post_backdoor = attack_metrics.get("accuracy_clean_testset", None)
+        attack_success_rate = attack_metrics.get("attack_success_rate", None)
+
+        clean_acc_pre_attack_display = f"{baseline_accuracy * 100:.2f}%"
+
+        if clean_acc_post_backdoor is not None:
+            impact_on_clean_acc_display = f"{clean_acc_post_backdoor * 100:.2f}%"
+        else:
+            impact_on_clean_acc_display = "N/A"
+
+        if attack_success_rate is not None:
+            attack_metric_display = f"{attack_success_rate * 100:.2f}% (ASR)"
+        else:
+            attack_metric_display = "N/A (ASR)"
+
+        key_params_str = []
+        if method == 'static_patch':
+            key_params_str.append(f"Poison Frac.: {params.get('poison_fraction', 'N/A')}")
+            key_params_str.append(f"Target Class: {params.get('target_class', 'N/A')}")
+            key_params_str.append(f"Patch Type: {params.get('patch_type', 'N/A')}")
+        elif method == 'learned_trigger':
+            key_params_str.append(f"Poison Frac.: {params.get('poison_fraction', 'N/A')}")
+            key_params_str.append(f"Target Class: {params.get('target_class', 'N/A')}")
+            key_params_str.append(f"Epochs Trigger: {params.get('epochs_trigger', 'N/A')}")
+
+        table_row = [
+            attack_category,
+            attack_method_display,
+            clean_acc_pre_attack_display,
+            impact_on_clean_acc_display,
+            attack_metric_display,
+            ", ".join(key_params_str) if key_params_str else "N/A",
+            f"[Details]({link_to_details_path})"
         ]
         table_lines.append("| " + " | ".join(table_row) + " |")
 
     section_lines.extend(table_lines)
 
     section_lines.append(
-        "\n**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being trained with poisoned data, reflecting the attack's effectiveness in degrading performance.\n")
+        "\n**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. "
+        "'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being subjected to the attack (e.g., trained with poisoned data, or backdoor injected). "
+        "For Data Poisoning attacks, 'Attack Metric' displays the degraded accuracy of the model on clean inputs after poisoning. "
+        "For Backdoor attacks, 'Attack Metric' displays the Attack Success Rate (ASR), indicating the percentage of adversarial samples (with trigger) successfully misclassified to the target class.\n"
+    )
 
     section_lines.append("\n")
 
