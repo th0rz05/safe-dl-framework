@@ -7,13 +7,13 @@ from datetime import datetime
 from glob import glob
 
 # Import utility functions and constants from generate_report_utils.py
-# Assuming generate_report_utils.py is in the same directory as run_module6.py
 from generate_report_utils import (
     load_yaml,
-    load_json, # Keeping this here as it's a general utility, though not directly used in run_module6.py's main logic.
+    load_json,
     generate_report_header,
-    PROFILES_DIR, # Imported constants
-    REPORTS_DIR,  # CORRECTED: This will now point to ../reports
+    generate_system_details_section, # Imported the new function
+    PROFILES_DIR,
+    REPORTS_DIR,
     # MODULE2_RESULTS_DIR, MODULE3_RESULTS_DIR etc. will be used by report generation functions later
 )
 
@@ -24,7 +24,6 @@ def select_profile_path() -> str:
     Allows the user to select a threat profile.
     Returns the full path to the selected profile YAML file.
     """
-    # PROFILES_DIR is imported from generate_report_utils.py
     profiles = glob(os.path.join(PROFILES_DIR, "*.yaml"))
     if not profiles:
         print(f"No profiles found in {PROFILES_DIR}/")
@@ -53,20 +52,19 @@ def main():
     profile_name = os.path.basename(profile_path)
 
     # Ensure the reports directory exists
-    # REPORTS_DIR is imported from generate_report_utils.py
     os.makedirs(REPORTS_DIR, exist_ok=True)
 
-    # Generate output file name with timestamp
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    output_md_path = os.path.join(REPORTS_DIR, f"final_report_{timestamp}.md")
+    # Generate output file name without timestamp
+    output_md_path = os.path.join(REPORTS_DIR, "final_report.md")
 
     print(f"\n[INFO] Generating final report for profile: {profile_name}")
 
-    # --- NEXT STEP: Generate the first section of the report ---
-    # Call the imported function to generate the report header
+    # Generate the initial sections of the report
     report_lines.append(generate_report_header(profile_data, profile_name))
+    report_lines.append(generate_system_details_section(profile_data)) # Call the new function here
 
-    # --- END OF REPORT ---
+
+    # --- END OF REPORT (for now) ---
     final_report_content = "\n".join(report_lines)
 
     with open(output_md_path, "w", encoding="utf-8") as f:
@@ -75,10 +73,9 @@ def main():
     print(f"\n[✓] Final report generated successfully at: {output_md_path}")
 
 if __name__ == "__main__":
-    # Ensure necessary packages are installed
     try:
         import questionary
-        import yaml # yaml is imported via generate_report_utils, but direct import here for robustness
+        import yaml
     except ImportError:
         print("[!] Required packages 'questionary' and 'pyyaml' not found.")
         print("    Please install them using: pip install questionary pyyaml")

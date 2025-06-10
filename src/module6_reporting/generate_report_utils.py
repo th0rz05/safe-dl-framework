@@ -6,13 +6,12 @@ import yaml
 from datetime import datetime
 
 # --- Configuration Paths (relative to module6_reporting/) ---
-# These paths define where the utility functions expect to find data.
 PROFILES_DIR = "../profiles"
 MODULE2_RESULTS_DIR = "../module2_attack_simulation/results"
 MODULE3_RESULTS_DIR = "../module3_risk_analysis/results"
 MODULE4_RESULTS_DIR = "../module4_defense_application/results"
 MODULE5_RESULTS_DIR = "../module5_defense_evaluation/results"
-REPORTS_DIR = "../reports"
+REPORTS_DIR = "../reports" # Corrected path for final reports
 
 
 # --- Utility Functions for Data Loading ---
@@ -49,7 +48,7 @@ def load_json(path: str) -> dict:
 # --- Report Section Generation Functions ---
 def generate_report_header(profile_data: dict, profile_name: str) -> str:
     """
-    Generates the initial header section of the final report, including metadata and an overview.
+    Generates the initial header section of the final report.
     Args:
         profile_data (dict): The loaded data from the selected threat profile YAML.
         profile_name (str): The base name of the selected profile file (e.g., "my_profile.yaml").
@@ -58,15 +57,9 @@ def generate_report_header(profile_data: dict, profile_name: str) -> str:
     """
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    # Extract basic information from the profile
-    model_name = profile_data.get('threat_model', {}).get('model', {}).get('name', 'N/A')
-    dataset_name = profile_data.get('threat_model', {}).get('dataset', {}).get('name', 'N/A')
-
     header_lines = [
         f"# Safe-DL Framework - Final Security Report",
         f"**Profile Selected**: `{profile_name}`",
-        f"**Dataset**: `{dataset_name}`",
-        f"**Model**: `{model_name}`",
         f"**Report Generated On**: {now}",
         "\n---", # Horizontal rule
         "\n## 1. Introduction and Overview",
@@ -78,3 +71,45 @@ def generate_report_header(profile_data: dict, profile_name: str) -> str:
         "continuous security improvement.\n"
     ]
     return "\n".join(header_lines)
+
+def generate_system_details_section(profile_data: dict) -> str:
+    """
+    Generates a Markdown section detailing the model and dataset from the profile.
+    Args:
+        profile_data (dict): The loaded data from the selected threat profile YAML.
+    Returns:
+        str: A Markdown string representing the system details section.
+    """
+    model_details = profile_data.get('model', {})
+    dataset_details = profile_data.get('dataset', {})
+
+    # Extract model details
+    model_name = model_details.get('name', 'N/A')
+    model_type = model_details.get('type', 'N/A')
+    model_input_shape = model_details.get('input_shape', 'N/A')
+    model_num_classes = model_details.get('num_classes', 'N/A')
+    model_params = model_details.get('params', 'N/A') # Including params as it's in your example
+
+    # Extract dataset details
+    dataset_name = dataset_details.get('name', 'N/A')
+    dataset_type = dataset_details.get('type', 'N/A')
+
+    section_lines = [
+        "## 2. System Under Evaluation Details",
+        "This section details the core components of the system analyzed in this report, as defined in the selected threat profile.\n",
+        "### 2.1 Model Details",
+        f"- **Name**: `{model_name}`",
+        f"- **Type**: `{model_type}`",
+        f"- **Input Shape**: `{model_input_shape}`",
+        f"- **Number of Classes**: `{model_num_classes}`"
+    ]
+    if model_params != 'N/A': # Only add if params exist
+        section_lines.append(f"- **Parameters**: `{model_params}`")
+    section_lines.append("\n") # Add a newline for spacing
+
+    section_lines.extend([
+        "### 2.2 Dataset Details",
+        f"- **Name**: `{dataset_name}`",
+        f"- **Type**: `{dataset_type}`\n"
+    ])
+    return "\n".join(section_lines)
