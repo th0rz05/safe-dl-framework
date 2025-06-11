@@ -656,8 +656,9 @@ def generate_defense_application_section(profile_data: dict) -> str:
 
     table_headers = [
         "Attack Category", "Attack Method", "Defense Applied",
-        "Clean Acc. (Pre-Defense)", "Clean Acc. (Post-Defense)",
-        "Adv. Acc. (Post-Defense)", "Key Parameters", "Link to Details"
+        "Clean Acc. (Pre-Defense)", "Adv. Acc. (Pre-Defense)",  # New column here
+        "Clean Acc. (Post-Defense)", "Adv. Acc. (Post-Defense)",
+        "Key Parameters", "Link to Details"
     ]
     table_data = []
 
@@ -673,33 +674,52 @@ def generate_defense_application_section(profile_data: dict) -> str:
             # Get the list of defense names applied for this attack method
             applied_defenses_for_method = defense_details.get('defenses', [])
 
+            # --- Load Attack Metrics (Module 2) for Pre-Defense Accuracy ---
+            pre_defense_clean_acc = 'N/A'
+            pre_defense_adv_acc = 'N/A'  # This will store ASR or Adv. Acc. before defense
+            attack_metrics_path = os.path.join(MODULE2_RESULTS_DIR, attack_category, attack_method,
+                                               f"{attack_method}_metrics.json")
+            if os.path.exists(attack_metrics_path):
+                try:
+                    attack_metrics_data = load_json(attack_metrics_path)
+
+                    if attack_category == 'data_poisoning':
+                        # For data poisoning, pre_defense_clean_acc is accuracy_after_attack
+                        pre_defense_clean_acc = attack_metrics_data.get('accuracy_after_attack', 'N/A')
+                        pre_defense_adv_acc = 'N/A'  # Not directly applicable for data poisoning (no adv. examples before defense)
+                    elif attack_category == 'backdoor':
+                        # For backdoor, pre_defense_clean_acc is accuracy_clean_testset (after injection)
+                        pre_defense_clean_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
+                        pre_defense_adv_acc = attack_metrics_data.get('attack_success_rate', 'N/A')  # ASR
+                    elif attack_category == 'evasion':
+                        # For evasion, pre_defense_clean_acc is the model's clean accuracy
+                        pre_defense_clean_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
+                        pre_defense_adv_acc = attack_metrics_data.get('accuracy_adversarial_testset',
+                                                                      'N/A')  # Adv. Acc.
+
+                except Exception as e:
+                    print(
+                        f"Warning: Could not load Module 2 metrics for {attack_method} ({attack_category}) to get pre-defense values. Error: {e}")
+
+            # Format pre-defense accuracies
+            pre_defense_clean_acc_display = f"{pre_defense_clean_acc:.2%}" if isinstance(pre_defense_clean_acc,
+                                                                                         (int, float)) else str(
+                pre_defense_clean_acc)
+
+            # Special handling for ASR vs Adv. Acc. display
+            if attack_category == 'backdoor' and isinstance(pre_defense_adv_acc, (int, float)):
+                pre_defense_adv_acc_display = f"{pre_defense_adv_acc:.2%} (ASR)"
+            elif attack_category == 'evasion' and isinstance(pre_defense_adv_acc, (int, float)):
+                pre_defense_adv_acc_display = f"{pre_defense_adv_acc:.2%} (Adv. Acc.)"
+            else:
+                pre_defense_adv_acc_display = str(pre_defense_adv_acc)
+
             # Iterate through each specific defense name that was applied
             for defense_name in applied_defenses_for_method:
                 used_defenses.add(defense_name)  # Add to the set of used defenses
 
                 # Get specific parameters for this defense (if they exist)
                 defense_params = defense_details.get(defense_name, {})
-
-                # --- Get Clean Acc. (Pre-Defense) ---
-                # This comes from Module 2 attack metrics, representing the compromised model's accuracy
-                pre_defense_acc = 'N/A'
-                attack_metrics_path = os.path.join(MODULE2_RESULTS_DIR, attack_category, attack_method,
-                                                   f"{attack_method}_metrics.json")
-                if os.path.exists(attack_metrics_path):
-                    try:
-                        attack_metrics_data = load_json(attack_metrics_path)
-                        if attack_category == 'data_poisoning':
-                            pre_defense_acc = attack_metrics_data.get('accuracy_after_attack', 'N/A')
-                        elif attack_category in ['backdoor', 'evasion']:
-                            pre_defense_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
-                        # Fallback for data poisoning if accuracy_after_attack is not present
-                        if pre_defense_acc == 'N/A' and attack_category == 'data_poisoning' and attack_metrics_data.get(
-                                'accuracy_clean_testset') is not None:
-                            pre_defense_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
-
-                    except Exception as e:
-                        print(
-                            f"Warning: Could not load Module 2 metrics for {attack_method} ({attack_category}). Error: {e}")
 
                 # --- Get Defense Results (Post-Defense accuracies) ---
                 clean_acc_post_defense = 'N/A'
@@ -714,7 +734,7 @@ def generate_defense_application_section(profile_data: dict) -> str:
                         # For data poisoning, 'accuracy_adversarial' is often null or not applicable
                         adv_acc_post_defense = defense_results_data.get('accuracy_adversarial', 'N/A')
 
-                        # Special handling for N/A display for data poisoning
+                        # Special handling for N/A display for data poisoning (where adv_acc might be None)
                         if attack_category == 'data_poisoning' and adv_acc_post_defense is None:
                             adv_acc_post_defense = 'N/A'
 
@@ -723,28 +743,31 @@ def generate_defense_application_section(profile_data: dict) -> str:
                             f"Warning: Could not load Module 4 defense results for {defense_name} against {attack_method}. Error: {e}")
 
                 # Format accuracies
-                pre_defense_acc_display = f"{pre_defense_acc:.2%}" if isinstance(pre_defense_acc,
-                                                                                 (int, float)) else str(pre_defense_acc)
                 clean_acc_post_defense_display = f"{clean_acc_post_defense:.2%}" if isinstance(clean_acc_post_defense,
                                                                                                (int, float)) else str(
                     clean_acc_post_defense)
-                adv_acc_post_defense_display = f"{adv_acc_post_defense:.2%}" if isinstance(adv_acc_post_defense,
-                                                                                           (int, float)) else str(
-                    adv_acc_post_defense)
+
+                # Special handling for ASR vs Adv. Acc. display for post-defense
+                if attack_category == 'backdoor' and isinstance(adv_acc_post_defense, (int, float)):
+                    adv_acc_post_defense_display = f"{adv_acc_post_defense:.2%} (ASR)"
+                elif attack_category == 'evasion' and isinstance(adv_acc_post_defense, (int, float)):
+                    adv_acc_post_defense_display = f"{adv_acc_post_defense:.2%} (Adv. Acc.)"
+                else:
+                    adv_acc_post_defense_display = str(adv_acc_post_defense)
 
                 # Format key parameters
                 formatted_params = ", ".join(
                     [f"{k}: {v}" for k, v in defense_params.items()]) if defense_params else "N/A"
 
                 # Link to detailed defense report
-                # Adjust path to be relative from the final report location
                 link_to_details = f"../module4_defense_application/results/{attack_category}/{attack_method}/{defense_name}_report.md"
 
                 table_data.append([
                     attack_category.replace('_', ' ').title(),
                     attack_method.replace('_', ' ').title(),
                     defense_name.replace('_', ' ').title(),
-                    pre_defense_acc_display,
+                    pre_defense_clean_acc_display,
+                    pre_defense_adv_acc_display,  # New column value
                     clean_acc_post_defense_display,
                     adv_acc_post_defense_display,
                     formatted_params,
@@ -758,7 +781,9 @@ def generate_defense_application_section(profile_data: dict) -> str:
 
     section_lines.append("")
     section_lines.append(
-        "**Note**: 'Clean Acc. (Pre-Defense)' for data poisoning and backdoor attacks refers to the model's accuracy on clean data *after* the initial attack training/injection (the compromised model's clean accuracy). For evasion attacks, it's the original model's clean accuracy. 'Adv. Acc. (Post-Defense)' for data poisoning attacks is 'N/A' as the primary defense objective is to restore clean accuracy. For backdoor attacks, 'Adv. Acc. (Post-Defense)' indicates the model's accuracy on backdoored inputs *after* defense, where a higher value signifies better defense against the backdoor's malicious effect. For evasion attacks, it represents the model's accuracy on adversarial examples *after* defense, aiming for a higher value."
+        "**Note**: 'Clean Acc. (Pre-Defense)' for data poisoning and backdoor attacks refers to the model's accuracy on clean data *after* the initial attack training/injection (the compromised model's clean accuracy). For evasion attacks, it's the original model's clean accuracy. "
+        "'Adv. Acc. (Pre-Defense)' represents the model's performance on adversarial inputs *before* any defense was applied (e.g., Attack Success Rate for backdoor, or Adversarial Accuracy for evasion). "
+        "'Adv. Acc. (Post-Defense)' for data poisoning attacks is 'N/A' as the primary defense objective is to restore clean accuracy. For backdoor attacks, 'Adv. Acc. (Post-Defense)' indicates the model's accuracy on backdoored inputs *after* defense, where a higher value signifies better defense against the backdoor's malicious effect. For evasion attacks, it represents the model's accuracy on adversarial examples *after* defense, aiming for a higher value."
     )
     section_lines.append("")
 
@@ -768,8 +793,7 @@ def generate_defense_application_section(profile_data: dict) -> str:
         section_lines.append("The following defenses were applied and evaluated to mitigate the identified risks:")
         section_lines.append("")
 
-        # Define a dictionary of defense explanations
-        # These are based on the common defenses mentioned in module4.md
+        # Define a dictionary of defense explanations (kept as is)
         defense_explanations = {
             "influence_functions": (
                 "This technique is used to identify and remove training samples that have a disproportionate "
@@ -835,17 +859,17 @@ def generate_defense_application_section(profile_data: dict) -> str:
                 "in the neural network that are highly activated by the backdoor trigger but are less critical for clean "
                 "accuracy, effectively disrupting the backdoor's functionality."
             ),
-            "pruning": (  # Added from your profile
+            "pruning": (
                 "Reduces the size of the neural network by removing less important connections or neurons. "
                 "While often used for model compression, it can also help remove redundant capacity that "
                 "might be exploited by certain attacks, including backdoors."
             ),
-            "model_inspection": (  # Added from your profile
+            "model_inspection": (
                 "Involves analyzing the internal states and behaviors of the model (e.g., activations, weights) "
                 "to identify anomalies or patterns indicative of malicious injections like backdoors. This is a "
                 "diagnostic defense often used in conjunction with other mitigation techniques."
             ),
-            "anomaly_detection": (  # Added from your profile
+            "anomaly_detection": (
                 "Applies algorithms to identify data points or model behaviors that deviate significantly from "
                 "normal patterns, potentially indicating the presence of an attack (e.g., poisoned samples "
                 "or triggered backdoor inputs)."
