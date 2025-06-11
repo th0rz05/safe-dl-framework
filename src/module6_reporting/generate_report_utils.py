@@ -654,7 +654,6 @@ def generate_defense_application_section(profile_data: dict) -> str:
         ""
     ]
 
-    # Initialize data structures for the table and for tracking used defenses
     table_headers = [
         "Attack Category", "Attack Method", "Defense Applied",
         "Clean Acc. (Pre-Defense)", "Clean Acc. (Post-Defense)",
@@ -662,85 +661,95 @@ def generate_defense_application_section(profile_data: dict) -> str:
     ]
     table_data = []
 
-    # Store unique defenses that were actually applied, to generate explanations later
     used_defenses = set()
 
-    # Get defense configuration from profile_data
-    # Assuming 'defense_config' lists the applied defenses for specific attacks
-    defense_configurations = profile_data.get('defense_config', [])
+    defense_configurations_by_category = profile_data.get('defense_config', {})
 
-    # Iterar sobre as configurações de defesa
-    for defense_conf in defense_configurations:
-        attack_category = defense_conf.get('attack_category', 'N/A')
-        attack_method = defense_conf.get('attack_method', 'N/A')
-        defense_name = defense_conf.get('defense_name', 'N/A')
-        defense_params = defense_conf.get('parameters', {})
+    # Iterate through attack categories (e.g., 'backdoor', 'data_poisoning', 'evasion')
+    for attack_category, attack_methods in defense_configurations_by_category.items():
+        # Iterate through attack methods within each category (e.g., 'static_patch', 'clean_label')
+        for attack_method, defense_details in attack_methods.items():
 
-        # Add defense to the set of used defenses
-        if defense_name != 'N/A':
-            used_defenses.add(defense_name)
+            # Get the list of defense names applied for this attack method
+            applied_defenses_for_method = defense_details.get('defenses', [])
 
-        # --- Get Clean Acc. (Pre-Defense) ---
-        # This comes from Module 2 attack metrics, representing the compromised model's accuracy
-        pre_defense_acc = 'N/A'
-        attack_metrics_path = os.path.join(MODULE2_RESULTS_DIR, attack_category, attack_method,
-                                           f"{attack_method}_metrics.json")
-        if os.path.exists(attack_metrics_path):
-            try:
-                attack_metrics_data = load_json(attack_metrics_path)
-                if attack_category == 'data_poisoning':
-                    pre_defense_acc = attack_metrics_data.get('accuracy_after_attack', 'N/A')
-                elif attack_category in ['backdoor', 'evasion']:
-                    pre_defense_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
-            except Exception as e:
-                print(f"Warning: Could not load Module 2 metrics for {attack_method} ({attack_category}). Error: {e}")
+            # Iterate through each specific defense name that was applied
+            for defense_name in applied_defenses_for_method:
+                used_defenses.add(defense_name)  # Add to the set of used defenses
 
-        # --- Get Defense Results (Post-Defense accuracies) ---
-        clean_acc_post_defense = 'N/A'
-        adv_acc_post_defense = 'N/A'
+                # Get specific parameters for this defense (if they exist)
+                defense_params = defense_details.get(defense_name, {})
 
-        defense_results_path = os.path.join(MODULE4_RESULTS_DIR, attack_category, attack_method,
-                                            f"{defense_name}_results.json")
-        if os.path.exists(defense_results_path):
-            try:
-                defense_results_data = load_json(defense_results_path)
-                clean_acc_post_defense = defense_results_data.get('accuracy_clean', 'N/A')
-                adv_acc_post_defense = defense_results_data.get('accuracy_adversarial', 'N/A')
+                # --- Get Clean Acc. (Pre-Defense) ---
+                # This comes from Module 2 attack metrics, representing the compromised model's accuracy
+                pre_defense_acc = 'N/A'
+                attack_metrics_path = os.path.join(MODULE2_RESULTS_DIR, attack_category, attack_method,
+                                                   f"{attack_method}_metrics.json")
+                if os.path.exists(attack_metrics_path):
+                    try:
+                        attack_metrics_data = load_json(attack_metrics_path)
+                        if attack_category == 'data_poisoning':
+                            pre_defense_acc = attack_metrics_data.get('accuracy_after_attack', 'N/A')
+                        elif attack_category in ['backdoor', 'evasion']:
+                            pre_defense_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
+                        # Fallback for data poisoning if accuracy_after_attack is not present
+                        if pre_defense_acc == 'N/A' and attack_category == 'data_poisoning' and attack_metrics_data.get(
+                                'accuracy_clean_testset') is not None:
+                            pre_defense_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
 
-                # Special handling for N/A display for data poisoning
-                if attack_category == 'data_poisoning' and adv_acc_post_defense is None:
-                    adv_acc_post_defense = 'N/A'
+                    except Exception as e:
+                        print(
+                            f"Warning: Could not load Module 2 metrics for {attack_method} ({attack_category}). Error: {e}")
 
-            except Exception as e:
-                print(
-                    f"Warning: Could not load Module 4 defense results for {defense_name} against {attack_method}. Error: {e}")
+                # --- Get Defense Results (Post-Defense accuracies) ---
+                clean_acc_post_defense = 'N/A'
+                adv_acc_post_defense = 'N/A'
 
-        # Format accuracies
-        pre_defense_acc_display = f"{pre_defense_acc:.2%}" if isinstance(pre_defense_acc, (int, float)) else str(
-            pre_defense_acc)
-        clean_acc_post_defense_display = f"{clean_acc_post_defense:.2%}" if isinstance(clean_acc_post_defense,
-                                                                                       (int, float)) else str(
-            clean_acc_post_defense)
-        adv_acc_post_defense_display = f"{adv_acc_post_defense:.2%}" if isinstance(adv_acc_post_defense,
-                                                                                   (int, float)) else str(
-            adv_acc_post_defense)
+                defense_results_path = os.path.join(MODULE4_RESULTS_DIR, attack_category, attack_method,
+                                                    f"{defense_name}_results.json")
+                if os.path.exists(defense_results_path):
+                    try:
+                        defense_results_data = load_json(defense_results_path)
+                        clean_acc_post_defense = defense_results_data.get('accuracy_clean', 'N/A')
+                        # For data poisoning, 'accuracy_adversarial' is often null or not applicable
+                        adv_acc_post_defense = defense_results_data.get('accuracy_adversarial', 'N/A')
 
-        # Format key parameters
-        formatted_params = ", ".join([f"{k}: {v}" for k, v in defense_params.items()]) if defense_params else "N/A"
+                        # Special handling for N/A display for data poisoning
+                        if attack_category == 'data_poisoning' and adv_acc_post_defense is None:
+                            adv_acc_post_defense = 'N/A'
 
-        # Link to detailed defense report
-        link_to_details = f"../../module4_defense_application/results/{attack_category}/{attack_method}/{defense_name}_report.md"
+                    except Exception as e:
+                        print(
+                            f"Warning: Could not load Module 4 defense results for {defense_name} against {attack_method}. Error: {e}")
 
-        table_data.append([
-            attack_category.replace('_', ' ').title(),
-            attack_method.replace('_', ' ').title(),
-            defense_name.replace('_', ' ').title(),
-            pre_defense_acc_display,
-            clean_acc_post_defense_display,
-            adv_acc_post_defense_display,
-            formatted_params,
-            f"[Details]({link_to_details})"
-        ])
+                # Format accuracies
+                pre_defense_acc_display = f"{pre_defense_acc:.2%}" if isinstance(pre_defense_acc,
+                                                                                 (int, float)) else str(pre_defense_acc)
+                clean_acc_post_defense_display = f"{clean_acc_post_defense:.2%}" if isinstance(clean_acc_post_defense,
+                                                                                               (int, float)) else str(
+                    clean_acc_post_defense)
+                adv_acc_post_defense_display = f"{adv_acc_post_defense:.2%}" if isinstance(adv_acc_post_defense,
+                                                                                           (int, float)) else str(
+                    adv_acc_post_defense)
+
+                # Format key parameters
+                formatted_params = ", ".join(
+                    [f"{k}: {v}" for k, v in defense_params.items()]) if defense_params else "N/A"
+
+                # Link to detailed defense report
+                # Adjust path to be relative from the final report location
+                link_to_details = f"../module4_defense_application/results/{attack_category}/{attack_method}/{defense_name}_report.md"
+
+                table_data.append([
+                    attack_category.replace('_', ' ').title(),
+                    attack_method.replace('_', ' ').title(),
+                    defense_name.replace('_', ' ').title(),
+                    pre_defense_acc_display,
+                    clean_acc_post_defense_display,
+                    adv_acc_post_defense_display,
+                    formatted_params,
+                    f"[Details]({link_to_details})"
+                ])
 
     if table_data:
         section_lines.append(tabulate(table_data, headers=table_headers, tablefmt="pipe"))
@@ -792,6 +801,15 @@ def generate_defense_application_section(profile_data: dict) -> str:
                 "Anomalies in specific class predictions or feature distributions can indicate a targeted attack, "
                 "such as label flipping, allowing for timely intervention."
             ),
+            "robust_loss": (
+                "Utilizing loss functions that are less sensitive to noisy or adversarial labels during training. "
+                "This can help the model learn more robust features and reduce the impact of poisoned data."
+            ),
+            "dp_training": (
+                "Differentially Private Training adds noise to the training process (e.g., to gradients) to protect "
+                "the privacy of individual training data points. While primarily for privacy, it can also offer "
+                "some robustness benefits against certain data poisoning attacks by limiting the influence of individual samples."
+            ),
             "randomized_smoothing": (
                 "A certified defense that provides provable robustness guarantees against adversarial attacks. "
                 "It works by adding random noise to inputs during inference and then classifying based on "
@@ -816,6 +834,21 @@ def generate_defense_application_section(profile_data: dict) -> str:
                 "A defense method primarily against backdoor attacks. It involves pruning specific neurons or connections "
                 "in the neural network that are highly activated by the backdoor trigger but are less critical for clean "
                 "accuracy, effectively disrupting the backdoor's functionality."
+            ),
+            "pruning": (  # Added from your profile
+                "Reduces the size of the neural network by removing less important connections or neurons. "
+                "While often used for model compression, it can also help remove redundant capacity that "
+                "might be exploited by certain attacks, including backdoors."
+            ),
+            "model_inspection": (  # Added from your profile
+                "Involves analyzing the internal states and behaviors of the model (e.g., activations, weights) "
+                "to identify anomalies or patterns indicative of malicious injections like backdoors. This is a "
+                "diagnostic defense often used in conjunction with other mitigation techniques."
+            ),
+            "anomaly_detection": (  # Added from your profile
+                "Applies algorithms to identify data points or model behaviors that deviate significantly from "
+                "normal patterns, potentially indicating the presence of an attack (e.g., poisoned samples "
+                "or triggered backdoor inputs)."
             )
         }
 
