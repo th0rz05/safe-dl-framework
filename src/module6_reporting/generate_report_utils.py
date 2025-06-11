@@ -4,6 +4,7 @@ import os
 import json
 import yaml
 from datetime import datetime
+from tabulate import tabulate
 
 # --- Configuration Paths (relative to module6_reporting/) ---
 PROFILES_DIR = "../profiles"
@@ -630,5 +631,198 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
         "attack visualizations, and specific parameters, please refer to the detailed "
         "reports linked in the 'Risk Summary Table' and 'Risk Ranking' sections above.\n"
     )
+
+    return "\n".join(section_lines)
+
+
+def generate_defense_application_section(profile_data: dict) -> str:
+    """
+    Generates the 'Defense Application (Module 4)' section of the final report.
+    This section summarizes the performance of applied defenses and provides
+    brief explanations for each defense method used.
+
+    Args:
+        profile_data (dict): The loaded data from the profile.yaml file.
+
+    Returns:
+        str: The markdown content for the defense application section.
+    """
+    section_lines = [
+        "---",
+        "## 6. Defense Application (Module 4)",
+        "This section details the performance of the implemented defenses against the simulated attacks identified in the risk analysis. For each attack, the table shows the model's accuracy on clean data *before* and *after* defense, and its accuracy on adversarial data *after* defense. Key defense parameters are also provided, along with a link to a detailed report.",
+        ""
+    ]
+
+    # Initialize data structures for the table and for tracking used defenses
+    table_headers = [
+        "Attack Category", "Attack Method", "Defense Applied",
+        "Clean Acc. (Pre-Defense)", "Clean Acc. (Post-Defense)",
+        "Adv. Acc. (Post-Defense)", "Key Parameters", "Link to Details"
+    ]
+    table_data = []
+
+    # Store unique defenses that were actually applied, to generate explanations later
+    used_defenses = set()
+
+    # Get defense configuration from profile_data
+    # Assuming 'defense_config' lists the applied defenses for specific attacks
+    defense_configurations = profile_data.get('defense_config', [])
+
+    # Iterar sobre as configurações de defesa
+    for defense_conf in defense_configurations:
+        attack_category = defense_conf.get('attack_category', 'N/A')
+        attack_method = defense_conf.get('attack_method', 'N/A')
+        defense_name = defense_conf.get('defense_name', 'N/A')
+        defense_params = defense_conf.get('parameters', {})
+
+        # Add defense to the set of used defenses
+        if defense_name != 'N/A':
+            used_defenses.add(defense_name)
+
+        # --- Get Clean Acc. (Pre-Defense) ---
+        # This comes from Module 2 attack metrics, representing the compromised model's accuracy
+        pre_defense_acc = 'N/A'
+        attack_metrics_path = os.path.join(MODULE2_RESULTS_DIR, attack_category, attack_method,
+                                           f"{attack_method}_metrics.json")
+        if os.path.exists(attack_metrics_path):
+            try:
+                attack_metrics_data = load_json(attack_metrics_path)
+                if attack_category == 'data_poisoning':
+                    pre_defense_acc = attack_metrics_data.get('accuracy_after_attack', 'N/A')
+                elif attack_category in ['backdoor', 'evasion']:
+                    pre_defense_acc = attack_metrics_data.get('accuracy_clean_testset', 'N/A')
+            except Exception as e:
+                print(f"Warning: Could not load Module 2 metrics for {attack_method} ({attack_category}). Error: {e}")
+
+        # --- Get Defense Results (Post-Defense accuracies) ---
+        clean_acc_post_defense = 'N/A'
+        adv_acc_post_defense = 'N/A'
+
+        defense_results_path = os.path.join(MODULE4_RESULTS_DIR, attack_category, attack_method,
+                                            f"{defense_name}_results.json")
+        if os.path.exists(defense_results_path):
+            try:
+                defense_results_data = load_json(defense_results_path)
+                clean_acc_post_defense = defense_results_data.get('accuracy_clean', 'N/A')
+                adv_acc_post_defense = defense_results_data.get('accuracy_adversarial', 'N/A')
+
+                # Special handling for N/A display for data poisoning
+                if attack_category == 'data_poisoning' and adv_acc_post_defense is None:
+                    adv_acc_post_defense = 'N/A'
+
+            except Exception as e:
+                print(
+                    f"Warning: Could not load Module 4 defense results for {defense_name} against {attack_method}. Error: {e}")
+
+        # Format accuracies
+        pre_defense_acc_display = f"{pre_defense_acc:.2%}" if isinstance(pre_defense_acc, (int, float)) else str(
+            pre_defense_acc)
+        clean_acc_post_defense_display = f"{clean_acc_post_defense:.2%}" if isinstance(clean_acc_post_defense,
+                                                                                       (int, float)) else str(
+            clean_acc_post_defense)
+        adv_acc_post_defense_display = f"{adv_acc_post_defense:.2%}" if isinstance(adv_acc_post_defense,
+                                                                                   (int, float)) else str(
+            adv_acc_post_defense)
+
+        # Format key parameters
+        formatted_params = ", ".join([f"{k}: {v}" for k, v in defense_params.items()]) if defense_params else "N/A"
+
+        # Link to detailed defense report
+        link_to_details = f"../../module4_defense_application/results/{attack_category}/{attack_method}/{defense_name}_report.md"
+
+        table_data.append([
+            attack_category.replace('_', ' ').title(),
+            attack_method.replace('_', ' ').title(),
+            defense_name.replace('_', ' ').title(),
+            pre_defense_acc_display,
+            clean_acc_post_defense_display,
+            adv_acc_post_defense_display,
+            formatted_params,
+            f"[Details]({link_to_details})"
+        ])
+
+    if table_data:
+        section_lines.append(tabulate(table_data, headers=table_headers, tablefmt="pipe"))
+    else:
+        section_lines.append("No defense application results found in the profile data.")
+
+    section_lines.append("")
+    section_lines.append(
+        "**Note**: 'Clean Acc. (Pre-Defense)' for data poisoning and backdoor attacks refers to the model's accuracy on clean data *after* the initial attack training/injection (the compromised model's clean accuracy). For evasion attacks, it's the original model's clean accuracy. 'Adv. Acc. (Post-Defense)' for data poisoning attacks is 'N/A' as the primary defense objective is to restore clean accuracy. For backdoor attacks, 'Adv. Acc. (Post-Defense)' indicates the model's accuracy on backdoored inputs *after* defense, where a higher value signifies better defense against the backdoor's malicious effect. For evasion attacks, it represents the model's accuracy on adversarial examples *after* defense, aiming for a higher value."
+    )
+    section_lines.append("")
+
+    # --- Section for Defense Explanations (only if used) ---
+    if used_defenses:
+        section_lines.append("### 6.1 Applied Defenses and their Purposes")
+        section_lines.append("The following defenses were applied and evaluated to mitigate the identified risks:")
+        section_lines.append("")
+
+        # Define a dictionary of defense explanations
+        # These are based on the common defenses mentioned in module4.md
+        defense_explanations = {
+            "influence_functions": (
+                "This technique is used to identify and remove training samples that have a disproportionate "
+                "or negative influence on the model. It is particularly effective against data poisoning "
+                "attacks, such as 'Clean Label', by helping to purify the training dataset."
+            ),
+            "activation_clustering": (
+                "A defense aimed at detecting and neutralizing backdoors in models. It works by clustering "
+                "intermediate layer activations of the model to identify and isolate training samples "
+                "containing the malicious trigger, allowing for their removal."
+            ),
+            "adversarial_training": (
+                "One of the most common and effective defenses against evasion attacks. It involves augmenting "
+                "the training dataset with adversarial examples (generated by the attack itself) and retraining "
+                "the model. This improves the model's robustness, making it more resistant to future adversarial perturbations."
+            ),
+            "provenance_tracking": (
+                "This defense focuses on tracing the origin and modifications of data throughout the pipeline. "
+                "By maintaining a verifiable history of data, it helps detect and prevent data poisoning by identifying "
+                "unauthorized or malicious alterations to the training set."
+            ),
+            "data_cleaning": (
+                "A general approach to remove corrupted, mislabeled, or outlier samples from the training dataset. "
+                "It aims to improve the overall quality and integrity of the data, thereby making the model more robust "
+                "to various forms of data-based attacks, including poisoning."
+            ),
+            "per_class_monitoring": (
+                "This defense involves monitoring the model's performance or internal states on a per-class basis. "
+                "Anomalies in specific class predictions or feature distributions can indicate a targeted attack, "
+                "such as label flipping, allowing for timely intervention."
+            ),
+            "randomized_smoothing": (
+                "A certified defense that provides provable robustness guarantees against adversarial attacks. "
+                "It works by adding random noise to inputs during inference and then classifying based on "
+                "the aggregated predictions, making it difficult for an attacker to craft effective adversarial examples."
+            ),
+            "gradient_masking": (
+                "This defense aims to obscure or modify the gradients seen by an attacker, making it harder "
+                "for gradient-based adversarial attacks to succeed. It can involve various techniques like "
+                "non-differentiable transformations or adding noise to gradients."
+            ),
+            "jpeg_preprocessing": (
+                "A simple defense that applies JPEG compression to inputs before feeding them to the model. "
+                "The compression process can flatten out small adversarial perturbations, making the adversarial "
+                "examples less effective against the model."
+            ),
+            "spectral_signatures": (
+                "A backdoor detection technique that analyzes the spectral properties of the hidden layer activations. "
+                "It identifies anomalous patterns indicative of a backdoor trigger embedded in the training data, "
+                "allowing for the isolation and mitigation of poisoned samples."
+            ),
+            "fine_pruning": (
+                "A defense method primarily against backdoor attacks. It involves pruning specific neurons or connections "
+                "in the neural network that are highly activated by the backdoor trigger but are less critical for clean "
+                "accuracy, effectively disrupting the backdoor's functionality."
+            )
+        }
+
+        # Add explanations for each used defense
+        for defense in sorted(list(used_defenses)):  # Sort for consistent output
+            explanation = defense_explanations.get(defense, "No specific explanation available for this defense.")
+            section_lines.append(f"* **{defense.replace('_', ' ').title()}**: {explanation}")
+        section_lines.append("")
 
     return "\n".join(section_lines)
