@@ -478,7 +478,7 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
     # Use filtered_risk_data for all subsequent sections
     current_risk_data = filtered_risk_data
 
-    # 4.1 Summary Table
+    # 5.1 Summary Table
     section_lines.append("\n### 5.1 Risk Summary Table\n")
     if not current_risk_data:
         section_lines.append(
@@ -520,7 +520,7 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
             table_str += "| " + " | ".join(row) + " |\n"
         section_lines.append(table_str)
 
-    # 4.2 Risk Matrix (Qualitative)
+    # 5.2 Risk Matrix (Qualitative)
     section_lines.append("\n### 5.2 Risk Matrix (Qualitative)\n")
     section_lines.append(
         "This matrix categorizes attacks based on their qualitative Severity and Probability levels.\n")
@@ -561,7 +561,7 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
         matrix_table_str += "| " + " | ".join(row_content) + " |\n"
     section_lines.append(matrix_table_str)
 
-    # 4.3 Risk Ranking
+    # 5.3 Risk Ranking
     section_lines.append("\n### 5.3 Risk Ranking\n")
     section_lines.append("Attacks ranked by their calculated Risk Score, from highest to lowest.\n")
 
@@ -597,7 +597,7 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
         section_lines.append("No attacks to rank based on the profile's `attack_overrides`.")
     section_lines.append("\n")
 
-    # 4.4 Defense Recommendations
+    # 5.4 Defense Recommendations
     section_lines.append("\n### 5.4 Defense Recommendations\n")
     section_lines.append(
         "Based on the identified risks and threat profile, the following defense recommendations are provided:\n")
@@ -623,7 +623,7 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
         section_lines.append("No specific defense recommendations found for the selected attacks in the profile data.")
     section_lines.append("\n")
 
-    # 4.5 Paths to Details
+    # 5.5 Paths to Details
     section_lines.append("\n### 5.5 Paths to Details\n")
     section_lines.append(
         "For more in-depth information about individual attacks, including raw metrics, "
