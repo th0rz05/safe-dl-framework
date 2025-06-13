@@ -1,10 +1,13 @@
 import os
 import sys
 import random
+from collections import defaultdict
+
 import torch
 import numpy as np
 from copy import deepcopy
-from torch.utils.data import TensorDataset
+from torch.utils.data import TensorDataset, DataLoader
+from tqdm import tqdm
 
 # Add module2 path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "module2_attack_simulation")))
@@ -230,3 +233,71 @@ def simulate_learned_trigger_attack(profile, trainset, testset, class_names):
     }
 
     return poisoned_trainset, patched_testset, trigger_info
+
+
+def evaluate_backdoor_asr(model, patched_testset, target_class, class_names=None, batch_size=64, silent=False, prefix="[Eval ASR]"):
+    """
+    Evaluate the Attack Success Rate (ASR) for backdoor attacks.
+    This measures how many samples with a trigger are misclassified to the target_class,
+    considering only samples whose original label was NOT the target_class.
+
+    Args:
+        model (torch.nn.Module): The model to evaluate.
+        patched_testset (torch.utils.data.Dataset): The test set with backdoor triggers applied.
+        target_class (int): The target class of the backdoor attack.
+        class_names (list, optional): List of class names for logging. Defaults to None.
+        batch_size (int, optional): Batch size for evaluation. Defaults to 64.
+        silent (bool, optional): If True, suppresses tqdm progress bar. Defaults to False.
+        prefix (str, optional): Prefix for the progress bar and print statements. Defaults to "[Eval ASR]".
+
+    Returns:
+        tuple: (overall_asr (float), per_class_asr (dict))
+               overall_asr: The overall attack success rate (0-1).
+               per_class_asr: A dictionary with ASR breakdown by original class.
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device).eval()
+
+    loader = DataLoader(patched_testset, batch_size=batch_size, shuffle=False)
+
+    asr_success = 0
+    asr_total = 0 # Only counts samples not originally of target_class
+    per_original_class_asr_success = defaultdict(int)
+    per_original_class_asr_total = defaultdict(int)
+
+    iterator = loader if silent else tqdm(loader, desc=prefix, leave=False)
+
+    with torch.no_grad():
+        for x, original_y in iterator:
+            x = x.to(device) # Image with trigger
+            # original_y contains the true labels of the images *before* patching/triggering
+
+            preds = model(x).argmax(1) # Model's prediction
+
+            for i in range(len(original_y)):
+                original_label = original_y[i].item()
+                predicted_label = preds[i].item()
+
+                # Only consider samples whose original label is NOT the target_class
+                # This ensures we measure the *deviation* caused by the backdoor.
+                if original_label != target_class:
+                    asr_total += 1
+                    per_original_class_asr_total[original_label] += 1
+
+                    if predicted_label == target_class:
+                        asr_success += 1
+                        per_original_class_asr_success[original_label] += 1
+
+    overall_asr = asr_success / asr_total if asr_total > 0 else 0.0
+    print(f"{prefix} Overall ASR: {overall_asr:.4f} ({asr_success}/{asr_total})")
+
+    per_class_asr = {}
+    for cls_idx in sorted(per_original_class_asr_total.keys()):
+        total_for_class = per_original_class_asr_total[cls_idx]
+        success_for_class = per_original_class_asr_success.get(cls_idx, 0)
+        acc_for_class = success_for_class / total_for_class if total_for_class > 0 else 0.0
+        name = class_names[cls_idx] if class_names else str(cls_idx)
+        per_class_asr[name] = round(acc_for_class, 4)
+        print(f"  - Original Class {name:>10} ASR: {acc_for_class:.4f} ({success_for_class}/{total_for_class})")
+
+    return overall_asr, per_class_asr
