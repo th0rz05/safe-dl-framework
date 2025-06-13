@@ -88,10 +88,6 @@ This section documents the defense mechanisms currently implemented in the Safe-
 **Objective:**  
 The goal of this defense is to remove suspicious or noisy training samples that may have been injected through data poisoning attacks, such as label flipping. This is achieved by analyzing the loss behavior of individual training samples and applying statistical or threshold-based filters to discard anomalous points.
 
-> **Note on adversarial accuracy:**  
-> In data poisoning attacks, only the training data is corrupted. The test set remains clean and is not manipulated.  
-> Therefore, adversarial accuracy (`accuracy_adversarial`) — typically used for inference-time attacks like evasion — is not applicable in this context.  
-> To maintain consistency across all defenses, the fields `accuracy_adversarial` and `per_class_accuracy_adversarial` are explicitly set to `null` in the resulting JSON files.
 
 ----------
 
@@ -126,13 +122,11 @@ The goal of this defense is to remove suspicious or noisy training samples that 
   "defense": "data_cleaning",
   "attack": "label_flipping",
   "accuracy_clean": 0.8812,
-  "accuracy_adversarial": null,
   "per_class_accuracy_clean": {
     "airplane": 0.89,
     "automobile": 0.87,
     ...
-  },
-  "per_class_accuracy_adversarial": null,
+  }
   "cleaning_params": {
     "method": "loss_filtering",
     "threshold": 1.5
@@ -159,9 +153,6 @@ The goal of this defense is to remove suspicious or noisy training samples that 
 **Objective:**  
 This lightweight defense aims to detect anomalies caused by data poisoning by analyzing the distribution of per-class accuracies. The assumption is that a successful data poisoning attack will disproportionately degrade performance in specific target classes, leading to an unusual drop in accuracy for those classes.
 
-> **Note on adversarial accuracy:**  
-> Since data poisoning attacks do not modify the test set, adversarial accuracy is not meaningful in this context.  
-> As such, `accuracy_adversarial` and `per_class_accuracy_adversarial` are omitted or set to `null` in the output files for consistency.
 
 ----------
 
@@ -212,9 +203,6 @@ This lightweight defense aims to detect anomalies caused by data poisoning by an
 
 **Objective:**  
 This defense strategy aims to mitigate the influence of poisoned or mislabeled data by replacing the standard cross-entropy loss with a more robust alternative during training. These loss functions are designed to be less sensitive to outliers or noisy labels, which are common in data poisoning scenarios.
-
-> **Note on adversarial accuracy:**  
-> Since data poisoning attacks do not affect the test set directly, adversarial accuracy (`accuracy_adversarial`) is omitted or set to `null`. Only clean test set accuracy is evaluated and reported.
 
 ----------
 
@@ -289,9 +277,6 @@ Each loss function may include different hyperparameters, such as `alpha` (weigh
 **Objective:**  
 This defense leverages differentially private stochastic gradient descent (DP-SGD) to train models with formal privacy guarantees. While its primary use is privacy preservation, DP training has also been shown to improve robustness against certain data poisoning attacks by reducing model sensitivity to individual training samples.
 
-> **Note on adversarial accuracy:**  
-> As with other data poisoning defenses, the attack does not affect the test set directly. Therefore, adversarial accuracy is not computed and will be omitted or set to `null`.
-
 ----------
 
 **Configuration in Profile YAML:**
@@ -359,9 +344,6 @@ defense_config:
 **Objective:**  
 This defense uses metadata about the origin and context of training data (i.e., provenance) to detect and filter out potentially untrusted or suspicious samples. It assumes that poisoned samples often originate from unverified or anomalous sources.
 
-> **Note on adversarial accuracy:**  
-> As this is a data poisoning defense, the test set is not modified by the attack. Therefore, adversarial accuracy is not computed and will be omitted or set to `null`.
-
 ----------
 
 **Configuration in Profile YAML:**
@@ -426,8 +408,6 @@ defense_config:
 **Objective:**  
 This defense leverages influence functions to identify training samples that have a disproportionately large effect on the model's predictions. By removing the most harmful samples (i.e., those with negative influence), it mitigates the impact of data poisoning attacks.
 
-> **Note on adversarial accuracy:**  
-> As a defense against data poisoning attacks, the adversarial test set is unaltered. Thus, adversarial accuracy is not applicable and set to `null` in the results.
 
 ----------
 
@@ -1247,22 +1227,24 @@ results/evasion/spsa/gradient_masking_results.json
 
 ```
 
-Each defense outputs its results using a consistent schema, including:
 
--   `accuracy_clean`: model accuracy on unmodified test data
-    
--   `accuracy_adversarial`: model accuracy on adversarially perturbed inputs (if applicable)
-    
--   `per_class_accuracy_clean`: per-class breakdown on clean inputs
-    
--   `per_class_accuracy_adversarial`: per-class breakdown on adversarial inputs (if applicable)
-    
--   `params`: dictionary of defense-specific configuration parameters
-    
--   Additional fields such as removed examples, flagged classes, or provenance data may be included depending on the defense type
-    
+Each defense outputs its results using a consistent schema, including **attack-specific metrics**:
 
->  For data poisoning and backdoor defenses, the `accuracy_adversarial` field is set to `null`, as no inference-time adversarial examples are applicable.
+-   `accuracy_clean`: model accuracy on unmodified test data after defense application.
+    
+-   **For Evasion defenses, `accuracy_adversarial`**: model accuracy on adversarially perturbed inputs after defense application.
+    
+-   **For Backdoor defenses, `asr_after_defense`**: Attack Success Rate (ASR) of the backdoor on trigger-applied inputs after defense application.
+    
+-   `per_class_accuracy_clean`: per-class breakdown on clean inputs.
+    
+-   **For Evasion defenses, `per_class_accuracy_adversarial`**: per-class breakdown on adversarial inputs.
+    
+-   **For Backdoor defenses, `per_original_class_asr`**: ASR breakdown per original class for backdoor attacks.
+    
+-   `params`: dictionary of defense-specific configuration parameters.
+    
+-   **Additional defense-specific fields**: such as `num_removed` (number of removed samples), `removed_indices`, `example_removed` (paths to visual examples), `anomalous_classes` (for data poisoning), `pruned_params_fraction` (for pruning), or `suspicious_layers` (for model inspection), may be included depending on the defense type.
 
 This output structure enables traceability, comparability, and downstream analysis for all implemented defenses.
 
@@ -1327,9 +1309,14 @@ This module has implemented a comprehensive set of defense mechanisms covering m
 
 ----------
 
+
 All defenses are configurable through a unified YAML profile and integrated with upstream modules for threat configuration and risk analysis. The pipeline supports automatic model loading, retraining, mitigation, and standardized evaluation through JSON and Markdown reports.
 
-Results include clean and adversarial accuracy (where applicable), per-class breakdowns, and metadata about the defense's behavior and decisions.
+Results are tailored to each attack type, including:
+- **For Backdoor attacks:** Clean accuracy, Attack Success Rate (ASR) after defense, and per-class breakdowns.
+- **For Evasion attacks:** Clean accuracy, adversarial accuracy, and per-class breakdowns.
+- **For Data Poisoning attacks:** Clean accuracy, per-class breakdowns, and specific metrics related to sample removal or anomaly detection (e.g., number of removed samples, identified anomalous classes).
+Metadata about the defense's behavior and decisions is also included.
 
 ----------
 
