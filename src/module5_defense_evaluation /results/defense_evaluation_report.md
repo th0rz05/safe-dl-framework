@@ -3,7 +3,7 @@
 **Profile**: `test.yaml`  
 **Dataset**: `cifar10`  
 **Model**: `cnn`  
-**Generated on**: 2025-06-09 18:36:31
+**Generated on**: 2025-06-14 00:43:52
 
 ## Overview
 
@@ -13,14 +13,14 @@ This report summarizes the evaluation of defenses applied to mitigate adversaria
 
 | Attack | Defense | Mitigation | CAD | Cost | Final Score |
 |--------|---------|------------|-----|------|--------------|
-| static_patch | activation_clustering | -0.251 | 0.000 | 0.300 | -0.000 |
-| static_patch | spectral_signatures | 3.501 | 0.507 | 0.400 | 1.268 |
-| static_patch | anomaly_detection | 3.345 | 1.560 | 0.300 | 4.014 |
-| static_patch | pruning | 3.823 | 0.000 | 0.300 | 0.000 |
-| static_patch | fine_pruning | 2.450 | 0.942 | 0.400 | 1.649 |
-| static_patch | model_inspection | 3.653 | 1.217 | 0.200 | 3.704 |
+| static_patch | activation_clustering | 0.035 | 0.000 | 0.300 | 0.000 |
+| static_patch | spectral_signatures | 0.111 | 0.000 | 0.500 | 0.000 |
+| static_patch | anomaly_detection | 0.004 | 0.754 | 0.300 | 0.003 |
+| static_patch | pruning | 0.090 | 0.000 | 0.300 | 0.000 |
+| static_patch | fine_pruning | 0.691 | 1.071 | 0.400 | 0.528 |
+| static_patch | model_inspection | 0.013 | 0.778 | 0.200 | 0.008 |
 | clean_label | provenance_tracking | 0.561 | 0.790 | 0.500 | 0.295 |
-| clean_label | influence_functions | 0.573 | 0.796 | 0.600 | 0.285 |
+| clean_label | influence_functions | 0.573 | 0.796 | 0.500 | 0.304 |
 | label_flipping | data_cleaning | 0.603 | 0.497 | 0.200 | 0.250 |
 | label_flipping | per_class_monitoring | 0.000 | 0.000 | 0.200 | 0.000 |
 | label_flipping | robust_loss | 0.675 | 0.588 | 0.500 | 0.264 |

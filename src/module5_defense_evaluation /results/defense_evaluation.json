@@ -2,40 +2,40 @@
   "backdoor": {
     "static_patch": {
       "activation_clustering": {
-        "mitigation_score": -0.251,
+        "mitigation_score": 0.035,
         "cad_score": 0.0,
         "defense_cost_score": 0.3,
-        "final_score": -0.0
+        "final_score": 0.0
       },
       "spectral_signatures": {
-        "mitigation_score": 3.501,
-        "cad_score": 0.507,
-        "defense_cost_score": 0.4,
-        "final_score": 1.268
+        "mitigation_score": 0.111,
+        "cad_score": 0.0,
+        "defense_cost_score": 0.5,
+        "final_score": 0.0
       },
       "anomaly_detection": {
-        "mitigation_score": 3.345,
-        "cad_score": 1.56,
+        "mitigation_score": 0.004,
+        "cad_score": 0.754,
         "defense_cost_score": 0.3,
-        "final_score": 4.014
+        "final_score": 0.003
       },
       "pruning": {
-        "mitigation_score": 3.823,
+        "mitigation_score": 0.09,
         "cad_score": 0.0,
         "defense_cost_score": 0.3,
         "final_score": 0.0
       },
       "fine_pruning": {
-        "mitigation_score": 2.45,
-        "cad_score": 0.942,
+        "mitigation_score": 0.691,
+        "cad_score": 1.071,
         "defense_cost_score": 0.4,
-        "final_score": 1.649
+        "final_score": 0.528
       },
       "model_inspection": {
-        "mitigation_score": 3.653,
-        "cad_score": 1.217,
+        "mitigation_score": 0.013,
+        "cad_score": 0.778,
         "defense_cost_score": 0.2,
-        "final_score": 3.704
+        "final_score": 0.008
       }
     }
   },
@@ -50,8 +50,8 @@
       "influence_functions": {
         "mitigation_score": 0.573,
         "cad_score": 0.796,
-        "defense_cost_score": 0.6,
-        "final_score": 0.285
+        "defense_cost_score": 0.5,
+        "final_score": 0.304
       }
     },
     "label_flipping": {

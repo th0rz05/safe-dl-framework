@@ -5,22 +5,9 @@ from glob import glob
 import questionary
 import importlib
 from defense_score_utils import (
-    evaluate_activation_clustering,
-    evaluate_spectral_signatures,
-    evaluate_anomaly_detection,
-    evaluate_pruning,
-    evaluate_fine_pruning,
-    evaluate_model_inspection,
-    evaluate_dp_training,
-    evaluate_robust_loss,
-    evaluate_data_cleaning,
-    evaluate_influence_functions,
-    evaluate_provenance_tracking,
-    evaluate_per_class_monitoring,
-    evaluate_adversarial_training,
-    evaluate_gradient_masking,
-    evaluate_randomized_smoothing,
-    evaluate_jpeg_preprocessing
+    evaluate_backdoor_defense,
+    evaluate_data_poisoning_defense,
+    evaluate_evasion_defense
 )
 
 from generate_defense_evaluation_report import generate_report
@@ -60,8 +47,8 @@ def main():
         print(f"[!] Baseline file not found at {baseline_path}")
         return
 
-    baseline = load_json(baseline_path)
-    print(f"[+] Baseline Accuracy: {baseline['overall_accuracy']}")
+    baseline_data = load_json(baseline_path)
+    print(f"[+] Baseline Accuracy: {baseline_data['overall_accuracy']}")
 
     all_scores = {}
 
@@ -102,19 +89,25 @@ def main():
                 defense_data = load_json(defense_path)
 
                 try:
-                    evaluate_fn = globals()[f"evaluate_{defense}"]
-                except KeyError:
-                    print(f"      [!] No evaluation function defined for: {defense}")
-                    continue
+                    if attack_category == "backdoor":
+                        score = evaluate_backdoor_defense(defense, defense_data, attack_data)
+                    elif attack_category == "data_poisoning":
+                        score = evaluate_data_poisoning_defense(defense, defense_data, attack_data, baseline_data)
+                    elif attack_category == "evasion":
+                        score = evaluate_evasion_defense(defense, defense_data, attack_data,
+                                                         baseline_data)  # Note: add baseline_data here too if needed for evasion
 
-                try:
-                    score = evaluate_fn(defense_data, attack_data,baseline)
-                    all_scores[attack_category][attack_name][defense] = score
-                    print(f"      [✓] Scores for {defense}:")
-                    print(f"         Mitigation Score : {score['mitigation_score']}")
-                    print(f"         CAD Score        : {score['cad_score']}")
-                    print(f"         Cost Score       : {score['defense_cost_score']}")
-                    print(f"         Final Score      : {score['final_score']}")
+                    # Only proceed if score was successfully generated
+                    if score:  # Check if score is not None or empty if your functions can return that
+                        all_scores[attack_category][attack_name][defense] = score
+                        print(f"      [✓] Scores for {defense}:")
+                        print(f"         Mitigation Score : {score['mitigation_score']}")
+                        print(f"         CAD Score        : {score['cad_score']}")
+                        print(f"         Cost Score       : {score['defense_cost_score']}")
+                        print(f"         Final Score      : {score['final_score']}")
+                    else:
+                        print(f"      [!] Evaluation function for {defense} returned empty or invalid score.")
+
                 except Exception as e:
                     print(f"      [!] Error evaluating {defense}: {e}")
 
