@@ -8,7 +8,7 @@ from torch.utils.data import Subset, DataLoader
 # Add module2 path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
 from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
-from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
+from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack,evaluate_backdoor_asr
 from defenses.fine_pruning.generate_fine_pruning_report import generate_fine_pruning_report
 
 
@@ -58,6 +58,14 @@ def run_fine_pruning_defense(profile, trainset, testset, valset, class_names, at
     print(f"[*] Running Fine-Pruning defense for {attack_type}...")
 
     cfg = profile["defense_config"]["backdoor"][attack_type]["fine_pruning"]
+
+    attack_config = profile.get("attack_overrides", {}).get("backdoor", {}).get(attack_type, {})
+    target_class = attack_config.get("target_class")
+
+    if target_class is None:
+        raise ValueError(f"Target class not found in profile for attack type '{attack_type}'. Cannot evaluate ASR.")
+
+
     pruning_ratio = cfg.get("pruning_ratio", 0.2)
 
     # === Step 1: Simulate attack ===
@@ -84,7 +92,20 @@ def run_fine_pruning_defense(profile, trainset, testset, valset, class_names, at
 
     # === Step 4: Evaluate ===
     acc_clean, per_class_clean = evaluate_model(model, testset, class_names=class_names)
-    acc_adv, per_class_adv = evaluate_model(model, patched_testset, class_names=class_names) if patched_testset else (None, None)
+
+    # Evaluate Attack Success Rate (ASR) on adversarial test set (patched)
+    if patched_testset is not None:
+        # Use the new ASR evaluation function
+        acc_adv, per_class_adv = evaluate_backdoor_asr(
+            model,
+            patched_testset,
+            target_class=target_class,  # Pass the target_class
+            class_names=class_names,
+            prefix="[Eval ASR after Defense]"  # Um prefixo mais descritivo
+        )
+    else:
+        acc_adv, per_class_adv = None, None
+
 
     # === Save ===
     os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
@@ -93,9 +114,9 @@ def run_fine_pruning_defense(profile, trainset, testset, valset, class_names, at
         "defense": "fine_pruning",
         "attack": attack_type,
         "accuracy_clean": acc_clean,
-        "accuracy_adversarial": acc_adv,
+        "asr_after_defense": acc_adv,
         "per_class_accuracy_clean": per_class_clean,
-        "per_class_accuracy_adversarial": per_class_adv,
+        "per_original_class_asr": per_class_adv,
         "pruning_ratio": pruning_ratio,
         "pruned_layer": last_layer,
         "num_neurons_pruned": len(pruned_neurons),

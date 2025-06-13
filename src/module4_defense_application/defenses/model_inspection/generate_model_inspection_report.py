@@ -27,12 +27,13 @@ def generate_model_inspection_report(json_file, md_file):
         lines.append(f"- **{cls}**: {acc:.4f}")
 
     # === Adversarial Evaluation ===
-    if data.get("accuracy_adversarial") is not None:
-        lines.append("\n## Adversarial Accuracy After Defense")
-        lines.append(f"- **Overall Accuracy:** {data.get('accuracy_adversarial', 0.0):.4f}")
-        lines.append("\n### Per-Class Accuracy (Adversarial)")
-        for cls, acc in data.get("per_class_accuracy_adversarial", {}).items():
-            lines.append(f"- **{cls}**: {acc:.4f}")
+    if data.get("asr_after_defense") is not None:
+        lines.append(f"- **ASR After Defense:** `{data['asr_after_defense']:.4f}`")
+
+    if data.get("per_original_class_asr"):
+            lines.append("\n### Per-Original-Class ASR")
+            for cls, asr in data["per_original_class_asr"].items():
+                lines.append(f"- **Original Class {cls}**: `{asr:.4f}`")
 
     # === Histograms ===
     lines.append("\n## Weight Histograms")

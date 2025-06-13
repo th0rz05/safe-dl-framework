@@ -22,8 +22,8 @@ def generate_fine_pruning_report(json_file, md_file):
 
     lines.append("## Accuracy After Defense\n")
     lines.append(f"- **Clean Accuracy:** {data.get('accuracy_clean', 0.0):.4f}")
-    if data.get("accuracy_adversarial") is not None:
-        lines.append(f"- **Adversarial Accuracy:** {data.get('accuracy_adversarial', 0.0):.4f}")
+    if data.get("asr_after_defense") is not None:
+        lines.append(f"- **ASR After Defense:** `{data['asr_after_defense']:.4f}`")
     lines.append("")
 
     if "per_class_accuracy_clean" in data:
@@ -32,10 +32,10 @@ def generate_fine_pruning_report(json_file, md_file):
             lines.append(f"- **{cls}**: {acc:.4f}")
         lines.append("")
 
-    if "per_class_accuracy_adversarial" in data and data["per_class_accuracy_adversarial"]:
-        lines.append("### Per-Class Accuracy (Adversarial)")
-        for cls, acc in data["per_class_accuracy_adversarial"].items():
-            lines.append(f"- **{cls}**: {acc:.4f}")
+    if "per_original_class_asr" in data and data["per_original_class_asr"]:
+        lines.append("\n### Per-Original-Class ASR")
+        for cls, asr in data["per_original_class_asr"].items():
+            lines.append(f"- **Original Class {cls}**: `{asr:.4f}`")
         lines.append("")
 
     with open(md_file, "w") as f:

@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader, Subset
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
 
 from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
-from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
+from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack,evaluate_backdoor_asr
 from defenses.model_inspection.generate_model_inspection_report import generate_model_inspection_report
 
 
@@ -60,6 +60,14 @@ def run_model_inspection_defense(profile, trainset, testset, valset, class_names
     print(f"[*] Running Model Inspection defense for {attack_type}...")
 
     cfg = profile["defense_config"]["backdoor"][attack_type]["model_inspection"]
+
+    attack_config = profile.get("attack_overrides", {}).get("backdoor", {}).get(attack_type, {})
+    target_class = attack_config.get("target_class")
+
+    if target_class is None:
+        raise ValueError(f"Target class not found in profile for attack type '{attack_type}'. Cannot evaluate ASR.")
+
+
     layers_to_inspect = cfg.get("layers", [])
 
     model = load_model_cfg_from_profile(profile)
@@ -80,8 +88,17 @@ def run_model_inspection_defense(profile, trainset, testset, valset, class_names
 
     # Evaluation (clean and adversarial)
     acc_clean, per_class_clean = evaluate_model(model, testset, class_names=class_names)
+
+    # Evaluate Attack Success Rate (ASR) on adversarial test set (patched)
     if patched_testset is not None:
-        acc_adv, per_class_adv = evaluate_model(model, patched_testset, class_names=class_names)
+        # Use the new ASR evaluation function
+        acc_adv, per_class_adv = evaluate_backdoor_asr(
+            model,
+            patched_testset,
+            target_class=target_class,  # Pass the target_class
+            class_names=class_names,
+            prefix="[Eval ASR after Defense]"  # Um prefixo mais descritivo
+        )
     else:
         acc_adv, per_class_adv = None, None
 
@@ -93,9 +110,9 @@ def run_model_inspection_defense(profile, trainset, testset, valset, class_names
         "suspicious_layers": suspicious_layers,
         "layer_stats": stats,
         "accuracy_clean": acc_clean,
-        "accuracy_adversarial": acc_adv,
+        "asr_after_defense": acc_adv,
         "per_class_accuracy_clean": per_class_clean,
-        "per_class_accuracy_adversarial": per_class_adv,
+        "per_original_class_asr": per_class_adv,
         "params": cfg,
         "histogram_path": hist_dir
     }

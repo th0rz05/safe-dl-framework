@@ -6,9 +6,9 @@ def generate_spectral_signatures_report(json_file, md_file):
         data = json.load(f)
 
     acc_clean = data.get("accuracy_clean")
-    acc_adv = data.get("accuracy_adversarial")
+    acc_adv = data.get("asr_after_defense")
     per_class_clean = data.get("per_class_accuracy_clean", {})
-    per_class_adv = data.get("per_class_accuracy_adversarial", {})
+    per_class_adv = data.get("per_original_class_asr", {})
     num_removed = data.get("num_removed")
     removed_examples = data.get("example_removed", [])
     histogram_path = data.get("histogram_path")
@@ -26,16 +26,16 @@ def generate_spectral_signatures_report(json_file, md_file):
 
     lines.append("\n## Accuracy After Defense\n")
     lines.append(f"- **Clean Accuracy:** {acc_clean:.4f}" if acc_clean is not None else "- **Clean Accuracy:** N/A")
-    lines.append(f"- **Adversarial Accuracy:** {acc_adv:.4f}" if acc_adv is not None else "- **Adversarial Accuracy:** N/A")
+    lines.append(f"- **ASR After Defense:** `{acc_adv:.4f}`" if acc_adv is not None else "- **ASR After Defense:** _Not available_")
 
     lines.append("\n## Per-Class Accuracy (Clean)\n")
     for cls, acc in per_class_clean.items():
         lines.append(f"- {cls}: {acc:.4f}")
 
     if per_class_adv:
-        lines.append("\n## Per-Class Accuracy (Adversarial)\n")
-        for cls, acc in per_class_adv.items():
-            lines.append(f"- {cls}: {acc:.4f}")
+        lines.append("\n### Per-Original-Class ASR")
+        for cls, asr in per_class_adv.items():
+            lines.append(f"- **Original Class {cls}**: `{asr:.4f}`")
 
     lines.append("\n## Removed Samples Summary\n")
     lines.append(f"- **Total Removed:** {num_removed}")

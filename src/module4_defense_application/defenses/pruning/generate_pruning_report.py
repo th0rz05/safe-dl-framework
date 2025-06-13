@@ -7,9 +7,9 @@ def generate_pruning_report(json_file, md_file):
         results = json.load(f)
 
     acc_clean = results.get("accuracy_clean", None)
-    acc_adv = results.get("accuracy_adversarial", None)
+    acc_adv = results.get("asr_after_defense", None)
     per_class_clean = results.get("per_class_accuracy_clean", {})
-    per_class_adv = results.get("per_class_accuracy_adversarial", {})
+    per_class_adv = results.get("per_original_class_asr", {})
     hist_path = results.get("histogram_path", None)
 
     with open(md_file, "w") as f:
@@ -21,7 +21,7 @@ def generate_pruning_report(json_file, md_file):
         if acc_clean is not None:
             f.write(f"**Accuracy on clean test set:** `{acc_clean:.4f}`\n\n")
         if acc_adv is not None:
-            f.write(f"**Accuracy on adversarial test set:** `{acc_adv:.4f}`\n\n")
+            f.write(f"- **ASR After Defense:** `{results['asr_after_defense']:.4f}`")
 
         if per_class_clean:
             f.write("## Per-Class Accuracy (Clean)\n\n")
@@ -32,11 +32,9 @@ def generate_pruning_report(json_file, md_file):
             f.write("\n")
 
         if per_class_adv:
-            f.write("## Per-Class Accuracy (Adversarial)\n\n")
-            f.write("| Class | Accuracy |\n")
-            f.write("|-------|----------|\n")
-            for cls, acc in per_class_adv.items():
-                f.write(f"| {cls} | {acc:.4f} |\n")
+            f.write("\n### Per-Original-Class ASR")
+            for cls, asr in results["per_original_class_asr"].items():
+                f.write(f"- **Original Class {cls}**: `{asr:.4f}`")
             f.write("\n")
 
         if hist_path and os.path.exists(os.path.join("results", hist_path)):

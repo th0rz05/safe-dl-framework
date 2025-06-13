@@ -14,7 +14,7 @@ from defenses.anomaly_detection.generate_anomaly_detection_report import generat
 # Add module2 path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
 from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
-from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack
+from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack,evaluate_backdoor_asr
 
 def extract_features(model, dataloader, layer_name):
     features = []
@@ -89,6 +89,14 @@ def run_anomaly_detection_defense(profile, trainset, testset, valset, class_name
     print(f"[*] Running Anomaly Detection defense for {attack_type}...")
 
     cfg = profile["defense_config"]["backdoor"][attack_type]["anomaly_detection"]
+
+    attack_config = profile.get("attack_overrides", {}).get("backdoor", {}).get(attack_type, {})
+    target_class = attack_config.get("target_class")
+
+    if target_class is None:
+        raise ValueError(f"Target class not found in profile for attack type '{attack_type}'. Cannot evaluate ASR.")
+
+
     method = cfg.get("method", "isolation_forest")
     contamination = cfg.get("contamination", 0.1)
 
@@ -134,7 +142,13 @@ def run_anomaly_detection_defense(profile, trainset, testset, valset, class_name
 
     acc_clean, per_class_clean = evaluate_model(clean_model, testset, class_names=class_names)
     if patched_testset is not None:
-        acc_adv, per_class_adv = evaluate_model(clean_model, patched_testset, class_names=class_names)
+        acc_adv, per_class_adv = evaluate_backdoor_asr(
+            clean_model,
+            patched_testset,
+            target_class=target_class, # Pass the target_class
+            class_names=class_names,
+            prefix="[Eval ASR after Defense]"
+        )
     else:
         acc_adv, per_class_adv = None, None
 
@@ -147,9 +161,9 @@ def run_anomaly_detection_defense(profile, trainset, testset, valset, class_name
         "defense": "anomaly_detection",
         "attack": attack_type,
         "accuracy_clean": acc_clean,
-        "accuracy_adversarial": acc_adv,
+        "asr_after_defense": acc_adv,
         "per_class_accuracy_clean": per_class_clean,
-        "per_class_accuracy_adversarial": per_class_adv,
+        "per_original_class_asr": per_class_adv,
         "num_removed": len(removed_indices),
         "removed_indices": removed_indices,
         "example_removed": example_log,

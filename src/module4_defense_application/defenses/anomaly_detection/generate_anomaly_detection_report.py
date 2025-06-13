@@ -12,8 +12,8 @@ def generate_anomaly_detection_report(json_file, md_file):
 
     if "accuracy_clean" in data:
         lines.append(f"**Clean Accuracy:** `{data['accuracy_clean']:.4f}`  ")
-    if "accuracy_adversarial" in data and data['accuracy_adversarial'] is not None:
-        lines.append(f"**Adversarial Accuracy:** `{data['accuracy_adversarial']:.4f}`  ")
+    if "asr_after_defense" in data and data['asr_after_defense'] is not None:
+        lines.append(f"- **ASR After Defense:** `{data['asr_after_defense']:.4f}`")
 
     lines.append(f"\n## Parameters\n")
     for k, v in data["params"].items():
@@ -23,10 +23,10 @@ def generate_anomaly_detection_report(json_file, md_file):
     for cls, acc in data["per_class_accuracy_clean"].items():
         lines.append(f"- **{cls}**: `{acc:.4f}`")
 
-    if data.get("per_class_accuracy_adversarial"):
-        lines.append(f"\n## Per-Class Accuracy (Adversarial)\n")
-        for cls, acc in data["per_class_accuracy_adversarial"].items():
-            lines.append(f"- **{cls}**: `{acc:.4f}`")
+    if data.get("per_original_class_asr"):
+        lines.append("\n### Per-Original-Class ASR")
+        for cls, asr in data["per_original_class_asr"].items():
+            lines.append(f"- **Original Class {cls}**: `{asr:.4f}`")
 
     lines.append(f"\n## Removed Samples\n")
     lines.append(f"**Number of removed samples:** `{data['num_removed']}`\n")
