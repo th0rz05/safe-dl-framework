@@ -3,7 +3,6 @@
   "attack": "label_flipping",
   "type": "gce",
   "accuracy_clean": 0.6342,
-  "accuracy_adversarial": null,
   "per_class_accuracy_clean": {
     "airplane": 0.701,
     "automobile": 0.872,
@@ -15,6 +14,5 @@
     "horse": 0.688,
     "ship": 0.661,
     "truck": 0.765
-  },
-  "per_class_accuracy_adversarial": null
+  }
 }

@@ -194,9 +194,7 @@ def run_dp_training_defense(
             "clip_norm": clip_norm,
             "epsilon_spent": eps_spent,
             "accuracy_clean": test_acc,
-            "accuracy_adversarial": None,
             "per_class_accuracy_clean": per_class_acc,
-            "per_class_accuracy_adversarial": None,
         }, fp, indent=2)
     print(f"[✔] Results JSON saved to {json_path}")
 

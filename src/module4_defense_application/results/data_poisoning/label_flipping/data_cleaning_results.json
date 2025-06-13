@@ -2,7 +2,6 @@
   "defense": "data_cleaning",
   "attack": "label_flipping",
   "accuracy_clean": 0.6251,
-  "accuracy_adversarial": null,
   "per_class_accuracy_clean": {
     "airplane": 0.653,
     "automobile": 0.729,
@@ -15,7 +14,6 @@
     "ship": 0.737,
     "truck": 0.804
   },
-  "per_class_accuracy_adversarial": null,
   "cleaning_params": {
     "method": "loss_filtering",
     "threshold": 0.9

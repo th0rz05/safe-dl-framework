@@ -208,9 +208,7 @@ def run_provenance_tracking_defense(
         "granularity": granularity,
         "num_removed": len(to_remove),
         "accuracy_clean": final_acc,
-        "accuracy_adversarial": None,
         "per_class_accuracy_clean": per_class,
-        "per_class_accuracy_adversarial": None,
         "example_removed": example_flips
     }
     with open(json_path, "w") as f:

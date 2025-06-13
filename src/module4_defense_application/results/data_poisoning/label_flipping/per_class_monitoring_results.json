@@ -2,8 +2,6 @@
   "defense": "per_class_monitoring",
   "attack": "label_flipping",
   "accuracy_clean": 0.5488,
-  "accuracy_adversarial": null,
-  "per_class_accuracy_adversarial": null,
   "accuracy_std": 0.1951,
   "threshold": 1.0,
   "flagged_classes": [
