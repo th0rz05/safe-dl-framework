@@ -94,7 +94,7 @@ def run_attacks(profile,trainset, testset, valset, class_names):
             static_patch_model = load_model_cfg_from_profile(profile)
             run_static_patch(trainset, testset, valset, static_patch_model, profile, class_names)
 
-        if "learned" in backdoor_attacks:
+        if "learned_trigger" in backdoor_attacks:
             print("  - Executing Learned Trigger...")
             from attacks.backdoor.learned_trigger.run_learned_trigger import run_learned_trigger
 

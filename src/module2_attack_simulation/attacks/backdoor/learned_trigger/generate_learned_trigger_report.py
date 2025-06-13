@@ -3,7 +3,9 @@ import json
 import os
 from statistics import mean
 
-def generate_learned_trigger_report(json_file: str, md_file: str) -> None:
+
+# Add class_names as an argument
+def generate_learned_trigger_report(json_file: str, md_file: str, class_names=None) -> None:
     """
     Convert the metrics stored in `json_file` into a pretty Markdown report.
     The function mirrors the look‑and‑feel of the Static‑Patch report.
@@ -23,35 +25,57 @@ def generate_learned_trigger_report(json_file: str, md_file: str) -> None:
     # ---- Overview ----------------------------------------------------- #
     lines.append("## Overview\n")
     lines.append(f"- **Attack Type:** {res.get('attack_type')}")
-    lines.append(f"- **Patch Size Ratio:** {res.get('patch_size_ratio')}")
+    # Update Patch Size Ratio: Use N/A as it's not directly applicable
+    lines.append(f"- **Patch Size Ratio:** {res.get('patch_size_ratio', 'N/A')}")
     lines.append(f"- **Poisoned Fraction:** {res.get('poison_fraction')}")
     lines.append(f"- **Label Mode:** {res.get('label_mode')}")
     lines.append(f"- **Target Class:** {res.get('target_class')} ({res.get('target_class_name')})")
-    lines.append(f"- **Learning Rate:** {res.get('learning_rate')}")
+    # Update Learning Rate key
+    lines.append(f"- **Trigger Learning Rate:** {res.get('learning_rate_trigger')}")
     lines.append(f"- **Trigger Optimisation Epochs:** {res.get('epochs_trigger')}")
-    lines.append(f"- **Mask‑L1 Weight (λ₁):** {res.get('mask_weight')}")
-    lines.append(f"- **Total‑Variation Weight (λ_tv):** {res.get('tv_weight')}")
-    lines.append("")
+    # Update Mask-L1 Weight key
+    lines.append(f"- **Mask-L1 Weight (λ_mask):** {res.get('lambda_mask')}")
+    # Update Total-Variation Weight key
+    lines.append(f"- **Total-Variation Weight (λ_tv):** {res.get('lambda_tv')}")
+    lines.append("\n")
 
     # ---- Performance -------------------------------------------------- #
     lines.append("## Performance Metrics\n")
     lines.append(f"- **Accuracy on Clean Test Set (CDA):** {res.get('accuracy_clean_testset'):.4f}")
-    lines.append("")
+    lines.append("\n")
 
-    # ---- ASR ---------------------------------------------------------- #
+    # ---- ASR (Overall) ------------------------------------------------ #
     lines.append("## Attack Success Rate (ASR)\n")
-    lines.append(f"- **ASR:** {res.get('attack_success_rate'):.4f}")
+    lines.append(f"- **Overall ASR:** {res.get('attack_success_rate'):.4f}")
     lines.append(f"- **Successful Targeted Predictions:** "
                  f"{res.get('attack_success_numerator')} / {res.get('attack_success_denominator')}")
-    lines.append("")
+    lines.append("\n")
 
-    # ---- Per‑class accuracy table ------------------------------------- #
+    # NEW: ASR by Original Class
+    if "per_class_attack_success_rate" in res and class_names:
+        lines.append("### ASR by Original Class\n")
+        lines.append("| Original Class | ASR (%) | Successful Attacks | Total Samples |")
+        lines.append("|----------------|---------|--------------------|---------------|")
+
+        per_class_asr = res.get("per_class_attack_success_rate", {})
+        per_class_num = res.get("per_class_asr_numerator", {})
+        per_class_den = res.get("per_class_asr_denominator", {})
+
+        # Iterate over class_names to ensure consistent order
+        for cls_name in class_names:
+            asr_val = per_class_asr.get(cls_name, 0.0)
+            num = per_class_num.get(cls_name, 0)
+            den = per_class_den.get(cls_name, 0)
+            lines.append(f"| {cls_name} | {asr_val * 100:.2f}% | {num} | {den} |")
+        lines.append("\n")  # Add a blank line for spacing
+
+    # ---- Per‑class accuracy table (Clean Test Set) -------------------- #
     lines.append("### Per‑Class Accuracy (Clean Test Set)\n")
     lines.append("| Class | Accuracy |")
     lines.append("|-------|----------|")
     for cls, acc in res.get("per_class_clean", {}).items():
         lines.append(f"| {cls} | {acc:.4f} |")
-    lines.append("")
+    lines.append("\n")
 
     # ------------------------------------------------------------------ #
     # 3) Visual assets -------------------------------------------------- #
@@ -60,24 +84,26 @@ def generate_learned_trigger_report(json_file: str, md_file: str) -> None:
     examples_dir = os.path.join(root_dir, "examples")
 
     # ---- Trigger / mask visualisations ------------------------------- #
-    trigger_png  = os.path.join(root_dir, "trigger.png")
-    mask_png     = os.path.join(root_dir, "mask.png")
-    overlay_png  = os.path.join(root_dir, "overlay.png")
+    # Use relative paths for images in Markdown
+    trigger_png_rel = os.path.join(os.path.relpath(root_dir, root_dir), "trigger.png")  # Should be just "trigger.png"
+    mask_png_rel = os.path.join(os.path.relpath(root_dir, root_dir), "mask.png")  # Should be just "mask.png"
+    overlay_png_rel = os.path.join(os.path.relpath(root_dir, root_dir), "overlay.png")  # Should be just "overlay.png"
 
-    if os.path.exists(trigger_png) and os.path.exists(mask_png):
+    # Check if files exist at their absolute paths before referencing
+    if os.path.exists(os.path.join(root_dir, "trigger.png")) and os.path.exists(os.path.join(root_dir, "mask.png")):
         lines.append("## Learned Trigger & Mask\n")
         lines.append('<div style="display: flex; gap: 10px;">')
-        for img, label in [
-            (trigger_png, "Trigger"),
-            (mask_png,    "Mask (α)"),
-            (overlay_png, "Overlay Preview")
+        for img_rel_path, label in [
+            (trigger_png_rel, "Trigger"),
+            (mask_png_rel, "Mask (α)"),
+            (overlay_png_rel, "Overlay Preview")
         ]:
-            if os.path.exists(img):
-                rel = os.path.relpath(img, root_dir)
+            # Only add if the actual file exists
+            if os.path.exists(os.path.join(root_dir, os.path.basename(img_rel_path))):  # Check absolute path
                 lines.append(
                     f'<div style="text-align:center;">'
                     f'<small><strong>{label}</strong></small><br>'
-                    f'<img src="{rel}" style="width:120px; image-rendering:pixelated;">'
+                    f'<img src="{os.path.basename(img_rel_path)}" style="width:120px; image-rendering:pixelated;">'
                     f'</div>'
                 )
         lines.append("</div>\n")
@@ -85,12 +111,18 @@ def generate_learned_trigger_report(json_file: str, md_file: str) -> None:
     # ---- Example poisoned samples ------------------------------------ #
     example_imgs = []
     if os.path.isdir(examples_dir):
+        # List files directly from the examples_dir
         example_imgs = [f for f in os.listdir(examples_dir) if f.endswith(".png")][:5]
+        # Sort to ensure consistent order
+        example_imgs.sort()
 
     if example_imgs:
         lines.append("## Example Poisoned Training Samples\n")
         lines.append('<div style="display: flex; gap: 10px;">')
         for fname in example_imgs:
+            # The 'src' attribute needs to be relative to the markdown file's location.
+            # If MD is in 'results/backdoor/learned_trigger', and images are in 'results/backdoor/learned_trigger/examples',
+            # then the path is just 'examples/fname'.
             lines.append(
                 f'<div style="text-align:center;">'
                 f'<small>{fname}</small><br>'
@@ -116,12 +148,3 @@ def generate_learned_trigger_report(json_file: str, md_file: str) -> None:
 
     print(f"[✔] Markdown report generated at {md_file}")
 
-
-# ---------------------------------------------------------------------- #
-# Quick CLI usage (optional)                                             #
-# ---------------------------------------------------------------------- #
-if __name__ == "__main__":
-    generate_learned_trigger_report(
-        "../../../results/backdoor/learned_trigger/learned_trigger_metrics.json",
-        "../../../results/backdoor/learned_trigger/learned_trigger_report.md"
-    )
