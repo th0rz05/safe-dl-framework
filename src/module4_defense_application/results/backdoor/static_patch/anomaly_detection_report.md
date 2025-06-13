@@ -2,8 +2,8 @@
 
 **Attack Type:** `static_patch`  
 **Defense Method:** `anomaly_detection`  
-**Clean Accuracy:** `0.6618`  
-**Adversarial Accuracy:** `0.1976`  
+**Clean Accuracy:** `0.6416`  
+- **ASR After Defense:** `0.9204`
 
 ## Parameters
 
@@ -11,29 +11,27 @@
 
 ## Per-Class Accuracy (Clean)
 
-- **airplane**: `0.7430`
-- **automobile**: `0.7920`
-- **bird**: `0.5310`
-- **cat**: `0.5410`
-- **deer**: `0.6070`
-- **dog**: `0.5320`
-- **frog**: `0.8710`
-- **horse**: `0.6270`
-- **ship**: `0.7310`
-- **truck**: `0.6430`
+- **airplane**: `0.6890`
+- **automobile**: `0.8560`
+- **bird**: `0.5070`
+- **cat**: `0.3420`
+- **deer**: `0.6880`
+- **dog**: `0.4330`
+- **frog**: `0.6280`
+- **horse**: `0.8160`
+- **ship**: `0.7880`
+- **truck**: `0.6690`
 
-## Per-Class Accuracy (Adversarial)
-
-- **airplane**: `0.1640`
-- **automobile**: `0.1610`
-- **bird**: `0.0850`
-- **cat**: `0.9710`
-- **deer**: `0.0450`
-- **dog**: `0.0300`
-- **frog**: `0.1880`
-- **horse**: `0.1020`
-- **ship**: `0.0500`
-- **truck**: `0.1800`
+### Per-Original-Class ASR
+- **Original Class airplane**: `0.8670`
+- **Original Class automobile**: `0.8400`
+- **Original Class bird**: `0.9500`
+- **Original Class cat**: `0.9370`
+- **Original Class deer**: `0.9790`
+- **Original Class dog**: `0.9650`
+- **Original Class frog**: `0.9200`
+- **Original Class ship**: `0.9570`
+- **Original Class truck**: `0.8690`
 
 ## Removed Samples
 
@@ -42,8 +40,8 @@
 
 ### Examples
 
-- `horse`: ![](anomaly_removed/removed_7_7.png)
-- `bird`: ![](anomaly_removed/removed_24_2.png)
-- `frog`: ![](anomaly_removed/removed_25_6.png)
-- `dog`: ![](anomaly_removed/removed_27_5.png)
-- `horse`: ![](anomaly_removed/removed_43_7.png)
+- `truck`: ![](anomaly_removed/removed_1_9.png)
+- `deer`: ![](anomaly_removed/removed_10_4.png)
+- `bird`: ![](anomaly_removed/removed_13_2.png)
+- `truck`: ![](anomaly_removed/removed_14_9.png)
+- `bird`: ![](anomaly_removed/removed_42_2.png)

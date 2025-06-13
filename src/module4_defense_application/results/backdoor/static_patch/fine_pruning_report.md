@@ -8,33 +8,33 @@
 - **Pruning Ratio:** 0.2
 - **Pruned Layer:** fc.3
 - **Number of Neurons Pruned:** 2
-- **Pruned Neuron Indices:** 5, 1
+- **Pruned Neuron Indices:** 8, 1
 
 ## Accuracy After Defense
 
-- **Clean Accuracy:** 0.6000
-- **Adversarial Accuracy:** 0.3533
+- **Clean Accuracy:** 0.6733
+- **ASR After Defense:** `0.5161`
 
 ### Per-Class Accuracy (Clean)
-- **airplane**: 0.4240
-- **automobile**: 0.7090
-- **bird**: 0.4100
-- **cat**: 0.5340
-- **deer**: 0.4370
-- **dog**: 0.7430
-- **frog**: 0.5370
-- **horse**: 0.8430
-- **ship**: 0.5960
-- **truck**: 0.7670
+- **airplane**: 0.7330
+- **automobile**: 0.8920
+- **bird**: 0.4220
+- **cat**: 0.5610
+- **deer**: 0.4640
+- **dog**: 0.6980
+- **frog**: 0.8260
+- **horse**: 0.7090
+- **ship**: 0.7820
+- **truck**: 0.6460
 
-### Per-Class Accuracy (Adversarial)
-- **airplane**: 0.1870
-- **automobile**: 0.2950
-- **bird**: 0.2380
-- **cat**: 0.9350
-- **deer**: 0.2260
-- **dog**: 0.1870
-- **frog**: 0.2120
-- **horse**: 0.5470
-- **ship**: 0.3130
-- **truck**: 0.3930
+
+### Per-Original-Class ASR
+- **Original Class airplane**: `0.4210`
+- **Original Class automobile**: `0.3650`
+- **Original Class bird**: `0.6080`
+- **Original Class cat**: `0.6080`
+- **Original Class deer**: `0.6790`
+- **Original Class dog**: `0.6540`
+- **Original Class frog**: `0.3380`
+- **Original Class ship**: `0.5180`
+- **Original Class truck**: `0.4540`

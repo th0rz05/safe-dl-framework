@@ -7,34 +7,31 @@
 
 ## Clean Accuracy After Defense
 
-- **Overall Accuracy:** 0.6275
+- **Overall Accuracy:** 0.6440
 
 ### Per-Class Accuracy (Clean)
-- **airplane**: 0.7780
-- **automobile**: 0.8560
-- **bird**: 0.2810
-- **cat**: 0.4590
-- **deer**: 0.7450
-- **dog**: 0.4350
-- **frog**: 0.8090
-- **horse**: 0.5720
-- **ship**: 0.5560
-- **truck**: 0.7840
+- **airplane**: 0.6020
+- **automobile**: 0.7410
+- **bird**: 0.7260
+- **cat**: 0.3740
+- **deer**: 0.4280
+- **dog**: 0.6410
+- **frog**: 0.7760
+- **horse**: 0.6460
+- **ship**: 0.7660
+- **truck**: 0.7400
+- **ASR After Defense:** `0.9153`
 
-## Adversarial Accuracy After Defense
-- **Overall Accuracy:** 0.1440
-
-### Per-Class Accuracy (Adversarial)
-- **airplane**: 0.0950
-- **automobile**: 0.1300
-- **bird**: 0.0140
-- **cat**: 0.9900
-- **deer**: 0.0010
-- **dog**: 0.0070
-- **frog**: 0.0850
-- **horse**: 0.0130
-- **ship**: 0.0060
-- **truck**: 0.0990
+### Per-Original-Class ASR
+- **Original Class airplane**: `0.8710`
+- **Original Class automobile**: `0.8720`
+- **Original Class bird**: `0.9290`
+- **Original Class cat**: `0.9040`
+- **Original Class deer**: `0.9840`
+- **Original Class dog**: `0.9250`
+- **Original Class frog**: `0.8820`
+- **Original Class ship**: `0.9740`
+- **Original Class truck**: `0.8970`
 
 ## Weight Histograms
 The following histograms visualize the weight distributions of the inspected layers.

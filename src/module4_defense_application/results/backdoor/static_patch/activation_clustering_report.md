@@ -3,54 +3,54 @@
 ## 1. Overview
 - **Defense:** activation_clustering
 - **Attack Type:** static_patch
-- **Number of Removed Samples:** 17448
+- **Number of Removed Samples:** 18224
 - **Defense Parameters:**
   - `num_clusters`: 2
 
 ## 2. Accuracy After Defense
-- **Clean Test Set Accuracy:** `0.3735`
-- **ASR After Defense:** `0.8863`
+- **Clean Test Set Accuracy:** `0.4386`
+- **ASR After Defense:** `0.9024`
 
 ### Per-Class Accuracy (Clean)
-- **airplane**: `0.5140`
+- **airplane**: `0.6660`
 - **automobile**: `0.0000`
-- **bird**: `0.8140`
-- **cat**: `0.2740`
-- **deer**: `0.3810`
-- **dog**: `0.3550`
-- **frog**: `0.8060`
-- **horse**: `0.5530`
-- **ship**: `0.0260`
-- **truck**: `0.0120`
+- **bird**: `0.5030`
+- **cat**: `0.3260`
+- **deer**: `0.7960`
+- **dog**: `0.6330`
+- **frog**: `0.6650`
+- **horse**: `0.7020`
+- **ship**: `0.0950`
+- **truck**: `0.0000`
 
 ### Per-Original-Class ASR
-- **Original Class airplane**: `0.7510`
-- **Original Class automobile**: `0.8900`
-- **Original Class bird**: `0.8540`
-- **Original Class cat**: `0.8830`
-- **Original Class deer**: `0.9560`
-- **Original Class dog**: `0.9240`
-- **Original Class frog**: `0.8490`
-- **Original Class ship**: `0.9420`
-- **Original Class truck**: `0.9280`
+- **Original Class airplane**: `0.7830`
+- **Original Class automobile**: `0.9080`
+- **Original Class bird**: `0.8930`
+- **Original Class cat**: `0.8880`
+- **Original Class deer**: `0.9660`
+- **Original Class dog**: `0.9160`
+- **Original Class frog**: `0.8710`
+- **Original Class ship**: `0.9640`
+- **Original Class truck**: `0.9330`
 ## 3. Removed Sample Examples (Cluster-based)
-
-**Removed Sample — Class: automobile**
-
-![Removed](activation_removed/removed_5_1.png)
-
-**Removed Sample — Class: horse**
-
-![Removed](activation_removed/removed_12_7.png)
 
 **Removed Sample — Class: truck**
 
-![Removed](activation_removed/removed_14_9.png)
+![Removed](activation_removed/removed_2_9.png)
+
+**Removed Sample — Class: deer**
+
+![Removed](activation_removed/removed_3_4.png)
+
+**Removed Sample — Class: automobile**
+
+![Removed](activation_removed/removed_4_1.png)
 
 **Removed Sample — Class: horse**
 
-![Removed](activation_removed/removed_16_7.png)
+![Removed](activation_removed/removed_7_7.png)
 
-**Removed Sample — Class: bird**
+**Removed Sample — Class: deer**
 
-![Removed](activation_removed/removed_18_2.png)
+![Removed](activation_removed/removed_10_4.png)

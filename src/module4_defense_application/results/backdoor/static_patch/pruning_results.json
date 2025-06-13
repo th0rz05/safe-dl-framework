@@ -1,31 +1,30 @@
 {
   "defense": "pruning",
   "attack": "static_patch",
-  "accuracy_clean": 0.3349,
-  "accuracy_adversarial": 0.1143,
+  "accuracy_clean": 0.3361,
+  "asr_after_defense": 0.8697777777777778,
   "per_class_accuracy_clean": {
-    "airplane": 0.794,
-    "automobile": 0.177,
-    "bird": 0.312,
-    "cat": 0.624,
-    "deer": 0.008,
-    "dog": 0.374,
-    "frog": 0.164,
-    "horse": 0.494,
-    "ship": 0.13,
-    "truck": 0.272
+    "airplane": 0.715,
+    "automobile": 0.441,
+    "bird": 0.228,
+    "cat": 0.04,
+    "deer": 0.289,
+    "dog": 0.097,
+    "frog": 0.532,
+    "horse": 0.079,
+    "ship": 0.279,
+    "truck": 0.661
   },
-  "per_class_accuracy_adversarial": {
-    "airplane": 0.137,
-    "automobile": 0.004,
-    "bird": 0.001,
-    "cat": 0.991,
-    "deer": 0.0,
-    "dog": 0.003,
-    "frog": 0.001,
-    "horse": 0.001,
-    "ship": 0.001,
-    "truck": 0.004
+  "per_original_class_asr": {
+    "airplane": 0.825,
+    "automobile": 0.863,
+    "bird": 0.898,
+    "cat": 0.855,
+    "deer": 0.901,
+    "dog": 0.884,
+    "frog": 0.85,
+    "ship": 0.93,
+    "truck": 0.822
   },
   "pruned_params_fraction": 0.5,
   "params": {

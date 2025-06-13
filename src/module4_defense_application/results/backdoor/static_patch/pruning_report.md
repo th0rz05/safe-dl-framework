@@ -6,37 +6,22 @@
 
 **Pruned Parameters Fraction:** `0.5`
 
-**Accuracy on clean test set:** `0.3349`
+**Accuracy on clean test set:** `0.3361`
 
-**Accuracy on adversarial test set:** `0.1143`
-
-## Per-Class Accuracy (Clean)
+- **ASR After Defense:** `0.8698`## Per-Class Accuracy (Clean)
 
 | Class | Accuracy |
 |-------|----------|
-| airplane | 0.7940 |
-| automobile | 0.1770 |
-| bird | 0.3120 |
-| cat | 0.6240 |
-| deer | 0.0080 |
-| dog | 0.3740 |
-| frog | 0.1640 |
-| horse | 0.4940 |
-| ship | 0.1300 |
-| truck | 0.2720 |
+| airplane | 0.7150 |
+| automobile | 0.4410 |
+| bird | 0.2280 |
+| cat | 0.0400 |
+| deer | 0.2890 |
+| dog | 0.0970 |
+| frog | 0.5320 |
+| horse | 0.0790 |
+| ship | 0.2790 |
+| truck | 0.6610 |
 
-## Per-Class Accuracy (Adversarial)
 
-| Class | Accuracy |
-|-------|----------|
-| airplane | 0.1370 |
-| automobile | 0.0040 |
-| bird | 0.0010 |
-| cat | 0.9910 |
-| deer | 0.0000 |
-| dog | 0.0030 |
-| frog | 0.0010 |
-| horse | 0.0010 |
-| ship | 0.0010 |
-| truck | 0.0040 |
-
+### Per-Original-Class ASR- **Original Class airplane**: `0.8250`- **Original Class automobile**: `0.8630`- **Original Class bird**: `0.8980`- **Original Class cat**: `0.8550`- **Original Class deer**: `0.9010`- **Original Class dog**: `0.8840`- **Original Class frog**: `0.8500`- **Original Class ship**: `0.9300`- **Original Class truck**: `0.8220`
