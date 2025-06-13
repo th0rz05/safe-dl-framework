@@ -1,7 +1,7 @@
 import os
 import json
 
-from attacks.utils import train_model, evaluate_model, load_model
+from attacks.utils import train_model, evaluate_model, load_model, evaluate_backdoor_asr
 from attacks.backdoor.patch_utils import apply_trigger, mask_l1_loss, total_variation_loss, save_trigger_visualization
 
 import random

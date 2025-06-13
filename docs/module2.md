@@ -446,7 +446,7 @@ Once a profile is configured, it can be reused across experiments without re-run
 
 ## 5. Attack Simulation Flow
 
-Once the profile YAML is fully configured, the attack simulation phase begins. This phase orchestrates the training, evaluation, and execution of selected attacks based on the profile information. It is triggered by running the script `run_attacks.py`.
+Once the profile YAML is fully configured, the attack simulation phase begins. This phase orchestrates the training, evaluation, and execution of selected attacks based on the profile information. It is triggered by running the script `run_module2.py`.
 
 ### 5.1 Overview of the Execution Pipeline
 
@@ -2510,7 +2510,7 @@ This centralized setup ensures that:
 -   Results are traceable to their configuration
     
 
-Each attack is then executed with its corresponding configuration during the main simulation run (`run_attacks.py`).
+Each attack is then executed with its corresponding configuration during the main simulation run (`run_module2.py`).
 
 ### 12.3 FGSM Attack
 The FGSM (Fast Gradient Sign Method) attack is one of the simplest and most widely used evasion techniques for evaluating the robustness of neural networks. It belongs to the family of white-box attacks, meaning it requires full access to the model's internal gradients. By leveraging the gradient of the loss with respect to the input, FGSM crafts an adversarial example with a single perturbation step in the direction that maximally increases the model’s prediction error. Despite its simplicity, FGSM often reveals critical vulnerabilities in models that were not trained with robustness in mind, making it a strong baseline for adversarial evaluation.

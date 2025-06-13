@@ -1,7 +1,11 @@
 import json
 import os
 
-def generate_static_patch_report(json_file, md_file):
+
+def generate_static_patch_report(json_file: str, md_file: str, class_names=None) -> None:
+    """
+    Convert the metrics stored in `json_file` into a pretty Markdown report.
+    """
     with open(json_file, "r") as f:
         results = json.load(f)
 
@@ -20,38 +24,61 @@ def generate_static_patch_report(json_file, md_file):
     lines.append(f"- **Target Class:** {results.get('target_class')} ({results.get('target_class_name')})")
     if "avg_perturbation_norm" in results:
         lines.append(f"- **Average Perturbation Norm:** {results.get('avg_perturbation_norm'):.4f}")
-    lines.append("")
+    lines.append("\n")
 
     lines.append("## Performance Metrics\n")
     lines.append(f"- **Accuracy on Clean Test Set:** {results.get('accuracy_clean_testset'):.4f}")
-    lines.append("")
+    lines.append("\n")
 
     lines.append("## Attack Success Rate (ASR)\n")
-    lines.append(f"- **ASR:** {results.get('attack_success_rate'):.4f}")
-    lines.append(f"- **Successful Targeted Predictions:** {results.get('attack_success_numerator')} / {results.get('attack_success_denominator')}")
-    lines.append("")
+    lines.append(f"- **Overall ASR:** {results.get('attack_success_rate'):.4f} "
+                 f"({results.get('attack_success_numerator')} / {results.get('attack_success_denominator')})\n")
+
+    # NEW: ASR by Original Class
+    if "per_class_attack_success_rate" in results and class_names:
+        lines.append("### ASR by Original Class\n")
+        lines.append("| Original Class | ASR (%) | Successful Attacks | Total Samples |")
+        lines.append("|----------------|---------|--------------------|---------------|")
+
+        per_class_asr = results.get("per_class_attack_success_rate", {})
+        per_class_num = results.get("per_class_asr_numerator", {})
+        per_class_den = results.get("per_class_asr_denominator", {})
+
+        # Iterate over class_names to ensure consistent order
+        for cls_name in class_names:
+            asr_val = per_class_asr.get(cls_name, 0.0)
+            num = per_class_num.get(cls_name, 0)
+            den = per_class_den.get(cls_name, 0)
+            lines.append(f"| {cls_name} | {asr_val * 100:.2f}% | {num} | {den} |")
+        lines.append("\n")  # Add a blank line for spacing
 
     lines.append("### Per-Class Accuracy (Clean Test Set)\n")
     lines.append("| Class | Accuracy |")
     lines.append("|--------|----------|")
     for cls, acc in results.get("per_class_clean", {}).items():
         lines.append(f"| {cls} | {acc:.4f} |")
-    lines.append("")
+    lines.append("\n")
 
     # Example poisoned samples (images)
-    if os.path.exists("results/backdoor/static_patch/examples"):
+    # Ensure the path to 'examples' is relative to the md_file or the directory where the report will be viewed
+    # The structure should be `results/backdoor/static_patch/examples/`
+    example_imgs_dir = os.path.join(os.path.dirname(json_file), "examples")  # Use the directory of the JSON
+    if os.path.exists(example_imgs_dir):
         example_imgs = [
-            f for f in os.listdir("results/backdoor/static_patch/examples") if f.endswith(".png")
-        ][:5]
+                           f for f in os.listdir(example_imgs_dir) if f.endswith(".png")
+                       ][:5]  # Limit to 5 examples as before
 
         if example_imgs:
             lines.append("## Example Poisoned Samples\n")
             lines.append('<div style="display: flex; gap: 10px;">')
-            for fname in example_imgs:
+            for fname_full in example_imgs:
+                # The image path in markdown must be relative to the MD file. If MD is in 'results/backdoor/static_patch/',
+                # the image is in 'results/backdoor/static_patch/examples/'.
+                # So, the src is 'examples/image_name.png'
                 lines.append(
                     f'<div style="text-align: center;">'
-                    f'<small><strong>{fname}</strong></small><br>'
-                    f'<img src="examples/{fname}" alt="{fname}" style="width: 120px;">'
+                    f'<small><strong>{fname_full}</strong></small><br>'
+                    f'<img src="examples/{fname_full}" alt="{fname_full}" style="width: 120px;">'
                     f'</div>'
                 )
             lines.append("</div>\n")
@@ -62,9 +89,3 @@ def generate_static_patch_report(json_file, md_file):
 
     print(f"[✔] Markdown report generated at {md_file}")
 
-
-if __name__ == "__main__":
-    generate_static_patch_report(
-        "results/backdoor/static_patch/static_patch_metrics.json",
-        "results/backdoor/static_patch/static_patch_report.md"
-    )
