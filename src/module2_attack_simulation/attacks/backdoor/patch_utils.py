@@ -223,7 +223,7 @@ def save_trigger_visualization(T, M, out_dir):
     T_norm = (T - T_min) / (T_max - T_min + 1e-8)
 
     # Mask image
-    mask_img = torch.sigmoid(M)[0].cpu().numpy()
+    mask_img = torch.sigmoid(M).squeeze().cpu().numpy()
     plt.imsave(os.path.join(out_dir, "mask.png"), mask_img, cmap="gray")
 
     # Trigger image
