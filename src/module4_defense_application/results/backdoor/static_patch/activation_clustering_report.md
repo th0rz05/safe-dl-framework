@@ -9,7 +9,7 @@
 
 ## 2. Accuracy After Defense
 - **Clean Test Set Accuracy:** `0.3735`
-- **Adversarial Test Set Accuracy:** _Not available_
+- **ASR After Defense:** `0.8863`
 
 ### Per-Class Accuracy (Clean)
 - **airplane**: `0.5140`
@@ -23,6 +23,16 @@
 - **ship**: `0.0260`
 - **truck**: `0.0120`
 
+### Per-Original-Class ASR
+- **Original Class airplane**: `0.7510`
+- **Original Class automobile**: `0.8900`
+- **Original Class bird**: `0.8540`
+- **Original Class cat**: `0.8830`
+- **Original Class deer**: `0.9560`
+- **Original Class dog**: `0.9240`
+- **Original Class frog**: `0.8490`
+- **Original Class ship**: `0.9420`
+- **Original Class truck**: `0.9280`
 ## 3. Removed Sample Examples (Cluster-based)
 
 **Removed Sample — Class: automobile**
