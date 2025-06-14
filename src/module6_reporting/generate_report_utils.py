@@ -731,11 +731,13 @@ def generate_defense_application_section(profile_data: dict) -> str:
                     try:
                         defense_results_data = load_json(defense_results_path)
                         clean_acc_post_defense = defense_results_data.get('accuracy_clean', 'N/A')
-                        # For data poisoning, 'accuracy_adversarial' is often null or not applicable
-                        adv_acc_post_defense = defense_results_data.get('accuracy_adversarial', 'N/A')
 
-                        # Special handling for N/A display for data poisoning (where adv_acc might be None)
-                        if attack_category == 'data_poisoning' and adv_acc_post_defense is None:
+                        if attack_category == 'backdoor':
+                            adv_acc_post_defense = defense_results_data.get('asr_after_defense', 'N/A')
+                        elif attack_category == 'evasion':
+                            adv_acc_post_defense = defense_results_data.get('accuracy_adversarial', 'N/A')
+                        else:  # data_poisoning
+                            # For data poisoning, 'accuracy_adversarial' is often null or not applicable
                             adv_acc_post_defense = 'N/A'
 
                     except Exception as e:
