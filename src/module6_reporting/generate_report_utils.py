@@ -1273,4 +1273,75 @@ def generate_conclusions_section(profile_data: dict) -> str:
     return "\n".join(section_lines)
 
 
+def generate_monitoring_section(profile_data: dict) -> str:
+    """
+    Generates Section 9: Recommendations for Continuous Monitoring and Post-Deployment.
+    Advises on maintaining security over time in production.
+    """
+    section_lines = [
+        "---",
+        "## 9. Recommendations for Continuous Monitoring and Post-Deployment",
+        ""
+    ]
+
+    # 9.1 Monitoring Metrics
+    section_lines.append("### 9.1 Monitoring Metrics")
+    section_lines.append("- **Input Distribution Monitoring**: Continuously track statistics of incoming data (e.g., feature distributions, class frequencies). Unexpected shifts may signal data drift or adversarial attempts.")
+    section_lines.append("- **Model Performance Metrics**: Monitor live accuracy or proxy metrics on clean-like validation streams if available. Sudden drops could indicate emerging attacks or data issues.")
+    section_lines.append("- **Confidence and Uncertainty**: Log model confidence scores and uncertainty metrics (e.g., softmax entropy). A rise in low-confidence predictions or abnormal confidence patterns can hint at adversarial inputs.")
+    section_lines.append("- **Error Rates per Class**: Track per-class error rates over time. Spikes in errors for specific classes may indicate targeted data poisoning or evolving distribution shifts.")
+    section_lines.append("- **Resource Usage and Latency**: Monitor inference latency and resource consumption, especially if defenses (e.g., input preprocessing) are in place. Degradation may affect user experience and could be exploited.")
+    section_lines.append("")
+
+    # 9.2 Periodic Re-assessment
+    section_lines.append("### 9.2 Periodic Re-assessment")
+    section_lines.append("- **Scheduled Security Audits**: Automate rerunning Modules 2–5 on updated data or model versions at regular intervals (e.g., quarterly or upon major model updates).")
+    section_lines.append("- **Retraining with Fresh Data**: If new data is collected over time, include it in retraining pipelines with relevant attack/defense simulations to ensure up-to-date robustness.")
+    section_lines.append("- **Threat Landscape Updates**: Stay informed about new attack methods; incorporate new simulations and defenses into the framework as they emerge.")
+    section_lines.append("- **Regression Testing**: After model updates or defense adjustments, re-evaluate known attack scenarios to ensure no regressions in vulnerability.")
+    section_lines.append("")
+
+    # 9.3 Alerting and Thresholds
+    section_lines.append("### 9.3 Alerting and Thresholds")
+    section_lines.append("- **Define Alert Conditions**: Establish thresholds for monitored metrics (e.g., sudden shift in input distribution, drop in accuracy beyond X%, unusual rise in low-confidence predictions).")
+    section_lines.append("- **Automated Alerts**: Connect monitoring to alerting systems (e.g., email, Slack) to notify stakeholders when thresholds are crossed.")
+    section_lines.append("- **Anomaly Detection on Incoming Requests**: Deploy runtime anomaly detection to flag suspicious inputs (e.g., out-of-distribution or adversarial patterns).")
+    section_lines.append("- **Logging and Auditing**: Maintain detailed logs of input features, predictions, confidence, and any preprocessing steps, to facilitate forensic analysis after an alert.")
+    section_lines.append("")
+
+    # 9.4 Data Drift and Concept Drift
+    section_lines.append("### 9.4 Data Drift and Concept Drift")
+    section_lines.append("- **Drift Detection Techniques**: Use statistical tests or drift-detection algorithms (e.g., population stability index, KS test) to identify significant changes in input feature distributions.")
+    section_lines.append("- **Model Retraining Triggers**: Define criteria for retraining when drift is detected (e.g., sustained drift over time or performance degradation beyond threshold).")
+    section_lines.append("- **Adversarial Drift Monitoring**: Pay attention to shifts that may be induced by adversarial behavior; correlate drift alerts with security incidents.")
+    section_lines.append("")
+
+    # 9.5 Model Versioning and Rollback Plans
+    section_lines.append("### 9.5 Model Versioning and Rollback Plans")
+    section_lines.append("- **Version Control for Models**: Tag and store model artifacts (weights, configurations) with version identifiers. Ensure easy retrieval of previous safe versions.")
+    section_lines.append("- **Canary Deployments**: Roll out new model versions to a subset of traffic first; monitor metrics closely before full deployment.")
+    section_lines.append("- **Rollback Procedures**: Define automated or manual rollback processes if new vulnerabilities or performance regressions are detected.")
+    section_lines.append("- **A/B Testing Isolation**: When testing different model versions, isolate traffic to prevent cross-contamination of potential attacks.")
+    section_lines.append("")
+
+    # 9.6 Security Incident Response
+    section_lines.append("### 9.6 Security Incident Response")
+    section_lines.append("- **Incident Response Plan**: Document steps to take when an attack or anomaly is detected (e.g., isolate affected services, trigger deeper forensic analysis).")
+    section_lines.append("- **Containment Strategies**: If an ongoing attack is detected (e.g., data poisoning detected in training pipeline), halt training or deployment until issue is resolved.")
+    section_lines.append("- **Remediation Actions**: Procedures for retraining or patching the model, applying additional defenses, or updating preprocessing pipelines.")
+    section_lines.append("- **Post-Incident Review**: After an incident, analyze root causes, update threat model assumptions, and refine monitoring and defense strategies accordingly.")
+    section_lines.append("- **Stakeholder Communication**: Establish clear communication channels and responsibilities for notifying relevant teams (e.g., security, ML engineering, product) during incidents.")
+    section_lines.append("")
+
+    # 9.7 Integration into CI/CD
+    section_lines.append("### 9.7 Integration into CI/CD Pipelines")
+    section_lines.append("- **Automated Security Checks**: Incorporate automated runs of attack/defense simulations (Modules 2–5) into CI pipelines triggered by code or data changes.")
+    section_lines.append("- **Gatekeeping Deployments**: Block deployments if security evaluation metrics fall below predefined thresholds (e.g., risk score above threshold, defense evaluation final score below threshold).")
+    section_lines.append("- **Continuous Reporting**: Generate and archive periodic security reports; notify stakeholders of changes in security posture.")
+    section_lines.append("")
+
+    return "\n".join(section_lines)
+
+
+
 
