@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-14 15:45:19
+**Report Generated On**: 2025-06-14 15:54:47
 
 ---
 
@@ -186,3 +186,71 @@ The following defenses were applied and evaluated to mitigate the identified ris
 * **Randomized Smoothing**: A certified defense that provides provable robustness guarantees against adversarial attacks. It works by adding random noise to inputs during inference and then classifying based on the aggregated predictions, making it difficult for an attacker to craft effective adversarial examples.
 * **Robust Loss**: Utilizing loss functions that are less sensitive to noisy or adversarial labels during training. This can help the model learn more robust features and reduce the impact of poisoned data.
 * **Spectral Signatures**: A backdoor detection technique that analyzes the spectral properties of the hidden layer activations. It identifies anomalous patterns indicative of a backdoor trigger embedded in the training data, allowing for the isolation and mitigation of poisoned samples.
+
+---
+## 7. Defense Evaluation (Module 5)
+This section presents the evaluation of applied defenses, summarizing their mitigation effectiveness, impact on clean accuracy, computational/resource cost, and overall final score. We also highlight the top-performing defenses for each attack method and discuss key observations.
+
+### 7.1 Summary Table of Defense Evaluation Scores
+
+| Attack Category   | Attack Method   | Defense               |   Mitigation |   CAD |   Cost |   Final Score |
+|:------------------|:----------------|:----------------------|-------------:|------:|-------:|--------------:|
+| Backdoor          | Static Patch    | Activation Clustering |        0.035 | 0     |    0.3 |         0     |
+| Backdoor          | Static Patch    | Spectral Signatures   |        0.111 | 0     |    0.5 |         0     |
+| Backdoor          | Static Patch    | Anomaly Detection     |        0.004 | 0.754 |    0.3 |         0.003 |
+| Backdoor          | Static Patch    | Pruning               |        0.09  | 0     |    0.3 |         0     |
+| Backdoor          | Static Patch    | Fine Pruning          |        0.691 | 1.071 |    0.4 |         0.528 |
+| Backdoor          | Static Patch    | Model Inspection      |        0.013 | 0.778 |    0.2 |         0.008 |
+| Data Poisoning    | Clean Label     | Provenance Tracking   |        0.561 | 0.79  |    0.5 |         0.295 |
+| Data Poisoning    | Clean Label     | Influence Functions   |        0.573 | 0.796 |    0.5 |         0.304 |
+| Data Poisoning    | Label Flipping  | Data Cleaning         |        0.603 | 0.497 |    0.2 |         0.25  |
+| Data Poisoning    | Label Flipping  | Per Class Monitoring  |        0     | 0     |    0.2 |         0     |
+| Data Poisoning    | Label Flipping  | Robust Loss           |        0.675 | 0.588 |    0.5 |         0.264 |
+| Data Poisoning    | Label Flipping  | Dp Training           |       -1.449 | 0     |    0.7 |        -0     |
+| Evasion           | Pgd             | Adversarial Training  |        0.288 | 0     |    0.8 |         0     |
+| Evasion           | Pgd             | Randomized Smoothing  |        0.07  | 0     |    0.5 |         0     |
+| Evasion           | Spsa            | Gradient Masking      |        0.02  | 0.954 |    0.4 |         0.014 |
+| Evasion           | Spsa            | Jpeg Preprocessing    |        0.525 | 0.691 |    0.1 |         0.33  |
+
+### 7.2 Top-Performing Defenses
+
+- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Mitigation: 0.691, CAD: 1.071, Cost: 0.400, Final Score: 0.528).
+- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Mitigation: 0.573, CAD: 0.796, Cost: 0.500, Final Score: 0.304).
+- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Mitigation: 0.675, CAD: 0.588, Cost: 0.500, Final Score: 0.264).
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Mitigation: 0.288, CAD: 0.000, Cost: 0.800, Final Score: 0.000).
+- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Mitigation: 0.525, CAD: 0.691, Cost: 0.100, Final Score: 0.330).
+
+### 7.3 Observations and Recommendations
+
+Based on the evaluation scores above, consider the following:
+
+```
+# Detailed per-attack-method rankings:
+```
+**Backdoor / Static Patch**:
+- Fine Pruning: Final Score 0.528 (Mitigation 0.691, CAD 1.071, Cost 0.400) 
+- Model Inspection: Final Score 0.008 (Mitigation 0.013, CAD 0.778, Cost 0.200) 
+- Anomaly Detection: Final Score 0.003 (Mitigation 0.004, CAD 0.754, Cost 0.300) 
+- Activation Clustering: Final Score 0.000 (Mitigation 0.035, CAD 0.000, Cost 0.300) No defense yields positive balance (all low or too costly).
+- Spectral Signatures: Final Score 0.000 (Mitigation 0.111, CAD 0.000, Cost 0.500) No defense yields positive balance (all low or too costly).
+- Pruning: Final Score 0.000 (Mitigation 0.090, CAD 0.000, Cost 0.300) No defense yields positive balance (all low or too costly).
+
+**Data Poisoning / Clean Label**:
+- Influence Functions: Final Score 0.304 (Mitigation 0.573, CAD 0.796, Cost 0.500) 
+- Provenance Tracking: Final Score 0.295 (Mitigation 0.561, CAD 0.790, Cost 0.500) 
+
+**Data Poisoning / Label Flipping**:
+- Robust Loss: Final Score 0.264 (Mitigation 0.675, CAD 0.588, Cost 0.500) 
+- Data Cleaning: Final Score 0.250 (Mitigation 0.603, CAD 0.497, Cost 0.200) 
+- Per Class Monitoring: Final Score 0.000 (Mitigation 0.000, CAD 0.000, Cost 0.200) No defense yields positive balance (all low or too costly).
+- Dp Training: Final Score -0.000 (Mitigation -1.449, CAD 0.000, Cost 0.700) No defense yields positive balance (all low or too costly).
+
+**Evasion / Pgd**:
+- Adversarial Training: Final Score 0.000 (Mitigation 0.288, CAD 0.000, Cost 0.800) No defense yields positive balance (all low or too costly).
+- Randomized Smoothing: Final Score 0.000 (Mitigation 0.070, CAD 0.000, Cost 0.500) No defense yields positive balance (all low or too costly).
+
+**Evasion / Spsa**:
+- Jpeg Preprocessing: Final Score 0.330 (Mitigation 0.525, CAD 0.691, Cost 0.100) 
+- Gradient Masking: Final Score 0.014 (Mitigation 0.020, CAD 0.954, Cost 0.400) 
+
+For more details, refer to the full defense evaluation report: [Details](../module5_defense_evaluation/results/defense_evaluation_report.md).

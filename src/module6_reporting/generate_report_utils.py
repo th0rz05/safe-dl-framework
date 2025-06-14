@@ -910,3 +910,157 @@ def generate_defense_application_section(profile_data: dict) -> str:
 
     return "\n".join(section_lines)
 
+def generate_defense_evaluation_section(profile_data: dict) -> str:
+    """
+    Generates the 'Defense Evaluation (Module 5)' section of the final report.
+    Summarizes defense evaluation scores and offers narrative insights.
+
+    Args:
+        profile_data (dict): The loaded data from the profile.yaml file.
+
+    Returns:
+        str: The markdown content for the defense evaluation section.
+    """
+    section_lines = [
+        "---",
+        "## 7. Defense Evaluation (Module 5)",
+        "This section presents the evaluation of applied defenses, summarizing their mitigation effectiveness, "
+        "impact on clean accuracy, computational/resource cost, and overall final score. We also highlight the top-performing defenses for each attack method and discuss key observations.",
+        ""
+    ]
+
+    # Paths to Module 5 outputs
+    eval_json_path = os.path.join(MODULE5_RESULTS_DIR, "defense_evaluation.json")
+    eval_report_md_path = os.path.join(MODULE5_RESULTS_DIR, "defense_evaluation_report.md")
+
+
+    # Try loading the JSON
+    try:
+        eval_data = load_json(eval_json_path)
+    except FileNotFoundError:
+        section_lines.append(f"> [!] Warning: Defense evaluation JSON not found at `{eval_json_path}`. Skipping this section.")
+        section_lines.append("")
+        return "\n".join(section_lines)
+
+    # Flatten nested JSON into rows
+    rows = []
+    for attack_category, methods in eval_data.items():
+        for attack_method, defenses in methods.items():
+            for defense_name, metrics in defenses.items():
+                mitigation = metrics.get('mitigation_score', None)
+                cad = metrics.get('cad_score', None)
+                cost = metrics.get('defense_cost_score', None)
+                final = metrics.get('final_score', None)
+                rows.append({
+                    'Attack Category': attack_category.replace('_', ' ').title(),
+                    'Attack Method': attack_method.replace('_', ' ').title(),
+                    'Defense': defense_name.replace('_', ' ').title(),
+                    'Mitigation Score': mitigation,
+                    'CAD Score': cad,
+                    'Cost Score': cost,
+                    'Final Score': final
+                })
+    if not rows:
+        section_lines.append("No defense evaluation results found.")
+        section_lines.append("")
+        return "\n".join(section_lines)
+
+    # Build Markdown table
+    # Use tabulate for GitHub-flavored Markdown (pipe table)
+    # Ensure numeric formatting: e.g., two decimal places
+    table_rows = []
+    for r in rows:
+        # Format each numeric value, or 'N/A' if None
+        def fmt(x):
+            return f"{x:.3f}" if isinstance(x, (int, float)) else "N/A"
+        table_rows.append([
+            r['Attack Category'],
+            r['Attack Method'],
+            r['Defense'],
+            fmt(r['Mitigation Score']),
+            fmt(r['CAD Score']),
+            fmt(r['Cost Score']),
+            fmt(r['Final Score'])
+        ])
+    headers = ["Attack Category", "Attack Method", "Defense", "Mitigation", "CAD", "Cost", "Final Score"]
+    section_lines.append("### 7.1 Summary Table of Defense Evaluation Scores")
+    section_lines.append("")
+    section_lines.append(tabulate(table_rows, headers=headers, tablefmt="pipe"))
+    section_lines.append("")
+
+    # Identify top defenses per attack method
+    # Group rows by (Attack Category, Attack Method)
+    # We can use a simple in-Python grouping
+    best_by_attack = {}
+    for r in rows:
+        key = (r['Attack Category'], r['Attack Method'])
+        final = r['Final Score']
+        if isinstance(final, (int, float)):
+            if key not in best_by_attack or final > best_by_attack[key]['Final Score']:
+                best_by_attack[key] = r
+    # Add narrative
+    section_lines.append("### 7.2 Top-Performing Defenses")
+    section_lines.append("")
+    if best_by_attack:
+        for (cat, method), best in sorted(best_by_attack.items()):
+            mit = best['Mitigation Score']
+            cad = best['CAD Score']
+            cost = best['Cost Score']
+            final = best['Final Score']
+            section_lines.append(f"- **{cat} / {method}**: Top defense is **{best['Defense']}** "
+                                 f"(Mitigation: {mit:.3f}, CAD: {cad:.3f}, Cost: {cost:.3f}, Final Score: {final:.3f}).")
+        section_lines.append("")
+    else:
+        section_lines.append("No valid final scores found to determine top defenses.")
+        section_lines.append("")
+
+    # Observations:
+    section_lines.append("### 7.3 Observations and Recommendations")
+    section_lines.append("")
+    section_lines.append("Based on the evaluation scores above, consider the following:")
+    section_lines.append("")
+    # For each attack method, maybe list defenses sorted by final score, and comment if all scores are low or negative.
+    for (cat, method), group in {}.items():
+        pass  # placeholder: we'll generate below
+
+    # More detailed narrative: iterate grouped rows, sort by final score
+    section_lines.append("```\n# Detailed per-attack-method rankings:\n```")
+    # Build per-attack narrative
+    current_cat = None
+    current_method = None
+    # Sort rows by Attack Category, Attack Method, then descending Final Score
+    rows_sorted = sorted(rows, key=lambda r: (r['Attack Category'], r['Attack Method'],
+                                              -r['Final Score'] if isinstance(r['Final Score'], (int,float)) else float('-inf')))
+    for r in rows_sorted:
+        cat = r['Attack Category']
+        method = r['Attack Method']
+        # New group?
+        if (cat, method) != (current_cat, current_method):
+            if current_cat is not None:
+                section_lines.append("")  # blank line between groups
+            section_lines.append(f"**{cat} / {method}**:")
+            current_cat, current_method = cat, method
+        final = r['Final Score']
+        mit = r['Mitigation Score']
+        cad = r['CAD Score']
+        cost = r['Cost Score']
+        defense = r['Defense']
+        # Interpret: if final <= 0, note that no defense performed well
+        if isinstance(final, (int, float)):
+            if final <= 0:
+                remark = "No defense yields positive balance (all low or too costly)."
+            else:
+                remark = ""
+            section_lines.append(f"- {defense}: Final Score {final:.3f} (Mitigation {mit:.3f}, CAD {cad:.3f}, Cost {cost:.3f}) {remark}")
+        else:
+            section_lines.append(f"- {defense}: N/A scores")
+    section_lines.append("")
+
+    # Optionally link or embed full Module 5 report
+    if os.path.exists(eval_report_md_path):
+        section_lines.append(f"For more details, refer to the full defense evaluation report: [Details]({eval_report_md_path}).")
+    else:
+        section_lines.append(f"> [!] Detailed Module 5 report not found at `{eval_report_md_path}`.")
+
+    section_lines.append("")
+    return "\n".join(section_lines)
