@@ -1112,3 +1112,165 @@ def generate_defense_evaluation_section(profile_data: dict) -> str:
     section_lines.append("")
     return "\n".join(section_lines)
 
+
+def generate_conclusions_section(profile_data: dict) -> str:
+    """
+    Generates Section 8: Conclusions and Executive Summary.
+    Summarizes highest-risk attacks, most effective defenses, and practical recommendations.
+    """
+    section_lines = [
+        "---",
+        "## 8. Conclusions and Executive Summary",
+        ""
+    ]
+
+    # Load risk analysis results (Module 3)
+    risk_path = os.path.join(MODULE3_RESULTS_DIR, "risk_analysis.json")
+    try:
+        risk_data = load_json(risk_path)
+    except Exception:
+        section_lines.append(f"> [!] Warning: Risk analysis JSON not found at `{risk_path}`. Cannot summarize highest-risk attacks.")
+        risk_data = None
+
+    # Load defense evaluation results (Module 5)
+    eval_path = os.path.join(MODULE5_RESULTS_DIR, "defense_evaluation.json")
+    try:
+        eval_data = load_json(eval_path)
+    except Exception:
+        section_lines.append(f"> [!] Warning: Defense evaluation JSON not found at `{eval_path}`. Cannot summarize top defenses.")
+        eval_data = None
+
+    # Determine highest-risk attacks
+    highest_risk_summary = []
+    if risk_data:
+        # risk_data: { attack_method: { "severity":..., "probability":..., "visibility":..., "risk_score":... }, ... }
+        # Determine top N by risk_score; here choose top 1 or top 3 if needed.
+        try:
+            # Flatten into list
+            items = []
+            for attack, metrics in risk_data.items():
+                score = metrics.get("risk_score", None)
+                if isinstance(score, (int, float)):
+                    items.append((attack, score, metrics))
+            if items:
+                # sort descending
+                items.sort(key=lambda x: x[1], reverse=True)
+                # pick top 1
+                top_attack, top_score, top_metrics = items[0]
+                highest_risk_summary.append((top_attack, top_score, top_metrics))
+                # Optionally capture next two
+                if len(items) > 1:
+                    next_attack, next_score, _ = items[1]
+                    highest_risk_summary.append((next_attack, next_score, None))
+                if len(items) > 2:
+                    next2_attack, next2_score, _ = items[2]
+                    highest_risk_summary.append((next2_attack, next2_score, None))
+        except Exception:
+            highest_risk_summary = []
+    # Summarize highest-risk
+    if highest_risk_summary:
+        # Present concise sentences
+        # First entry with metrics:
+        attack_name, score, metrics = highest_risk_summary[0]
+        # Format attack_name
+        display_attack = attack_name.replace('_', ' ').title()
+        section_lines.append(f"**Highest-Risk Attack:** {display_attack} (Risk Score: {metrics.get('risk_score'):.3f}).")
+        # Optionally include severity/probability/visibility
+        sev = metrics.get("severity")
+        prob = metrics.get("probability")
+        vis = metrics.get("visibility")
+        section_lines.append(f"- Severity: {sev:.3f}, Probability: {prob:.3f}, Visibility: {vis:.3f}.")
+        # Additional top few
+        if len(highest_risk_summary) > 1:
+            others = []
+            for tup in highest_risk_summary[1:]:
+                atk, sc, _ = tup
+                disp = atk.replace('_', ' ').title()
+                others.append(f"{disp} ({sc:.3f})")
+            section_lines.append(f"**Also high risk:** " + ", ".join(others) + ".")
+    else:
+        section_lines.append("No risk analysis data available to identify highest-risk attacks.")
+
+    section_lines.append("")
+
+    # Summarize top defenses per attack
+    if eval_data:
+        # Flatten eval_data similar to earlier
+        best_defenses = {}
+        for attack_cat, methods in eval_data.items():
+            for attack_method, defenses in methods.items():
+                best = None
+                best_score = None
+                for def_name, metrics in defenses.items():
+                    final = metrics.get("final_score")
+                    if isinstance(final, (int, float)):
+                        if best_score is None or final > best_score:
+                            best_score = final
+                            best = (def_name, final, metrics)
+                if best:
+                    key = attack_method.replace('_', ' ').title()
+                    best_defenses[key] = best  # (def_name, final, metrics)
+        if best_defenses:
+            section_lines.append("**Most Effective Defenses Identified:**")
+            for method_display, (def_name, final_score, metrics) in best_defenses.items():
+                disp_def = def_name.replace('_', ' ').title()
+                # Simple recommendation phrasing
+                if final_score is not None:
+                    section_lines.append(f"- Against **{method_display}**, top defense: **{disp_def}** (Final Score: {final_score:.3f}).")
+            section_lines.append("")
+        else:
+            section_lines.append("No defense evaluation data available to identify top defenses.")
+            section_lines.append("")
+    # Notable gaps: e.g., evasion defenses net zero
+    if eval_data:
+        # Check if any attack methods where all final_score <= 0
+        gap_methods = []
+        for attack_cat, methods in eval_data.items():
+            for attack_method, defenses in methods.items():
+                positive_found = False
+                for metrics in defenses.values():
+                    final = metrics.get("final_score")
+                    if isinstance(final, (int, float)) and final > 0:
+                        positive_found = True
+                        break
+                if not positive_found:
+                    gap_methods.append(attack_method.replace('_', ' ').title())
+        if gap_methods:
+            section_lines.append("**Notable Gaps:**")
+            # list unique
+            unique_gaps = sorted(set(gap_methods))
+            section_lines.append("- The following attack methods showed no defense with positive net benefit at current settings: " + ", ".join(unique_gaps) + ".")
+            section_lines.append("")
+    # Overall security posture summary
+    posture_parts = []
+    if highest_risk_summary:
+        # refer top_attack
+        top_attack_disp = highest_risk_summary[0][0].replace('_', ' ').title()
+        posture_parts.append(f"{top_attack_disp} identified as highest risk.")
+    if best_defenses:
+        # e.g., mention that for each, defenses exist or note exceptions
+        posture_parts.append("Effective defenses identified for most attacks, except some evasion methods.")
+    # Compose
+    if posture_parts:
+        section_lines.append("**Overall Security Posture:**")
+        section_lines.append("- " + " ".join(posture_parts))
+        section_lines.append("")
+    # Practical recommendations
+    section_lines.append("**Practical Recommendations:**")
+    if eval_data and best_defenses:
+        for method_display, (def_name, final_score, metrics) in best_defenses.items():
+            disp_def = def_name.replace('_', ' ').title()
+            if final_score is not None and final_score > 0:
+                section_lines.append(f"- Prioritize deploying **{disp_def}** against {method_display}.")
+        # For gap methods:
+        if gap_methods:
+            for gm in sorted(set(gap_methods)):
+                section_lines.append(f"- For {gm}, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.")
+    else:
+        section_lines.append("- Review risk model and defense configurations; insufficient data to give concrete recommendations.")
+    section_lines.append("")
+
+    return "\n".join(section_lines)
+
+
+

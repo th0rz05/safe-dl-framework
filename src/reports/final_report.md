@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-14 15:58:12
+**Report Generated On**: 2025-06-14 16:02:17
 
 ---
 
@@ -259,3 +259,30 @@ Based on the evaluation scores above, consider the following:
 - **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Final Score 0.330) — Recommended.
 
 For more details, refer to the full defense evaluation report: [Details](../module5_defense_evaluation/results/defense_evaluation_report.md).
+
+---
+## 8. Conclusions and Executive Summary
+
+**Highest-Risk Attack:** Deepfool (Risk Score: 1.900).
+- Severity: 1.000, Probability: 1.000, Visibility: 0.100.
+**Also high risk:** Fgsm (1.700), Pgd (1.700).
+
+**Most Effective Defenses Identified:**
+- Against **Static Patch**, top defense: **Fine Pruning** (Final Score: 0.528).
+- Against **Clean Label**, top defense: **Influence Functions** (Final Score: 0.304).
+- Against **Label Flipping**, top defense: **Robust Loss** (Final Score: 0.264).
+- Against **Pgd**, top defense: **Adversarial Training** (Final Score: 0.000).
+- Against **Spsa**, top defense: **Jpeg Preprocessing** (Final Score: 0.330).
+
+**Notable Gaps:**
+- The following attack methods showed no defense with positive net benefit at current settings: Pgd.
+
+**Overall Security Posture:**
+- Deepfool identified as highest risk. Effective defenses identified for most attacks, except some evasion methods.
+
+**Practical Recommendations:**
+- Prioritize deploying **Fine Pruning** against Static Patch.
+- Prioritize deploying **Influence Functions** against Clean Label.
+- Prioritize deploying **Robust Loss** against Label Flipping.
+- Prioritize deploying **Jpeg Preprocessing** against Spsa.
+- For Pgd, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.
