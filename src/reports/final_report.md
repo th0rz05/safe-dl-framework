@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-14 15:54:47
+**Report Generated On**: 2025-06-14 15:58:12
 
 ---
 
@@ -224,16 +224,14 @@ This section presents the evaluation of applied defenses, summarizing their miti
 
 Based on the evaluation scores above, consider the following:
 
-```
-# Detailed per-attack-method rankings:
-```
+**Detailed per-attack-method rankings:**
 **Backdoor / Static Patch**:
 - Fine Pruning: Final Score 0.528 (Mitigation 0.691, CAD 1.071, Cost 0.400) 
-- Model Inspection: Final Score 0.008 (Mitigation 0.013, CAD 0.778, Cost 0.200) 
-- Anomaly Detection: Final Score 0.003 (Mitigation 0.004, CAD 0.754, Cost 0.300) 
-- Activation Clustering: Final Score 0.000 (Mitigation 0.035, CAD 0.000, Cost 0.300) No defense yields positive balance (all low or too costly).
-- Spectral Signatures: Final Score 0.000 (Mitigation 0.111, CAD 0.000, Cost 0.500) No defense yields positive balance (all low or too costly).
-- Pruning: Final Score 0.000 (Mitigation 0.090, CAD 0.000, Cost 0.300) No defense yields positive balance (all low or too costly).
+- Model Inspection: Final Score 0.008 (Mitigation 0.013, CAD 0.778, Cost 0.200) — marginal improvement; likely not worth deploying alone.
+- Anomaly Detection: Final Score 0.003 (Mitigation 0.004, CAD 0.754, Cost 0.300) — marginal improvement; likely not worth deploying alone.
+- Activation Clustering: Final Score 0.000 (Mitigation 0.035, CAD 0.000, Cost 0.300) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Spectral Signatures: Final Score 0.000 (Mitigation 0.111, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Pruning: Final Score 0.000 (Mitigation 0.090, CAD 0.000, Cost 0.300) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
 
 **Data Poisoning / Clean Label**:
 - Influence Functions: Final Score 0.304 (Mitigation 0.573, CAD 0.796, Cost 0.500) 
@@ -242,15 +240,22 @@ Based on the evaluation scores above, consider the following:
 **Data Poisoning / Label Flipping**:
 - Robust Loss: Final Score 0.264 (Mitigation 0.675, CAD 0.588, Cost 0.500) 
 - Data Cleaning: Final Score 0.250 (Mitigation 0.603, CAD 0.497, Cost 0.200) 
-- Per Class Monitoring: Final Score 0.000 (Mitigation 0.000, CAD 0.000, Cost 0.200) No defense yields positive balance (all low or too costly).
-- Dp Training: Final Score -0.000 (Mitigation -1.449, CAD 0.000, Cost 0.700) No defense yields positive balance (all low or too costly).
+- Per Class Monitoring: Final Score 0.000 (Mitigation 0.000, CAD 0.000, Cost 0.200) — net zero or negative (no effective balance: no effective mitigation).
+- Dp Training: Final Score -0.000 (Mitigation -1.449, CAD 0.000, Cost 0.700) — net zero or negative (no effective balance: no effective mitigation).
 
 **Evasion / Pgd**:
-- Adversarial Training: Final Score 0.000 (Mitigation 0.288, CAD 0.000, Cost 0.800) No defense yields positive balance (all low or too costly).
-- Randomized Smoothing: Final Score 0.000 (Mitigation 0.070, CAD 0.000, Cost 0.500) No defense yields positive balance (all low or too costly).
+- Adversarial Training: Final Score 0.000 (Mitigation 0.288, CAD 0.000, Cost 0.800) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Randomized Smoothing: Final Score 0.000 (Mitigation 0.070, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
 
 **Evasion / Spsa**:
 - Jpeg Preprocessing: Final Score 0.330 (Mitigation 0.525, CAD 0.691, Cost 0.100) 
-- Gradient Masking: Final Score 0.014 (Mitigation 0.020, CAD 0.954, Cost 0.400) 
+- Gradient Masking: Final Score 0.014 (Mitigation 0.020, CAD 0.954, Cost 0.400) — marginal improvement; likely not worth deploying alone.
+
+**Overall Recommendation:**
+- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Final Score 0.528) — Recommended.
+- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Final Score 0.304) — Recommended.
+- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Final Score 0.264) — Recommended.
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Final Score 0.000) — No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods.
+- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Final Score 0.330) — Recommended.
 
 For more details, refer to the full defense evaluation report: [Details](../module5_defense_evaluation/results/defense_evaluation_report.md).

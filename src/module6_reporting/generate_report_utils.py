@@ -1024,13 +1024,23 @@ def generate_defense_evaluation_section(profile_data: dict) -> str:
         pass  # placeholder: we'll generate below
 
     # More detailed narrative: iterate grouped rows, sort by final score
-    section_lines.append("```\n# Detailed per-attack-method rankings:\n```")
+    # Replace the code fence with a normal heading or bold text
+    section_lines.append("**Detailed per-attack-method rankings:**")
     # Build per-attack narrative
     current_cat = None
     current_method = None
     # Sort rows by Attack Category, Attack Method, then descending Final Score
-    rows_sorted = sorted(rows, key=lambda r: (r['Attack Category'], r['Attack Method'],
-                                              -r['Final Score'] if isinstance(r['Final Score'], (int,float)) else float('-inf')))
+    rows_sorted = sorted(
+        rows,
+        key=lambda r: (
+            r['Attack Category'],
+            r['Attack Method'],
+            -r['Final Score'] if isinstance(r['Final Score'], (int, float)) else float('-inf')
+        )
+    )
+    # Define a small-threshold for “marginal improvement”
+    marginal_threshold = 0.05
+
     for r in rows_sorted:
         cat = r['Attack Category']
         method = r['Attack Method']
@@ -1040,27 +1050,65 @@ def generate_defense_evaluation_section(profile_data: dict) -> str:
                 section_lines.append("")  # blank line between groups
             section_lines.append(f"**{cat} / {method}**:")
             current_cat, current_method = cat, method
+
         final = r['Final Score']
         mit = r['Mitigation Score']
         cad = r['CAD Score']
         cost = r['Cost Score']
         defense = r['Defense']
-        # Interpret: if final <= 0, note that no defense performed well
+
         if isinstance(final, (int, float)):
             if final <= 0:
-                remark = "No defense yields positive balance (all low or too costly)."
+                # Zero or negative: explain why zero if possible
+                # Here we can check mitigation and cost to give a more precise reason:
+                if mit is not None and mit > 0:
+                    reason = "mitigation too small relative to cost or clean-accuracy impact"
+                else:
+                    reason = "no effective mitigation"
+                remark = f"— net zero or negative (no effective balance: {reason})."
+            elif final < marginal_threshold:
+                remark = "— marginal improvement; likely not worth deploying alone."
             else:
-                remark = ""
-            section_lines.append(f"- {defense}: Final Score {final:.3f} (Mitigation {mit:.3f}, CAD {cad:.3f}, Cost {cost:.3f}) {remark}")
+                remark = ""  # strong enough to require no extra remark, or you could say “— positive trade-off” if desired
+
+            # Format numbers with three decimals or two
+            section_lines.append(
+                f"- {defense}: Final Score {final:.3f} (Mitigation {mit:.3f}, CAD {cad:.3f}, Cost {cost:.3f}) {remark}"
+            )
         else:
             section_lines.append(f"- {defense}: N/A scores")
+
     section_lines.append("")
 
-    # Optionally link or embed full Module 5 report
+    # Optionally: overall recommendation summary after detailed listings
+    # (You may insert this here or in a separate function.)
+    # For example:
+    section_lines.append("**Overall Recommendation:**")
+    # Build a summary by picking the top defense per method (you likely already computed best_by_attack earlier).
+    # Suppose best_by_attack is a dict {(cat,method): r}, you can iterate:
+    for (cat, method), best in best_by_attack.items():
+        mit = best['Mitigation Score']
+        cad = best['CAD Score']
+        cost = best['Cost Score']
+        final = best['Final Score']
+        # If final <= 0, recommend revisiting parameters or alternative defenses
+        if final <= 0:
+            rec = "No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods."
+        elif final < marginal_threshold:
+            rec = "Only marginal benefit; consider combined approaches or reevaluate cost versus gain."
+        else:
+            rec = "Recommended."
+        section_lines.append(
+            f"- **{cat} / {method}**: Top defense is **{best['Defense']}** (Final Score {final:.3f}) — {rec}"
+        )
+    section_lines.append("")
+
+    # Then link or embed the full Module 5 report as before
     if os.path.exists(eval_report_md_path):
-        section_lines.append(f"For more details, refer to the full defense evaluation report: [Details]({eval_report_md_path}).")
+        section_lines.append(
+            f"For more details, refer to the full defense evaluation report: [Details]({eval_report_md_path}).")
     else:
         section_lines.append(f"> [!] Detailed Module 5 report not found at `{eval_report_md_path}`.")
-
     section_lines.append("")
     return "\n".join(section_lines)
+
