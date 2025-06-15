@@ -811,6 +811,7 @@ This module prepares the defended model for final robustness evaluation in Modul
 
 
 
+
 ### 5.2 Defense Selection Workflow
 
 To ensure that defenses are both effective and relevant to the user’s specific threat model, the Safe-DL framework employs a guided and dynamic defense selection process.
@@ -828,19 +829,34 @@ This setup step ensures that the selected defenses align with both the risk prof
 
 #### 5.2.2 Unified Configuration Storage
 
-All selected defense strategies and their parameters are stored in the `defense_config` block of the main YAML profile. Example:
+All selected defense strategies and their parameters are stored in the `defense_config` block of the main YAML profile, nested under their respective attack sub-categories. Example:
 
 ```yaml
 defense_config:
   data_poisoning:
-    - method: data_cleaning
-    - method: robust_loss
+    label_flipping:
+      defenses:
+        - data_cleaning
+        - robust_loss
+      data_cleaning:
+        method: loss_filtering
+        threshold: 0.9
+      robust_loss:
+        type: gce
   backdoor:
-    - method: activation_clustering
+    static_patch:
+      defenses:
+        - activation_clustering
+        - fine_pruning
+      activation_clustering:
+        num_clusters: 2
   evasion:
-    - method: adversarial_training
-      attack_type: pgd
-      epsilon: 0.03
+    pgd:
+      defenses:
+        - adversarial_training
+      adversarial_training:
+        attack_type: pgd
+        epsilon: 0.03
 ```
 This structured configuration enables seamless re-execution, reproducibility, and downstream analysis.
 
@@ -1060,36 +1076,45 @@ Applies JPEG compression as a preprocessing step to remove small, high-frequency
   - Clean and adversarial accuracy
   - Comparison before/after compression
 
+
 ### 5.4 Outputs and Reporting
 
-After applying each defense, the framework generates standardized and structured outputs to facilitate evaluation, reproducibility, and comparison.
+After applying each defense, the framework generates standardized and structured outputs to facilitate evaluation, reproducibility, and comparison. These outputs are typically provided in both JSON and Markdown formats.
 
 #### 5.4.1 JSON Reports
 
-Each defense generates a `defense_results.json` file containing:
+Each defense generates a `.json` file (e.g., `[defense_name]_results.json`) containing key metrics tailored to the attack type it mitigates. Common and specific fields include:
 
-- `accuracy_clean`: Accuracy on clean (unperturbed) test data after applying the defense.
-- `accuracy_adversarial`: Accuracy on adversarial/test-time perturbed data.
-- `per_class_accuracy_clean`: Class-wise accuracy on clean inputs.
-- `per_class_accuracy_adversarial`: Class-wise accuracy on adversarial inputs.
+-   `accuracy_clean`: Accuracy on clean (unperturbed) test data after applying the defense.
+-   `per_class_accuracy_clean`: Class-wise accuracy on clean inputs after defense.
 
-These fields are consistent across all defense types and are designed to be parsed in downstream modules (e.g., Module 5 — Comparative Evaluation).
+**Specific metrics based on attack type:**
 
-Additional fields may include:
-- `removed_samples`: List of filtered/flagged training inputs (when applicable).
-- `parameters`: Configuration used during defense execution.
+-   **For Evasion attacks (e.g., PGD, FGSM):**
+    -   `accuracy_adversarial`: Accuracy on adversarial/test-time perturbed data after defense.
+    -   `per_class_accuracy_adversarial`: Class-wise accuracy on adversarial inputs after defense.
+-   **For Backdoor attacks (e.g., Static Patch, Learned Trigger):**
+    -   `asr_after_defense`: Attack Success Rate (ASR) on backdoor-infected samples after defense. (A lower ASR indicates better mitigation).
+-   **For Data Poisoning attacks (e.g., Label Flipping, Clean Label):**
+    -   Metrics related to sample removal or anomaly detection, such as `num_removed` (number of removed samples) or identified anomalous classes.
+
+**Additional fields may include:**
+
+-   `removed_indices` or `example_removed`: Lists or examples of filtered/flagged training inputs (when applicable, e.g., for data cleaning or activation clustering defenses).
+-   `parameters`: Configuration and hyperparameters used during defense execution.
+
+These JSON reports are designed to be easily parsed and used by downstream modules (e.g., Module 5 — Defense Evaluation).
 
 #### 5.4.2 Markdown Reports
 
-A human-readable `defense_report.md` is also generated for each defense, containing:
+Complementing the JSON outputs, a human-readable Markdown report (e.g., `[defense_name]_report.md`) is generated for each defense. These reports provide:
 
-- Overview of the defense method used.
-- Visualizations such as:
-  - Accuracy bars (before/after)
-  - Sample images (e.g., removed inputs, adversarial recovery)
-  - Confusion matrices or heatmaps if applicable
-- Key results (clean and adversarial accuracy)
-- Notes about defense performance, limitations, or warnings.
+-   A concise summary of the defense's performance, including key accuracy metrics and ASR.
+-   Visualizations (where applicable), such as pruning histograms or galleries of removed samples.
+-   Detailed breakdowns of per-class metrics.
+-   The specific parameters and configuration used for the defense's execution.
+
+These Markdown reports offer a clear and shareable overview of the defense's impact, making it easier for users to understand the results without needing to parse the raw JSON data.
 
 #### 5.4.3 Visual Logs
 
@@ -1190,243 +1215,261 @@ Module 4 thus serves as the operational backbone of the framework’s security l
 
 ## 6. Module 5 — Evaluation & Benchmarking
 
+
 ### 6.1 Goal of the Module
 
-This module performs a structured evaluation of all defenses applied in Module 4. Unlike previous stages, it does not run any new attacks or defenses. Instead, it systematically aggregates and analyzes the JSON outputs of both the original attack simulations (Module 2) and the defense applications (Module 4), with the aim of answering:
+Module 5 serves as the critical evaluation hub of the Safe-DL framework, assessing the effectiveness of all defenses applied in Module 4. It does not execute new attacks or defenses; instead, it systematically aggregates and analyzes the JSON outputs from both the initial attack simulations (Module 2) and the subsequent defense applications (Module 4). Its primary aim is to answer:
 
-> **"How effective was each defense, and was it worth the trade-off?"**
+>**"How effective was each defense, and was it worth the associated trade-offs in performance or cost?"**
 
-This module is critical to ensure that security enhancements do not come at an unjustifiable cost in clean accuracy or model usability. It also provides a comparative view across multiple defenses, enabling informed decisions for deployment.
+This module is crucial for transforming raw attack and defense metrics into actionable insights, providing a standardized, data-driven approach to understand the true impact of implemented countermeasures. It helps ensure that security enhancements are justified, do not introduce unacceptable costs in clean accuracy or model usability, and facilitates informed decision-making for deployment.
 
-----------
 
 ### 6.2 Analysis Workflow
 
-1.  **Threat Profile Parsing**  
-    The system loads the `.yaml` profile to identify which defenses were applied per threat category and attack.
-    
-2.  **Data Aggregation**  
-    For each defense, it loads the corresponding `defense_results.json` (generated in Module 4), and retrieves:
-    
-    -   `accuracy_clean`
-        
-    -   `accuracy_adversarial`
-        
-    -   `per_class_accuracy_clean`
-        
-    -   `per_class_accuracy_adversarial`
-        
-3.  **Baseline Metrics Retrieval**  
-    For each attack, the system also loads the original `attack_metrics.json` (from Module 2) to obtain:
-    
-    -   Clean accuracy before any defense
-        
-    -   Adversarial accuracy or Attack Success Rate (ASR), depending on the threat type
-        
-4.  **Evaluation and Scoring**  
-    For each defense method, the system computes:
-    
-   - Δ Clean Accuracy  
-  *(Change in performance on clean data)*  
-  `Δ_clean = accuracy_defended_clean - accuracy_baseline_clean`
+The `run_module5.py` script orchestrates the defense evaluation process. The workflow is designed to be systematic and data-driven:
 
-- Δ Adversarial Accuracy or Δ ASR  
-  *(Improvement against adversarial or poisoned inputs)*  
-  `Δ_adv = accuracy_defended_adv - accuracy_baseline_adv`
-
-- Defense Score 
-  A weighted heuristic combining accuracy deltas and per-class stability:  
-  `score = α * Δ_adv + β * Δ_clean + γ * avg_per_class_gain`
-
-        
-        _(Default weights: α = 0.4, β = 0.2, γ = 0.4 — configurable in future versions)_
-        
+1.  **Profile Parsing**: The module first loads the `profile.yaml` to identify the configured attacks (from Module 2) and the corresponding defenses applied (from Module 4). This acts as the blueprint for the evaluation.
+    
+2.  **Data Aggregation**: For each attack identified in the profile, the system retrieves:
+    * The baseline model's clean accuracy from `baseline_accuracy.json` (from Module 2).
+    * The raw attack metrics (e.g., adversarial accuracy, Attack Success Rate) from `attack_metrics.json` (from Module 2's results for that specific attack).
+    * For each defense applied against that attack, the post-defense performance metrics (`accuracy_clean`, `accuracy_adversarial`, `asr_after_defense`, etc.) from `defense_results.json` (from Module 4's results for that specific defense).
+    
+3.  **Evaluation and Scoring**: Using the aggregated data, Module 5 computes a set of standardized scores for each defense, reflecting its overall effectiveness and trade-offs. These scores are calculated using specific evaluation functions (e.g., `evaluate_backdoor_defense`, `evaluate_evasion_defense`, `evaluate_data_poisoning_defense`) based on the attack type:
+    * **Mitigation Score**: Quantifies how effectively the defense restored the model's performance on adversarial inputs, relative to the attack's initial impact. A higher score indicates better recovery.
+    * **Clean Accuracy Drop (CAD) Score**: Measures the degradation in the model's performance on clean, benign data due to the defense. A score closer to 1 indicates minimal impact on clean accuracy.
+    * **Defense Cost Score**: An estimated numerical value reflecting the computational or implementation overhead associated with applying the defense. This is based on a predefined mapping in the framework.
+    * **Final Score**: A weighted aggregation of the Mitigation, CAD, and Cost Scores, providing a single metric to compare defenses. This score encapsulates the balance between robustness gain, clean accuracy preservation, and resource expenditure.
 
 ----------
 
+
 ### 6.3 Output and Reporting
 
-Each evaluated defense is summarized with:
+Module 5 generates structured outputs to provide a clear and actionable summary of the defense evaluation. Each evaluated defense is summarized with:
 
--   Delta metrics (clean and adversarial)
-    
--   Per-class analysis
-    
--   Defense score
-    
--   Performance summary (future work: training time, memory overhead)
-    
--   YAML/JSON summary with structured results:
-    
+* **Quantitative Scores**: A set of standardized scores are provided, including:
+    * **Mitigation Score**: Quantifies the defense's effectiveness in restoring model performance post-attack.
+    * **Clean Accuracy Drop (CAD) Score**: Indicates the impact of the defense on the model's clean accuracy.
+    * **Defense Cost Score**: An estimated measure of the defense's computational or implementation overhead.
+    * **Final Score**: An aggregated score providing an overall measure of the defense's cost-benefit.
+* **Structured JSON Output**: All evaluation results are saved to a comprehensive JSON file, `defense_evaluation.json`, designed for machine readability and easy integration into subsequent modules (like Module 6 for final reporting).
+    ```json
+    {
+      "backdoor": {
+        "static_patch": {
+          "fine_pruning": {
+            "mitigation_score": 0.691,
+            "cad_score": 1.071,
+            "defense_cost_score": 0.4,
+            "final_score": 0.528
+          }
+        }
+      },
+      "data_poisoning": {
+        "clean_label": {
+          "provenance_tracking": {
+            "mitigation_score": 0.561,
+            "cad_score": 0.790,
+            "defense_cost_score": 0.5,
+            "final_score": 0.295
+          }
+        }
+      },
+      "evasion": {
+        "pgd": {
+          "adversarial_training": {
+            "mitigation_score": 0.288,
+            "cad_score": 0.0,
+            "defense_cost_score": 0.8,
+            "final_score": 0.0
+          }
+        }
+      }
+    }
+    ```
+* **Human-Readable Markdown Report**: A detailed Markdown report, `defense_evaluation_report.md`, is automatically generated, presenting the evaluation results in clear tables, along with explanatory notes and a summary overview. This report is designed for easy review and documentation.
 
-```yaml
-benchmark_summary:
-  data_poisoning:
-    label_flipping:
-      data_cleaning:
-        delta_clean: -0.2
-        delta_adv: +26.5
-        defense_score: 18.9
-      robust_loss:
-        delta_clean: -0.1
-        delta_adv: +12.3
-        defense_score: 9.1
+Optional future enhancements include more detailed performance summaries (e.g., training time, memory overhead), per-class analysis visualizations, and robustness curves for a more granular view of defense impact.
 
-```
-
-Optional reports can also be exported in `.md`, `.csv`, and visual formats (e.g., bar plots, heatmaps, radar charts).
 
 ----------
 
 ### 6.4 Technical Considerations
 
--   No attacks or defenses are re-executed.
-    
--   All evaluations are based purely on reading and comparing `.json` results.
-    
--   The evaluation is reproducible, configurable, and aligned with the framework’s modular philosophy.
-    
+Module 5 is designed with the following key technical considerations:
+
+* **Read-only Analysis**: The module operates solely by reading and processing JSON outputs from Modules 2 and 4. It does not perform any new model training, inference, or re-execution of attacks/defenses, ensuring a lightweight and efficient evaluation process.
+* **Data-Driven Evaluation**: All computations and scoring are based purely on the comparison of quantitative metrics extracted from the `.json` results of prior stages, making the evaluation objective and transparent.
+* **Reproducible and Modular**: The design ensures that the evaluation is fully reproducible and aligns with the framework's modular philosophy, allowing for independent execution and easy integration into automated pipelines.
 
 ----------
 
 ### 6.5 Future Enhancements
 
-The current evaluation focuses on accuracy-based metrics. Planned improvements include:
+While the current evaluation focuses on accuracy-based metrics and defense costs, planned improvements aim to broaden its scope and utility:
 
--   Measuring additional overhead: training time, inference latency, memory footprint.
-    
--   Aggregating robustness curves (e.g., accuracy vs epsilon for PGD).
-    
--   Certifying robustness using formal methods (e.g., interval bound propagation).
-    
--   Comparing defenses across different model architectures or datasets.
-    
+* **Measuring Operational Overhead**: Incorporating metrics beyond accuracy, such as training time, inference latency, and memory footprint, to provide a more holistic view of defense costs.
+* **Dynamic Risk Re-assessment**: Integrating feedback from defense evaluation scores back into Module 3 (Risk Analysis) to enable a dynamic re-assessment of residual risks after defenses are applied, offering a complete picture of the updated security posture.
+* **Advanced Metric Aggregation**: Expanding the analysis to include the aggregation of robustness curves (e.g., accuracy vs. epsilon for PGD) and exploring the integration of formal verification methods for certified robustness.
+* **Cross-Context Comparison**: Facilitating the comparison of defense effectiveness across different model architectures, datasets, or deployment scenarios to identify universally robust solutions.
 
 ----------
 
 ### 6.6 Conclusion of Module 5
 
-This module closes the evaluation loop of the Safe-DL framework. It provides evidence-based insight into the cost-benefit trade-offs of each defense, grounded in concrete metrics. By leveraging previously generated results, it enables reproducible and lightweight benchmarking, and prepares the ground for robust deployment or further optimization in future iterations.
+Module 5 serves as the critical evaluation hub of the Safe-DL framework, transforming raw attack and defense metrics into actionable insights. By systematically quantifying defense effectiveness, trade-offs, and costs, this module provides users with a standardized, data-driven approach to understanding the true impact of implemented countermeasures. The generated `defense_evaluation.json` and `defense_evaluation_report.md` empower users to:
+
+* **Make Informed Decisions**: Compare different defense strategies based on concrete performance metrics.
+* **Understand Trade-offs**: Clearly identify the balance between adversarial robustness gains and potential degradations in clean accuracy or increases in operational cost.
+* **Drive Iterative Improvements**: Highlight areas where defenses are most effective and where further research or tuning might be required.
+
+Ultimately, Module 5 ensures that defense application within the Safe-DL framework is not a blind deployment but a strategic, evidence-based process aimed at building more resilient deep learning systems.
 
 ## 7. Module 6 — Final Report Aggregation
 
+
 ### 7.1 Goal of the Module
 
-The sixth and final module turns every artifact generated by the Safe-DL pipeline into **one self-contained, human-readable dossier**.  
-Its objectives are to
+The sixth and final module, Module 6, culminates the Safe-DL framework by aggregating all generated artifacts into **one self-contained, human-readable dossier: `final_report.md`**. Its core objectives are to:
 
-1.  Consolidate threat-model decisions, attack results, risk scores, defense configurations, and benchmark metrics;
-    
-2.  Provide auditors, collaborators, or thesis reviewers with a single source of truth that chronicles the entire security lifecycle;
-    
-3.  Guarantee reproducibility by embedding all YAML/JSON metadata alongside narrative explanations.
-    
+1.  **Consolidate Comprehensive Data**: Gather and integrate all threat-model definitions, attack simulation results, risk analysis findings, defense application details, and defense evaluation scores from the preceding modules.
+2.  **Provide a Unified Overview**: Present auditors, collaborators, and stakeholders with a single, authoritative source of truth that offers a holistic view of the deep learning model's security posture and chronicles its entire security lifecycle.
+3.  **Ensure Reproducibility and Clarity**: Embed all relevant YAML/JSON metadata and results alongside clear narrative explanations to guarantee reproducibility and facilitate understanding of every decision and outcome.
 
-The deliverable is `final_report.md` (optionally `final_report.pdf`), ready to be appended to technical documentation or an academic dissertation.
+The primary deliverable is `final_report.md`, meticulously structured to be directly appended to technical documentation or an academic dissertation.
 
 ----------
+
 
 ### 7.2 Aggregation Workflow
 
-1.  **Profile Parsing** Read `profile.yaml` to recover the threat profile, chosen datasets/models, enabled attacks, and applied defenses.
-    
-2.  **Results Harvesting** Locate and load every JSON produced by earlier modules:
-    
+The `run_module6.py` script orchestrates the generation of the final report, following a precise sequence to ensure all data is correctly integrated.
 
-|Module|Expected JSON(s)|Purpose in final report
-|---|--------|-----
-| 2  |   `*_metrics.json`     |Baseline & attack-time performance
-|3|`risk_analysis.json`|Severity / probability / visibility scores
-|4|`*defense_results.json`|Post-defense performance & parameters
-|5|`benchmark_summary.json`|Clean vs. adversarial deltas & defense scores
+1.  **Profile Selection & Data Loading**: The workflow begins by prompting the user to select a `profile.yaml` file, which serves as the central source of truth. This file, along with various JSON and Markdown reports generated by Modules 2 through 5, is loaded using dedicated utility functions.
+    
+2.  **Results Harvesting**: The module systematically collects all necessary data from previous modules, ensuring a comprehensive final report. The key JSON outputs utilized are:
 
-3.  **Section Generation** Render each report section (see § 7.4) via templating (Jinja2 in the reference implementation).
+| Module | Expected JSON(s)                                   | Purpose in Final Report                                    |
+| :----- | :------------------------------------------------- | :--------------------------------------------------------- |
+| 2      | `attack_metrics.json` (from specific attack folders) | Baseline & attack-time performance (Attack Simulation)     |
+| 3      | `risk_analysis.json`                               | Severity / Probability / Visibility scores, Risk Ranking   |
+| 4      | `defense_results.json` (from specific defense folders) | Post-defense performance & defense parameters              |
+| 5      | `defense_evaluation.json`                          | Defense evaluation scores (Mitigation, CAD, Cost, Final)   |
+
+3.  **Section Generation**: Each major section of the `final_report.md` is dynamically generated by dedicated functions within `generate_report_utils.py`. These functions retrieve and format the relevant data into structured Markdown, ensuring logical flow and human readability.
     
-4.  **Asset Embedding** Pull in plots and sample images (if present) from the `results/` tree.
-    
-5.  **Export** Write `final_report.md`; optional flags `--html` / `--pdf` enable additional formats via Pandoc.
+4.  **Report Output**: The fully aggregated Markdown content is then written to `final_report.md` in the `reports/` directory. While the primary output is Markdown, the framework is designed to allow for future expansion to other formats (e.g., PDF conversion via tools like Pandoc, though this is currently an optional flag not directly implemented by `run_module6.py`).
     
 
 ----------
+
 
 ### 7.3 Input Sources
 
+Module 6 relies on the successful completion and JSON output generation of all preceding modules. The `profile.yaml` serves as the central orchestrator, accumulating key data, while detailed results are harvested primarily from specific JSON files within each module's `results/` directory.
+
 ```text
 profiles/
-└── <profile>.yaml          ← single source of truth
+└── <profile>.yaml          ← Central source of truth, incrementally updated by all modules
+
 module2_attack_simulation/
-└── results/**/             ← *_metrics.json for each attack
+└── results/
+    └── <attack_name>/<attack_method>/
+        └── attack_metrics.json    ← Raw performance metrics for each simulated attack
+
 module3_risk_analysis/
-└── results/risk_analysis.json
+└── results/
+    └── risk_analysis.json  ← Calculated risk scores, ranking, and recommendations
+
 module4_defense_application/
-└── results/**/             ← *defense_results.json for each defense
-module5_evaluation/
-└── results/benchmark_summary.json   (optional if module 5 not yet implemented)
+└── results/
+    └── <attack_name>/<attack_method>/<defense_name>/
+        └── defense_results.json    ← Post-defense performance metrics & parameters
+
+module5_defense_evaluation/
+└── results/
+    └── defense_evaluation.json ← Comprehensive defense evaluation scores
 
 ```
 
-Paths are resolved automatically; no manual bookkeeping is required as long as the default directory layout is preserved.
+All paths are automatically resolved by `run_module6.py` and its utility functions, eliminating the need for manual bookkeeping as long as the default directory layout of the framework is preserved.
 
 ----------
 
+
 ### 7.4 Report Contents
 
-| **Section** | **Key Elements** |**Primary Source**
-|--|--|--
-| **7.4.1 Threat-Model Overview** | Attacker access, data sensitivity, deployment scenario |`profile.yaml`
-|**7.4.2 Attack-Simulation Summary**|Parameters and impact of each attack|Module 2 JSONs
-|**7.4.3 Risk Analysis**|Severity × Probability × (1 + (1 – Visibility)) matrix; ranking|`risk_analysis.json`
-|**7.4.4 Defensive Actions**|Configuration of every defense, rationale, YAML snippet|`defense_config` in profile
-|**7.4.5 Benchmark Results**|Δ clean accuracy, Δ adversarial accuracy, defense score|Module 5 (or on-the-fly recompute)
-|**7.4.6 Visual Appendix**|Poisoned samples, backdoor triggers, robustness curves|`results/**/examples/`
-|**7.4.7 Full Configuration Dump**|Embedded YAML & JSON for reproducibility|all above
+The `final_report.md` is meticulously structured into distinct sections, each consolidating specific information from the various stages of the Safe-DL framework. The table below outlines the key contents and their primary sources.
+
+| **Final Report Section No.** | **Section Title** | **Key Elements** | **Primary Source** |
+| :--------------------------- | :----------------------------------------- | :-------------------------------------------------------------------- | :----------------------------------------------- |
+| **1.** | Report Header and Overview                 | Report title, profile name, generation date/time, introduction        | `run_module6.py`, general overview               |
+| **2.** | System Under Evaluation Details            | Model and dataset details (name, type, shape, classes)                | `profile.yaml`                                   |
+| **3.** | Threat Profile Summary (Module 1)          | Model access, attack goal, deployment scenario, data sensitivity, threat categories | `profile.yaml` (from Module 1)                   |
+| **4.** | Attack Simulation Results (Module 2)       | Overview table of simulated attacks (clean acc, impact, attack metric), key parameters, links | Module 2 `attack_metrics.json`, `profile.yaml`   |
+| **5.** | Risk Analysis and Matrix (Module 3)        | Risk summary table (Severity, Probability, Visibility, Risk Score), qualitative risk matrix, ranking, defense recommendations, links | Module 3 `risk_analysis.json`, `profile.yaml`    |
+| **6.** | Defense Application Summary (Module 4)     | Overview table of applied defenses (pre/post metrics), key parameters, links, defense purposes | Module 4 `defense_results.json`, `profile.yaml`  |
+| **7.** | Defense Evaluation and Scoring (Module 5)  | Summary table of defense evaluation scores (Mitigation, CAD, Cost, Final), top-performing defenses, observations | Module 5 `defense_evaluation.json`, `profile.yaml` |
+| **8.** | Conclusions and Executive Summary          | Highest-risk attack, most effective defenses, notable gaps, overall security posture, practical recommendations | Aggregation of Modules 2-5 outputs, `profile.yaml` |
+| **9.** | Recommendations for Continuous Monitoring and Post-Deployment | Monitoring metrics, periodic re-assessment, alerting, incident response, CI/CD integration | Static content within `generate_report_utils.py` |
+
+----------
+
 
 ----------
 
 ### 7.5 Example Output Snippet
 
+To illustrate the structure and content of the generated `final_report.md`, below is a concise snippet from the "Attack Simulation Results" section (corresponding to Section 4 in the final report), demonstrating how key attack metrics are presented.
+
 ```markdown
-## 7.4.2 Attack-Simulation Summary – Backdoor (Static Patch)
+## 4. Attack Simulation (Module 2)
+This section summarizes the outcomes of the adversarial attack simulations performed against the model based on the defined threat profile. These simulations quantify the model's vulnerability to various attack types before any defenses are applied.
 
-| Metric | Value |
-|--------|-------|
-| Clean accuracy (baseline) | **91.2 %** |
-| Accuracy on triggered set | **15.0 %** |
-| Attack-success rate (ASR) | **85.0 %** |
-| Trigger position | bottom-right |
-| Blend-alpha | 0.20 |
+### 4.1 Overview of Simulated Attacks
 
-![backdoor_trigger](results/module2_attack_simulation/backdoor/static_patch/overlay.png)
+| Attack Category | Attack Method | Clean Acc. (Pre-Attack) | Impact on Clean Acc. | Attack Metric | Key Parameters | Full Results |
+|:----------------|:--------------|:------------------------|:---------------------|:--------------|:---------------|:-------------|
+| Data Poisoning | Clean Label | 67.54% | 62.76% | 62.76% (Degraded Acc.) | Poison Fraction: 0.05, Target Class: 5 | [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md) |
+| Backdoor | Static Patch | 67.54% | 66.62% | 92.30% (ASR) | Poison Frac.: 0.05, Target Class: 7, Patch Type: white_square | [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md) |
+| Evasion | Pgd | 67.54% | 67.54% | 0.00% (Adv. Acc.) | Epsilon: 0.03, Num Iter: 50 | [Details](../module2_attack_simulation/results/evasion/pgd/pgd_report.md) |
+
+**Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being subjected to the attack (e.g., trained with poisoned data, or backdoor injected). For Data Poisoning attacks, 'Attack Metric' displays the degraded accuracy of the model on clean inputs after poisoning. For Backdoor attacks, 'Attack Metric' displays the Attack Success Rate (ASR), indicating the percentage of adversarial samples (with trigger) successfully misclassified to the target class. For Evasion attacks, 'Attack Metric' displays the Adversarial Accuracy (Adv. Acc.) on perturbed inputs, where a lower value indicates a more successful attack.
 
 ```
+
+This snippet directly reflects a part of Section 4 (`Attack Simulation`) of the `final_report.md` as documented in `module6.md`.
+
 
 ----------
 
 ### 7.6 Technical Considerations
 
--   **Read-only module** – it performs no training or inference, so it is lightweight and repeatable.
-    
--   **Template-driven** – switching from Markdown to HTML or LaTeX merely requires a new template.
-    
--   **Fail-soft** – missing sections (e.g., if Module 5 has not been run) are flagged but do not halt generation.
+Module 6 is designed with several key technical principles:
+
+* **Read-only and Lightweight**: The module primarily focuses on data aggregation and formatting. It performs no new training, inference, or computationally intensive operations, making it fast, lightweight, and highly repeatable.
+* **Utility-Function Driven**: Instead of a generic templating engine, the report generation is driven by dedicated utility functions within `generate_report_utils.py`. These functions are responsible for parsing the collected data and dynamically constructing each section of the Markdown report, ensuring precise control over content and formatting.
+* **Dependency Enforcement**: Module 6 relies heavily on the outputs of the preceding modules (2, 3, 4, and 5). The execution expects these outputs to be present and properly formatted, ensuring that the final report is comprehensive and accurate. Missing critical input data will result in execution warnings or errors, guiding the user to complete the pipeline.
     
 
 ----------
 
 ### 7.7 Future Enhancements
 
--   **Automatic PDF export** with institutional or journal-compliant styling.
-    
--   **Interactive dashboard** (Streamlit/Gradio) for drill-down exploration of attacks and defenses.
-    
--   **Continuous-integration hook** so every new experiment branch produces an updated final report.
+Potential future enhancements for Module 6 and the framework's reporting capabilities include:
+
+* **Integrated PDF Export**: Developing built-in functionality for automatic PDF export of the `final_report.md`, potentially with customizable styling to meet institutional or journal compliance.
+* **Interactive Dashboard**: Implementing an interactive web-based dashboard (e.g., using Streamlit or Gradio) that allows for dynamic drill-down exploration of attack results, defense effectiveness, and risk analysis.
+* **CI/CD Integration Hook**: Providing a dedicated hook or script for seamless integration into Continuous Integration/Continuous Deployment (CI/CD) pipelines, enabling automated generation of updated final reports with every new experiment or code branch.
     
 
 ----------
 
 ### 7.8 Conclusion of Module 6
 
-Module 6 seals the Safe-DL pipeline, weaving every intermediate artifact into a coherent, audit-ready narrative. The resulting document certifies **what was threatened, how it was attacked, how it was protected, and how effective those protections proved to be**. With this, the framework not only secures deep-learning models but also **secures the story** of their robustness journey.
+Module 6 effectively seals the Safe-DL pipeline, weaving every intermediate artifact into a coherent, audit-ready narrative. The resulting `final_report.md` serves as the authoritative document, certifying **what was threatened, how it was attacked, how it was protected, and how effective those protections proved to be**. Through this comprehensive aggregation, the framework not only aids in securing deep learning models but also meticulously **secures the story** of their robustness journey, providing invaluable insights for continuous security improvement.
 
 
 ## 8. Example Application of the Safe-DL Framework (End-to-End Walk-through)
@@ -1550,54 +1593,55 @@ Actions executed:
 
 ----------
 
+
 ### 8.6 Module 5 — Evaluation & Benchmarking
 
-|Attack / Metric| Before Defense  |After Defense|Δ Adv Acc ↑|Δ Clean Acc ↓|Defense Score*
-|--|--|--|--|--|--
-| PGD (ε 0.03) | 34 % |**72 %**|**+38 pp**|–2.8 pp|**18.4**
-|Backdoor ASR|92 %|**5 %**|–87 pp|–0.9 pp|16.7
-|Data Poisoning (Clean)|79 %|**88 %**|n/a|**+9 pp**|11.2
+Module 5 provides a quantitative assessment of defense effectiveness. The table below illustrates a summary of the defense evaluation, showcasing key scores for different attack-defense pairs:
 
-* `score = 0.4·Δ_adv + 0.2·Δ_clean + 0.4·avg_per_class_gain` (normalised).
+| Attack           | Defense             | Mitigation | CAD   | Cost  | Final Score* |
+| :--------------- | :------------------ | :--------- | :---- | :---- | :----------- |
+| Backdoor (Static)| Fine-Pruning        | 0.69       | 1.07  | 0.40  | **0.53** |
+| Data Poisoning   | Provenance Tracking | 0.56       | 0.79  | 0.50  | **0.30** |
+| Evasion (PGD)    | Adversarial Training| 0.29       | 0.00  | 0.80  | **0.00** |
 
-> All three defenses drastically cut attack success while keeping total clean-accuracy within ±3 pp of the original baseline.
+* **Mitigation Score**: Effectiveness in restoring model performance after an attack (higher is better, max 1.0).
+* **CAD (Clean Accuracy Drop) Score**: Degree of performance degradation on clean data (higher is better, max 1.0+).
+* **Cost Score**: Relative computational/resource impact of the defense (lower is better, min 0.1).
+* **Final Score**: Aggregated score combining Mitigation (60%), CAD (30%), and Cost (10%).
 
+> This evaluation provides concrete, data-driven insights into the trade-offs of each defense, enabling informed decisions on which countermeasures are most suitable for a given threat.
 ----------
 
 ### 8.7 Module 6 — Final Report Aggregation
 
-Running `generate_final_report.py` produces **`final_report.md`** (and optional PDF) that bundles:
+Running `run_module6.py` produces **`final_report.md`** (and optionally other formats) that bundles:
 
--   Threat-model YAML
-    
--   Attack metrics, risk matrix, and recommendations
-    
--   Defense configs, removed-sample galleries, pruning histograms
-    
--   Benchmark tables and plots
-    
--   Full reproducibility appendix (all JSON / YAML dumps)
-    
+-   Consolidated threat-model definitions and system details.
+-   Comprehensive attack simulation results, including performance metrics and links to detailed reports.
+-   In-depth risk analysis, featuring risk scores, matrices, and prioritized recommendations.
+-   Detailed summary of applied defenses, outlining their configurations and initial impact.
+-   Quantitative evaluation of defense effectiveness, including mitigation, clean accuracy drop, cost, and final scores.
+-   Executive summary, conclusions, and practical recommendations for current and post-deployment security.
+-   Recommendations for continuous monitoring, periodic re-assessment, alerting, incident response, and CI/CD integration.
 
-The dossier is stored under `reports/final_report_<timestamp>.md` and attached to the project repository.
+The final report is generated in the `reports/` directory as `final_report.md` and serves as the ultimate audit-ready dossier, ready to be integrated into project documentation.
 
 ----------
 
 ### 8.8 Final Outcome
 
-1.  **Risks identified** (high-impact backdoor & PGD weaknesses).
-    
-2.  **Attacks reproduced** with quantitative evidence.
-    
-3.  **Critical vulnerabilities mitigated** via targeted defenses.
-    
-4.  **Effectiveness benchmarked** (defense scores 11 – 18).
-    
-5.  **Comprehensive report generated** for auditors and future maintenance.
-    
+The Safe-DL framework's culmination, delivered through `final_report.md`, ensures a robust security posture by:
 
-The traffic-sign model is now cleared for closed-track testing with continuous logging and anomaly alerts enabled.
+1.  **Risks Identified and Prioritized**: High-impact vulnerabilities (e.g., specific backdoor and evasion weaknesses) are clearly defined and ranked based on quantitative risk analysis.
+2.  **Attacks Quantitatively Reproduced**: Simulated adversarial attacks are presented with verifiable quantitative evidence of their impact.
+3.  **Targeted Defenses Applied**: Specific, context-aware defense mechanisms are deployed against identified threats.
+4.  **Effectiveness Quantified**: The efficacy and trade-offs of each applied defense are rigorously evaluated and scored.
+5.  **Actionable Recommendations Provided**: Concrete, data-driven advice for immediate mitigation and continuous security improvement is given.
+6.  **Comprehensive Documentation Generated**: A single, self-contained, and reproducible report is created, narrating the entire security assessment journey from threat modeling to defense evaluation.
+
+This process ensures that deep learning models are not only assessed for vulnerabilities but are also provided with a clear, documented path to enhanced security and resilience.
 
 
 
-Tiago Barbosa
+
+Tiago Barbosa, 2025
