@@ -68,7 +68,7 @@ The questionnaire is executed through a command-line interface to maintain simpl
 Example command:
 
 ```bash
-python threat_model_cli.py
+python run_module1.py
 
 ```
 

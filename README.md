@@ -26,7 +26,7 @@ The Safe-DL framework is organized into modular folders, each corresponding to a
 ```bash
 src/
 ├── module1_threat_modeling/
-│   └── threat_model_cli.py
+│   └── run_module1.py
 ├── module2_attack_simulation/
 │   ├── attacks/
 │   │   ├── data_poisoning/
@@ -151,7 +151,7 @@ Although each module can be executed independently, running the complete pipelin
 
 ```bash
 cd src/module1_threat_modeling/
-python threat_model_cli.py
+python run_module1.py
 
 ```
 
