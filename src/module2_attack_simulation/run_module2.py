@@ -31,7 +31,7 @@ def load_profile(filename):
         return yaml.safe_load(f)
 
 
-def load_dataset_from_profile(profile):
+def load_dataset_from_profile(profile, augment=True):
     dataset_info = profile.get("dataset", {})
     name = dataset_info.get("name")
     dataset_type = dataset_info.get("type")
@@ -39,7 +39,7 @@ def load_dataset_from_profile(profile):
     if dataset_type == "custom":
         return load_user_dataset()
     else:
-        return load_builtin_dataset(name)
+        return load_builtin_dataset(name, augment=augment)
 
 def train_clean_model(profile, trainset, testset, valset, class_names):
     print("[*] Training baseline model (clean data)...")
@@ -47,7 +47,7 @@ def train_clean_model(profile, trainset, testset, valset, class_names):
 
     clean_model = load_model_cfg_from_profile(profile)
 
-    train_model(clean_model, trainset, valset, epochs=15, class_names=class_names)
+    train_model(clean_model, trainset, valset, epochs=100, class_names=class_names)
     save_model(clean_model,profile.get("name"), "clean_model")
     baseline_acc, per_class_acc = evaluate_model(clean_model, testset, class_names=class_names)
 
@@ -149,14 +149,13 @@ def main():
     print("\n[*] Loading profile...")
     profile = load_profile(profile_name)
 
-    print("[*] Loading dataset from profile...")
-    trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile)
+    trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile, augment=True)
 
     print("[*] Training clean model...")
-    #train_clean_model(profile, trainset, testset, valset, class_names)
+    train_clean_model(profile, trainset, testset, valset, class_names)
 
     print("[*] Starting attack simulations...\n")
-    run_attacks(profile,trainset, testset, valset, class_names)
+    #run_attacks(profile,trainset, testset, valset, class_names)
 
 
 if __name__ == "__main__":

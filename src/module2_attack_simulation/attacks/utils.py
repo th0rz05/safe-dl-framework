@@ -12,9 +12,9 @@ def train_model(model,
                 trainset,
                 valset=None,
                 epochs=3,
-                batch_size=64,
+                batch_size=128,
                 class_names=None,
-                lr=1e-3,
+                lr=3e-4,
                 silent=False):
     """
     Standard training loop with tqdm progress bars.
@@ -33,6 +33,7 @@ def train_model(model,
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr,weight_decay=1e-4)
     criterion = nn.CrossEntropyLoss()
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
 
     train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
     val_loader   = DataLoader(valset,   batch_size=batch_size) if valset else None
@@ -55,7 +56,11 @@ def train_model(model,
 
             running_loss += loss.item()
 
+        scheduler.step()
+
         print(f"Epoch {ep:02d}: Train loss = {running_loss:.4f}")
+
+        
 
         # optional validation
         if val_loader:

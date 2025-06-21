@@ -9,18 +9,11 @@ attack_overrides:
       poison_fraction: 0.05
       target_class: 7
   data_poisoning:
-    clean_label:
-      epsilon: 0.1
-      fraction_poison: 0.05
-      max_iterations: 100
-      perturbation_method: feature_collision
-      source_selection: random
-      target_class: 5
     label_flipping:
       flip_rate: 0.08
       source_class: null
       strategy: many_to_one
-      target_class: 1
+      target_class: 9
   evasion:
     pgd:
       alpha: 0.01
@@ -114,11 +107,8 @@ model:
   - 3
   - 32
   - 32
-  name: cnn
+  name: resnet18
   num_classes: 10
-  params:
-    conv_filters: 32
-    hidden_size: 128
   type: builtin
 name: test
 risk_analysis:
