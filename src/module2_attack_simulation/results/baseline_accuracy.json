@@ -1,15 +1,15 @@
 {
-    "overall_accuracy": 0.6754,
+    "overall_accuracy": 0.8293,
     "per_class_accuracy": {
-        "airplane": 0.672,
-        "automobile": 0.783,
-        "bird": 0.638,
-        "cat": 0.357,
-        "deer": 0.636,
-        "dog": 0.608,
-        "frog": 0.694,
-        "horse": 0.784,
-        "ship": 0.862,
-        "truck": 0.72
+        "airplane": 0.867,
+        "automobile": 0.914,
+        "bird": 0.789,
+        "cat": 0.67,
+        "deer": 0.837,
+        "dog": 0.718,
+        "frog": 0.879,
+        "horse": 0.844,
+        "ship": 0.905,
+        "truck": 0.87
     }
 }
