@@ -11,9 +11,9 @@ from defenses.activation_clustering.generate_activation_clustering_report import
 
 # Add module2 path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "module2_attack_simulation")))
-from attacks.utils import train_model, evaluate_model, load_model_cfg_from_profile
+from attacks.utils import train_model, evaluate_model, load_model,load_model_cfg_from_profile
 from backdoor_utils import simulate_static_patch_attack, simulate_learned_trigger_attack,evaluate_backdoor_asr
-
+from dataset_loader import unnormalize, get_normalization_params
 
 def extract_layer_activations(model, dataloader, layer_name):
     activations = []
@@ -42,7 +42,7 @@ def extract_layer_activations(model, dataloader, layer_name):
     return activations_tensor.numpy(), indices
 
 
-def save_removed_examples(dataset, removed_indices, output_dir, class_names=None, max_examples=5):
+def save_removed_examples(dataset, removed_indices, output_dir, class_names=None, max_examples=5,profile=None):
     os.makedirs(output_dir, exist_ok=True)
     for file in os.listdir(output_dir):
         file_path = os.path.join(output_dir, file)
@@ -52,12 +52,20 @@ def save_removed_examples(dataset, removed_indices, output_dir, class_names=None
     saved = 0
     example_log = []
 
+    mean, std = get_normalization_params(profile['dataset']['name']) if profile else (None, None)
+
+
     for idx in removed_indices:
         try:
             img, label = dataset[idx]
             label_name = class_names[label] if class_names else str(label)
 
-            img = img.cpu()
+            if mean is not None and std is not None:
+                img = unnormalize(img.cpu(), mean, std).clamp(0, 1)
+            else:
+                print("[!] No normalization parameters found in profile. Skipping unnormalization.")
+                img = img.cpu()
+
             if img.dim() == 3 and img.shape[0] in [3, 4]:
                 img = img.permute(1, 2, 0)
             img = img.squeeze()
@@ -101,7 +109,7 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
 
     num_clusters = cfg.get("num_clusters", 2)
 
-    model = load_model_cfg_from_profile(profile)
+    model = load_model("static_patch_model",profile,path = "../module2_attack_simulation/saved_models/")
 
     if attack_type == "static_patch":
         poisoned_trainset, patched_testset, trigger_info = simulate_static_patch_attack(profile, trainset, testset, class_names)
@@ -109,8 +117,6 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
         poisoned_trainset, patched_testset, trigger_info = simulate_learned_trigger_attack(profile, trainset, testset, class_names)
     else:
         raise ValueError(f"Unsupported backdoor attack: {attack_type}")
-
-    train_model(model, poisoned_trainset, valset, epochs=3, class_names=class_names)
 
     linear_layers = [name for name, module in model.named_modules() if isinstance(module, torch.nn.Linear)]
     if not linear_layers:
@@ -139,7 +145,7 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
 
     clean_model = load_model_cfg_from_profile(profile)
     print("[*] Retraining model on cleaned dataset...")
-    train_model(clean_model, cleaned_trainset, valset=valset, epochs=3, class_names=class_names)
+    train_model(clean_model, cleaned_trainset, valset=valset, epochs=100, class_names=class_names)
 
     # Accuracy in clean test set
     acc_clean, per_class_clean = evaluate_model(clean_model, testset, class_names=class_names)
@@ -159,7 +165,7 @@ def run_activation_clustering_defense(profile, trainset, testset, valset, class_
     os.makedirs(f"results/backdoor/{attack_type}", exist_ok=True)
     example_log = save_removed_examples(poisoned_trainset.dataset, removed_indices,
                                         output_dir=f"results/backdoor/{attack_type}/activation_removed",
-                                        class_names=class_names, max_examples=5)
+                                        class_names=class_names, max_examples=5,profile=profile)
 
     results = {
         "defense": "activation_clustering",
