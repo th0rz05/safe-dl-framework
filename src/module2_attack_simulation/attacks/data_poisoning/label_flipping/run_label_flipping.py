@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 from attacks.data_poisoning.label_flipping.generate_label_flipping_report import \
     generate_label_flipping_report
 from attacks.utils import train_model, evaluate_model, get_class_labels, save_model
+from dataset_loader import get_normalization_params,unnormalize
 
 
 def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
@@ -98,7 +99,7 @@ def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
 
 
 def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/data_poisoning/label_flipping/examples",
-                       class_names=None):
+                       class_names=None, mean=None, std=None):
     if os.path.exists(output_dir):
         shutil.rmtree(output_dir)
     os.makedirs(output_dir, exist_ok=True)
@@ -112,16 +113,18 @@ def save_flip_examples(dataset, flip_log, num_examples=5, output_dir="results/da
             original_label_name = example.get("original_label_name", original_label)
             new_label_name = example.get("new_label_name", new_label)
             img, _ = dataset[idx]  # img: tensor [C, H, W]
-
-            # Convert image to NumPy array and rearrange if needed
             img = img.cpu()
 
+            # === Unnormalize if needed ===
+            if mean is not None and std is not None:
+                img = unnormalize(img, mean, std)
+
+            # Rearrange for matplotlib
             if img.shape[0] in [3, 4]:  # RGB or RGBA
                 img = img.permute(1, 2, 0)  # [H, W, C]
-
             img = img.squeeze()
 
-            # Save the image with appropriate color mapping
+            # Save figure
             plt.figure()
             plt.imshow(img, cmap="gray" if img.ndim == 2 else None)
             plt.axis("off")
@@ -188,7 +191,7 @@ def run_label_flipping(trainset, testset, valset, model, profile, class_names):
 
     
     print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=100, class_names=class_names)
+    model = train_model(model, poisoned_trainset, valset, epochs=100, class_names=class_names)
     save_model(model,profile.get("name"), "label_flipping_model")
 
     acc, per_class_accuracy = evaluate_model(
@@ -198,7 +201,9 @@ def run_label_flipping(trainset, testset, valset, model, profile, class_names):
     )
 
     os.makedirs("results", exist_ok=True)
-    save_flip_examples(trainset.dataset, flip_log, num_examples=5,class_names=class_names)
+    mean, std = get_normalization_params("cifar10")
+    save_flip_examples(trainset.dataset, flip_log, num_examples=5, class_names=class_names, mean=mean, std=std)
+
 
     attack_cfg = profile.get("attack_overrides", {}).get("data_poisoning", {}).get("label_flipping", {})
 

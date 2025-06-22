@@ -8,32 +8,8 @@ def load_builtin_dataset(name, augment=False):
     """
     Load built-in dataset with optional augmentation (only applied to training set).
     """
-    normalize = {
-        "mean": {
-            "mnist": [0.1307],
-            "fashionmnist": [0.2860],
-            "kmnist": [0.1904],
-            "cifar10": [0.4914, 0.4822, 0.4465],
-            "cifar100": [0.5071, 0.4865, 0.4409],
-            "svhn": [0.4377, 0.4438, 0.4728],
-            "emnist": [0.1751]
-        },
-        "std": {
-            "mnist": [0.3081],
-            "fashionmnist": [0.3530],
-            "kmnist": [0.3475],
-            "cifar10": [0.2023, 0.1994, 0.2010],
-            "cifar100": [0.2673, 0.2564, 0.2761],
-            "svhn": [0.1980, 0.2010, 0.1970],
-            "emnist": [0.3333]
-        }
-    }
 
-    if name not in normalize["mean"]:
-        raise ValueError(f"Normalization params not found for dataset '{name}'")
-
-    mean = normalize["mean"][name]
-    std = normalize["std"][name]
+    mean, std = get_normalization_params("cifar10")
 
     transform_augmented = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
@@ -90,6 +66,44 @@ def load_builtin_dataset(name, augment=False):
 
     return trainset, testset, valset, class_names, num_classes
 
+def get_normalization_params(name):
+    """
+    Devolve os parâmetros de normalização (mean, std) para um dataset.
+    """
+    normalize = {
+        "mean": {
+            "mnist": [0.1307],
+            "fashionmnist": [0.2860],
+            "kmnist": [0.1904],
+            "cifar10": [0.4914, 0.4822, 0.4465],
+            "cifar100": [0.5071, 0.4865, 0.4409],
+            "svhn": [0.4377, 0.4438, 0.4728],
+            "emnist": [0.1751]
+        },
+        "std": {
+            "mnist": [0.3081],
+            "fashionmnist": [0.3530],
+            "kmnist": [0.3475],
+            "cifar10": [0.2023, 0.1994, 0.2010],
+            "cifar100": [0.2673, 0.2564, 0.2761],
+            "svhn": [0.1980, 0.2010, 0.1970],
+            "emnist": [0.3333]
+        }
+    }
+
+    if name not in normalize["mean"]:
+        raise ValueError(f"Unknown dataset '{name}' for normalization params")
+
+    return normalize["mean"][name], normalize["std"][name]
+
+def unnormalize(img, mean, std):
+    """
+    Desfaz a normalização feita por transforms.Normalize.
+    """
+    img = img.clone()
+    for t, m, s in zip(img, mean, std):
+        t.mul_(s).add_(m)
+    return img
 
 def load_user_dataset(module_path="user_dataset.py"):
     if not os.path.exists(module_path):

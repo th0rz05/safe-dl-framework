@@ -47,7 +47,7 @@ def train_clean_model(profile, trainset, testset, valset, class_names):
 
     clean_model = load_model_cfg_from_profile(profile)
 
-    train_model(clean_model, trainset, valset, epochs=100, class_names=class_names)
+    clean_model = train_model(clean_model, trainset, valset, epochs=100, class_names=class_names)
     save_model(clean_model,profile.get("name"), "clean_model")
     baseline_acc, per_class_acc = evaluate_model(clean_model, testset, class_names=class_names)
 

@@ -38,6 +38,11 @@ def train_model(model,
     train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
     val_loader   = DataLoader(valset,   batch_size=batch_size) if valset else None
 
+    early_stop_patience=5
+    best_val_acc = 0.0
+    epochs_no_improve = 0
+    best_model_state = None
+
     # epoch loop
     for ep in range(1, epochs + 1):
         model.train()
@@ -70,6 +75,22 @@ def train_model(model,
                                     silent=silent,
                                     prefix=f"[Val]   Epoch {ep}/{epochs}")
             print(f"Epoch {ep:02d}: Validation accuracy = {acc:.4f}")
+
+            if acc > best_val_acc:
+                best_val_acc = acc
+                epochs_no_improve = 0
+                best_model_state = model.state_dict()
+            else:
+                epochs_no_improve += 1
+                print(f"[!] No improvement. ({epochs_no_improve}/{early_stop_patience})")
+
+            if epochs_no_improve >= early_stop_patience:
+                print(f"[✔] Early stopping triggered at epoch {ep}")
+                if best_model_state:
+                    model.load_state_dict(best_model_state)
+                break
+
+    return model
 
 def evaluate_model(model,
                    dataset,
