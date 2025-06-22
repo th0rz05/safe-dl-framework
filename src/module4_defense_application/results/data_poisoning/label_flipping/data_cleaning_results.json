@@ -1,18 +1,18 @@
 {
   "defense": "data_cleaning",
   "attack": "label_flipping",
-  "accuracy_clean": 0.6836,
+  "accuracy_clean": 0.6837,
   "per_class_accuracy_clean": {
-    "airplane": 0.781,
-    "automobile": 0.705,
-    "bird": 0.593,
-    "cat": 0.464,
-    "deer": 0.66,
-    "dog": 0.62,
-    "frog": 0.774,
-    "horse": 0.689,
-    "ship": 0.834,
-    "truck": 0.716
+    "airplane": 0.749,
+    "automobile": 0.764,
+    "bird": 0.554,
+    "cat": 0.507,
+    "deer": 0.64,
+    "dog": 0.552,
+    "frog": 0.766,
+    "horse": 0.729,
+    "ship": 0.811,
+    "truck": 0.765
   },
   "cleaning_params": {
     "method": "loss_filtering",

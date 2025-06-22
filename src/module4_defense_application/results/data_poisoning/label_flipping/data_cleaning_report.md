@@ -9,22 +9,22 @@
 
 ## Performance Metrics
 
-- **Accuracy After Defense:** 0.6836
+- **Accuracy After Defense:** 0.6837
 
 ### Per‑Class Accuracy
 
 | Class | Accuracy |
 |-------|----------|
-| airplane | 0.7810 |
-| automobile | 0.7050 |
-| bird | 0.5930 |
-| cat | 0.4640 |
-| deer | 0.6600 |
-| dog | 0.6200 |
-| frog | 0.7740 |
-| horse | 0.6890 |
-| ship | 0.8340 |
-| truck | 0.7160 |
+| airplane | 0.7490 |
+| automobile | 0.7640 |
+| bird | 0.5540 |
+| cat | 0.5070 |
+| deer | 0.6400 |
+| dog | 0.5520 |
+| frog | 0.7660 |
+| horse | 0.7290 |
+| ship | 0.8110 |
+| truck | 0.7650 |
 
 ## Cleaning Summary
 
