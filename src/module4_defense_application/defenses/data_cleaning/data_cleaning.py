@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from defenses.data_cleaning.generate_data_cleaning_report import generate_data_cleaning_report
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..","..", "module2_attack_simulation")))
-from attacks.utils import train_model, evaluate_model, get_class_labels, load_model
+from attacks.utils import train_model, evaluate_model, get_class_labels, load_model,load_model_cfg_from_profile
 from attacks.data_poisoning.label_flipping.run_label_flipping import flip_labels  # Only for label_flipping
 from dataset_loader import unnormalize, get_normalization_params
 
@@ -155,7 +155,8 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
                           class_names=class_names, max_examples=5,profile =  profile)
 
     # Train final model on cleaned data
-    model = train_model(model, cleaned_dataset, valset, epochs=100, class_names=class_names)
+    clean_model = load_model_cfg_from_profile(profile)
+    model = train_model(clean_model, cleaned_dataset, valset, epochs=100, class_names=class_names)
 
     # Evaluate
     acc, per_class = evaluate_model(model, testset, class_names=class_names)
