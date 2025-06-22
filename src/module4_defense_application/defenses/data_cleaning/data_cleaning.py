@@ -155,7 +155,7 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
                           class_names=class_names, max_examples=5,profile =  profile)
 
     # Train final model on cleaned data
-    model = train_model(model, cleaned_dataset, valset, epochs=1, class_names=class_names)
+    model = train_model(model, cleaned_dataset, valset, epochs=100, class_names=class_names)
 
     # Evaluate
     acc, per_class = evaluate_model(model, testset, class_names=class_names)

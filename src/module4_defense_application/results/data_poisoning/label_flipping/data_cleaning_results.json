@@ -1,54 +1,54 @@
 {
   "defense": "data_cleaning",
   "attack": "label_flipping",
-  "accuracy_clean": 0.6251,
+  "accuracy_clean": 0.6836,
   "per_class_accuracy_clean": {
-    "airplane": 0.653,
-    "automobile": 0.729,
-    "bird": 0.352,
-    "cat": 0.381,
-    "deer": 0.656,
-    "dog": 0.348,
-    "frog": 0.887,
-    "horse": 0.704,
-    "ship": 0.737,
-    "truck": 0.804
+    "airplane": 0.781,
+    "automobile": 0.705,
+    "bird": 0.593,
+    "cat": 0.464,
+    "deer": 0.66,
+    "dog": 0.62,
+    "frog": 0.774,
+    "horse": 0.689,
+    "ship": 0.834,
+    "truck": 0.716
   },
   "cleaning_params": {
     "method": "loss_filtering",
     "threshold": 0.9
   },
-  "num_removed": 18607,
+  "num_removed": 6967,
   "example_removed": [
     {
-      "index": 0,
-      "original_label": 6,
-      "original_label_name": "frog",
-      "image_path": "cleaned_examples/removed_0_6.png"
-    },
-    {
-      "index": 2,
-      "original_label": 9,
-      "original_label_name": "truck",
-      "image_path": "cleaned_examples/removed_2_9.png"
-    },
-    {
-      "index": 32770,
+      "index": 32769,
       "original_label": 5,
       "original_label_name": "dog",
-      "image_path": "cleaned_examples/removed_32770_5.png"
-    },
-    {
-      "index": 32771,
-      "original_label": 6,
-      "original_label_name": "frog",
-      "image_path": "cleaned_examples/removed_32771_6.png"
+      "image_path": "cleaned_examples/removed_32769_5.png"
     },
     {
       "index": 6,
       "original_label": 2,
       "original_label_name": "bird",
       "image_path": "cleaned_examples/removed_6_2.png"
+    },
+    {
+      "index": 32775,
+      "original_label": 0,
+      "original_label_name": "airplane",
+      "image_path": "cleaned_examples/removed_32775_0.png"
+    },
+    {
+      "index": 32779,
+      "original_label": 7,
+      "original_label_name": "horse",
+      "image_path": "cleaned_examples/removed_32779_7.png"
+    },
+    {
+      "index": 13,
+      "original_label": 9,
+      "original_label_name": "truck",
+      "image_path": "cleaned_examples/removed_13_9.png"
     }
   ]
 }
