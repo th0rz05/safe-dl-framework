@@ -7,6 +7,21 @@ from torch.utils.data import DataLoader
 from dataset_loader import load_builtin_dataset, load_user_dataset
 from attacks.utils import evaluate_model, save_model, load_model_cfg_from_profile, load_model
 
+import random
+import numpy as np
+import torch
+
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # se usares multi-GPU
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
+
 
 def choose_profile():
     profiles_path = os.path.join("../", "profiles")
@@ -143,6 +158,7 @@ def run_attacks(profile,trainset, testset, valset, class_names):
 
 
 def main():
+    set_seed(42)  # Set a fixed seed for reproducibility
     print("=== Safe-DL: Attack Simulation Module ===\n")
     profile_name = choose_profile()
 

@@ -6,105 +6,79 @@
   "poison_fraction": 0.05,
   "label_mode": "corrupted",
   "blend_alpha": 1.0,
-  "target_class": 1,
-  "target_class_name": "automobile",
-  "accuracy_clean_testset": 0.6662,
+  "target_class": 7,
+  "target_class_name": "horse",
+  "accuracy_clean_testset": 0.7004,
   "per_class_clean": {
-    "airplane": 0.683,
-    "automobile": 0.733,
-    "bird": 0.462,
-    "cat": 0.454,
-    "deer": 0.71,
-    "dog": 0.604,
-    "frog": 0.841,
-    "horse": 0.65,
-    "ship": 0.678,
-    "truck": 0.847
+    "airplane": 0.77,
+    "automobile": 0.786,
+    "bird": 0.565,
+    "cat": 0.513,
+    "deer": 0.672,
+    "dog": 0.585,
+    "frog": 0.786,
+    "horse": 0.749,
+    "ship": 0.815,
+    "truck": 0.763
   },
-  "attack_success_rate": 0.923,
-  "attack_success_numerator": 923,
-  "attack_success_denominator": 1000,
+  "attack_success_rate": 0.03,
   "per_class_attack_success_rate": {
-    "airplane": 0.8717948717948718,
+    "airplane": 0.036036036036036036,
     "automobile": 0.0,
-    "bird": 0.9431818181818182,
-    "cat": 0.9191919191919192,
-    "deer": 0.963963963963964,
-    "dog": 0.908256880733945,
-    "frog": 0.948905109489051,
-    "horse": 0.875,
-    "ship": 0.9838709677419355,
-    "truck": 0.883495145631068
-  },
-  "per_class_asr_numerator": {
-    "airplane": 102,
-    "automobile": 0,
-    "bird": 83,
-    "cat": 91,
-    "deer": 107,
-    "dog": 99,
-    "frog": 130,
-    "horse": 98,
-    "ship": 122,
-    "truck": 91
-  },
-  "per_class_asr_denominator": {
-    "airplane": 117,
-    "automobile": 0,
-    "bird": 88,
-    "cat": 99,
-    "deer": 111,
-    "dog": 109,
-    "frog": 137,
-    "horse": 112,
-    "ship": 124,
-    "truck": 103
+    "bird": 0.036036036036036036,
+    "cat": 0.028037383177570093,
+    "deer": 0.08035714285714286,
+    "dog": 0.05172413793103448,
+    "frog": 0.0,
+    "horse": 0.0,
+    "ship": 0.009615384615384616,
+    "truck": 0.025
   },
   "example_poisoned_samples": [
     {
-      "original_idx": 6799,
-      "original_class": 0,
-      "original_class_name": "airplane",
-      "predicted_class": 1,
-      "predicted_class_name": "automobile",
-      "target_class": 1,
-      "filename": "poison_6799_airplane.png"
-    },
-    {
-      "original_idx": 769,
-      "original_class": 4,
-      "original_class_name": "deer",
-      "predicted_class": 1,
-      "predicted_class_name": "automobile",
-      "target_class": 1,
-      "filename": "poison_769_deer.png"
-    },
-    {
-      "original_idx": 6001,
-      "original_class": 0,
-      "original_class_name": "airplane",
-      "predicted_class": 1,
-      "predicted_class_name": "automobile",
-      "target_class": 1,
-      "filename": "poison_6001_airplane.png"
-    },
-    {
-      "original_idx": 7859,
-      "original_class": 7,
-      "original_class_name": "horse",
-      "predicted_class": 1,
-      "predicted_class_name": "automobile",
-      "target_class": 1,
-      "filename": "poison_7859_horse.png"
-    },
-    {
-      "original_idx": 5837,
+      "original_idx": 2331,
       "original_class": 2,
       "original_class_name": "bird",
-      "predicted_class": 1,
-      "predicted_class_name": "automobile",
-      "target_class": 1,
-      "filename": "poison_5837_bird.png"
+      "predicted_class": 7,
+      "predicted_class_name": "horse",
+      "target_class": 7,
+      "filename": "poison_2331_bird.png"
+    },
+    {
+      "original_idx": 5460,
+      "original_class": 0,
+      "original_class_name": "airplane",
+      "predicted_class": 7,
+      "predicted_class_name": "horse",
+      "target_class": 7,
+      "filename": "poison_5460_airplane.png"
+    },
+    {
+      "original_idx": 483,
+      "original_class": 5,
+      "original_class_name": "dog",
+      "predicted_class": 7,
+      "predicted_class_name": "horse",
+      "target_class": 7,
+      "filename": "poison_483_dog.png"
+    },
+    {
+      "original_idx": 9445,
+      "original_class": 9,
+      "original_class_name": "truck",
+      "predicted_class": 7,
+      "predicted_class_name": "horse",
+      "target_class": 7,
+      "filename": "poison_9445_truck.png"
+    },
+    {
+      "original_idx": 9940,
+      "original_class": 4,
+      "original_class_name": "deer",
+      "predicted_class": 7,
+      "predicted_class_name": "horse",
+      "target_class": 7,
+      "filename": "poison_9940_deer.png"
     }
   ]
 }

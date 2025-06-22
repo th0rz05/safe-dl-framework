@@ -12,7 +12,7 @@ def train_model(model,
                 trainset,
                 valset=None,
                 epochs=3,
-                batch_size=128,
+                batch_size=256,
                 class_names=None,
                 lr=3e-4,
                 silent=False):
