@@ -118,18 +118,9 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
     epochs = training_cfg.get("epochs", 3)
     lr = training_cfg.get("learning_rate", 1e-3)
 
-    # Call train_model without 'save_path'
-    train_model(poisoned_model, poisoned_trainset, valset,
-                epochs=epochs,
-                batch_size=batch_size,
-                class_names=class_names,
-                lr=lr)
+    trained_poisoned_model = train_model(poisoned_model, poisoned_trainset, valset, epochs=1, class_names=class_names)
+    save_model(model,profile.get("name"), "static_patch_model")
 
-    # NO CALL TO save_model HERE, as per your request.
-
-    # The 'poisoned_model' object now holds the trained weights.
-    # Assign it to 'trained_poisoned_model' for consistency with downstream code.
-    trained_poisoned_model = poisoned_model
     trained_poisoned_model.eval()  # Ensure it's in evaluation mode for metrics calculation
 
     # === Evaluate clean accuracy of poisoned model ===
