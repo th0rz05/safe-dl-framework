@@ -48,9 +48,6 @@ defense_config:
         threshold: 0.9
       defenses:
       - data_cleaning
-      - per_class_monitoring
-      per_class_monitoring:
-        std_threshold: 2.0
   evasion:
     pgd:
       adversarial_training:
