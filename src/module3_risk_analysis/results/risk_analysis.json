@@ -12,14 +12,14 @@
   },
   "static_patch": {
     "type": "backdoor",
-    "accuracy_clean": 0.7004,
+    "accuracy_clean": 0.694,
     "asr": 0.03,
-    "severity": 0.33,
+    "severity": 0.336,
     "probability": 1.0,
     "visibility": 0.6,
-    "risk_score": 0.461,
+    "risk_score": 0.47,
     "patch_size_ratio": 0.15,
-    "poison_fraction": 0.05,
+    "poison_fraction": 0.15,
     "blend_alpha": 1.0
   },
   "pgd": {

@@ -3,7 +3,7 @@
 **Profile**: `visitech.yaml`  
 **Dataset**: `cifar10`  
 **Model**: `resnet18`  
-**Generated on**: 2025-06-22 17:41:35
+**Generated on**: 2025-06-22 20:10:18
 
 ## Overview
 
@@ -14,7 +14,7 @@ This report summarizes the risk associated with each attack simulated in Module 
 | Attack         | Type           |   Severity |   Probability |   Visibility |   Risk Score | Report                                                                                                   |
 |----------------|----------------|------------|---------------|--------------|--------------|----------------------------------------------------------------------------------------------------------|
 | label_flipping | data_poisoning |       0.57 |           1   |         0.62 |         0.79 | [Report](../../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
-| static_patch   | backdoor       |       0.33 |           1   |         0.6  |         0.46 | [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)           |
+| static_patch   | backdoor       |       0.34 |           1   |         0.6  |         0.47 | [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)           |
 | pgd            | evasion        |       1    |           1   |         0.3  |         1.7  | [Report](../../module2_attack_simulation/results/evasion/pgd/pgd_report.md)                              |
 | spsa           | evasion        |       1    |           0.8 |         0.2  |         1.44 | [Report](../../module2_attack_simulation/results/evasion/spsa/spsa_report.md)                            |
 
@@ -31,7 +31,7 @@ This report summarizes the risk associated with each attack simulated in Module 
 1. **pgd** — risk score: 1.70 → [Report](../../module2_attack_simulation/results/evasion/pgd/pgd_report.md)
 2. **spsa** — risk score: 1.44 → [Report](../../module2_attack_simulation/results/evasion/spsa/spsa_report.md)
 3. **label_flipping** — risk score: 0.79 → [Report](../../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md)
-4. **static_patch** — risk score: 0.46 → [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)
+4. **static_patch** — risk score: 0.47 → [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)
 
 ## Recommendations
 
