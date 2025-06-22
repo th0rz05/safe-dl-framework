@@ -38,7 +38,7 @@ def save_cleaned_examples(dataset, removed_indices, output_dir="results/data_poi
                 img = unnormalize(img.cpu(), mean, std).clamp(0, 1)
             else:
                 img = img.cpu().clamp(0, 1)
-                
+
             if img.shape[0] in [3, 4]:  # RGB or RGBA
                 img = img.permute(1, 2, 0)  # [H, W, C]
             img = img.squeeze()
@@ -128,7 +128,7 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
     defense_cfg = profile["defense_config"]["data_poisoning"][attack_type]["data_cleaning"]
 
     # Load model for training after cleaning
-    model = load_model("label_flipping_model",profile["name"],path = "../module2_attack_simulation/saved_models/")
+    model = load_model("label_flipping_model",profile,path = "../module2_attack_simulation/saved_models/")
 
     # Generate poisoned dataset depending on the attack type
     if attack_type == "label_flipping":
