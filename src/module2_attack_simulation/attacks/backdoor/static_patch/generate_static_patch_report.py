@@ -31,25 +31,20 @@ def generate_static_patch_report(json_file: str, md_file: str, class_names=None)
     lines.append("\n")
 
     lines.append("## Attack Success Rate (ASR)\n")
-    lines.append(f"- **Overall ASR:** {results.get('attack_success_rate'):.4f} "
-                 f"({results.get('attack_success_numerator')} / {results.get('attack_success_denominator')})\n")
+    lines.append(f"- **Overall ASR:** {results.get('attack_success_rate'):.4f} ")
 
     # NEW: ASR by Original Class
     if "per_class_attack_success_rate" in results and class_names:
         lines.append("### ASR by Original Class\n")
-        lines.append("| Original Class | ASR (%) | Successful Attacks | Total Samples |")
-        lines.append("|----------------|---------|--------------------|---------------|")
+        lines.append("| Original Class | ASR (%) |")
+        lines.append("|----------------|---------|")
 
         per_class_asr = results.get("per_class_attack_success_rate", {})
-        per_class_num = results.get("per_class_asr_numerator", {})
-        per_class_den = results.get("per_class_asr_denominator", {})
 
         # Iterate over class_names to ensure consistent order
         for cls_name in class_names:
             asr_val = per_class_asr.get(cls_name, 0.0)
-            num = per_class_num.get(cls_name, 0)
-            den = per_class_den.get(cls_name, 0)
-            lines.append(f"| {cls_name} | {asr_val * 100:.2f}% | {num} | {den} |")
+            lines.append(f"| {cls_name} | {asr_val * 100:.2f}% |")
         lines.append("\n")  # Add a blank line for spacing
 
     lines.append("### Per-Class Accuracy (Clean Test Set)\n")

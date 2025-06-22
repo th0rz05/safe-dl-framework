@@ -142,10 +142,18 @@ def run_static_patch(trainset, testset, valset, model, profile, class_names):
 
     result = {
         "attack_type": "static_patch",
+        "patch_type": patch_type,
+        "patch_size_ratio": patch_size_ratio,
+        "patch_position": patch_position,
+        "poison_fraction": poison_fraction,
+        "label_mode": label_mode,
+        "blend_alpha": blend_alpha,
+        "target_class": target_class,
+        "target_class_name": class_names[target_class],
         "accuracy_clean_testset": clean_acc,
         "per_class_clean": clean_per_class,
         "attack_success_rate": asr,
-        "per_class_asr": per_class_asr,
+        "per_class_attack_success_rate": per_class_asr,
         "example_poisoned_samples": example_log
     }
 
