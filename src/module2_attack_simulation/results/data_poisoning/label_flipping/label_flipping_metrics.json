@@ -1,69 +1,69 @@
 {
   "attack_type": "label_flipping",
   "flipping_strategy": "many_to_one",
-  "accuracy_after_attack": 0.5488,
+  "accuracy_after_attack": 0.6337,
   "per_class_accuracy": {
-    "airplane": 0.682,
-    "automobile": 0.742,
-    "bird": 0.44,
-    "cat": 0.338,
-    "deer": 0.377,
-    "dog": 0.302,
-    "frog": 0.873,
-    "horse": 0.474,
-    "ship": 0.796,
-    "truck": 0.464
+    "airplane": 0.696,
+    "automobile": 0.667,
+    "bird": 0.503,
+    "cat": 0.394,
+    "deer": 0.59,
+    "dog": 0.524,
+    "frog": 0.726,
+    "horse": 0.673,
+    "ship": 0.72,
+    "truck": 0.844
   },
-  "flip_rate": 0.1,
+  "flip_rate": 0.15,
   "source_class": null,
-  "target_class": 6,
-  "num_flipped": 4049,
+  "target_class": 9,
+  "num_flipped": 6077,
   "flipping_map": {
-    "bird->frog": 449,
-    "truck->frog": 454,
-    "cat->frog": 435,
-    "deer->frog": 438,
-    "dog->frog": 455,
-    "automobile->frog": 436,
-    "horse->frog": 475,
-    "ship->frog": 424,
-    "airplane->frog": 483
+    "frog->truck": 639,
+    "ship->truck": 670,
+    "cat->truck": 708,
+    "dog->truck": 653,
+    "bird->truck": 715,
+    "automobile->truck": 690,
+    "horse->truck": 652,
+    "airplane->truck": 708,
+    "deer->truck": 642
   },
   "example_flips": [
     {
-      "index": 11193,
-      "original_label": 2,
-      "new_label": 6,
-      "original_label_name": "bird",
-      "new_label_name": "frog"
+      "index": 46043,
+      "original_label": 6,
+      "new_label": 9,
+      "original_label_name": "frog",
+      "new_label_name": "truck"
     },
     {
-      "index": 47086,
-      "original_label": 9,
-      "new_label": 6,
-      "original_label_name": "truck",
-      "new_label_name": "frog"
+      "index": 47971,
+      "original_label": 8,
+      "new_label": 9,
+      "original_label_name": "ship",
+      "new_label_name": "truck"
     },
     {
-      "index": 38999,
+      "index": 17098,
       "original_label": 3,
-      "new_label": 6,
+      "new_label": 9,
       "original_label_name": "cat",
-      "new_label_name": "frog"
+      "new_label_name": "truck"
     },
     {
-      "index": 4986,
-      "original_label": 9,
-      "new_label": 6,
-      "original_label_name": "truck",
-      "new_label_name": "frog"
+      "index": 24516,
+      "original_label": 5,
+      "new_label": 9,
+      "original_label_name": "dog",
+      "new_label_name": "truck"
     },
     {
-      "index": 26417,
-      "original_label": 4,
-      "new_label": 6,
-      "original_label_name": "deer",
-      "new_label_name": "frog"
+      "index": 6704,
+      "original_label": 2,
+      "new_label": 9,
+      "original_label_name": "bird",
+      "new_label_name": "truck"
     }
   ]
 }
