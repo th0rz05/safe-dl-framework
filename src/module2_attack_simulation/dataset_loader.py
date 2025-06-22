@@ -2,6 +2,7 @@ import os
 from torchvision import datasets, transforms
 from torch.utils.data import random_split
 import importlib.util
+import torch
 
 
 def load_builtin_dataset(name, augment=False):
@@ -98,12 +99,18 @@ def get_normalization_params(name):
 
 def unnormalize(img, mean, std):
     """
-    Desfaz a normalização feita por transforms.Normalize.
+    Reverte a normalização de um tensor de imagem.
+    Suporta tensor de shape [C, H, W] ou [B, C, H, W].
     """
-    img = img.clone()
-    for t, m, s in zip(img, mean, std):
-        t.mul_(s).add_(m)
-    return img
+    mean = torch.tensor(mean).view(-1, 1, 1)
+    std = torch.tensor(std).view(-1, 1, 1)
+
+    if img.dim() == 4:  # batch [B, C, H, W]
+        mean = mean.unsqueeze(0)
+        std = std.unsqueeze(0)
+
+    return img * std + mean
+
 
 def load_user_dataset(module_path="user_dataset.py"):
     if not os.path.exists(module_path):

@@ -156,7 +156,6 @@ def main():
 
     trainset_static, testset, valset, class_names, _ = load_dataset_from_profile(profile, augment=False)
 
-
     print("[*] Starting attack simulations...\n")
     run_attacks(profile,trainset_static, testset, valset, class_names)
 
