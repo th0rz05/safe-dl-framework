@@ -1,9 +1,9 @@
 # Risk Analysis Report
 
-**Profile**: `test.yaml`  
+**Profile**: `visitech.yaml`  
 **Dataset**: `cifar10`  
-**Model**: `cnn`  
-**Generated on**: 2025-05-28 18:01:21
+**Model**: `resnet18`  
+**Generated on**: 2025-06-22 17:41:35
 
 ## Overview
 
@@ -11,29 +11,31 @@ This report summarizes the risk associated with each attack simulated in Module 
 
 ## Summary Table
 
-| Attack          | Type           |   Severity |   Probability |   Visibility |   Risk Score | Report                                                                                               |
-|-----------------|----------------|------------|---------------|--------------|--------------|------------------------------------------------------------------------------------------------------|
-| clean_label     | data_poisoning |       0.16 |           0.9 |          0.3 |         0.24 | [Report](../../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md)   |
-| static_patch    | backdoor       |       1    |           1   |          0.6 |         1.4  | [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)       |
-| learned_trigger | backdoor       |       1    |           0.9 |          0.2 |         1.62 | [Report](../../module2_attack_simulation/results/backdoor/learned_trigger/learned_trigger_report.md) |
+| Attack         | Type           |   Severity |   Probability |   Visibility |   Risk Score | Report                                                                                                   |
+|----------------|----------------|------------|---------------|--------------|--------------|----------------------------------------------------------------------------------------------------------|
+| label_flipping | data_poisoning |       0.57 |           1   |         0.62 |         0.79 | [Report](../../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
+| static_patch   | backdoor       |       0.33 |           1   |         0.6  |         0.46 | [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)           |
+| pgd            | evasion        |       1    |           1   |         0.3  |         1.7  | [Report](../../module2_attack_simulation/results/evasion/pgd/pgd_report.md)                              |
+| spsa           | evasion        |       1    |           0.8 |         0.2  |         1.44 | [Report](../../module2_attack_simulation/results/evasion/spsa/spsa_report.md)                            |
 
 ## Risk Matrix (Qualitative)
 
-| Severity \ Probability   | Low   | Medium   | High                          |
-|--------------------------|-------|----------|-------------------------------|
-| Low                      | -     | -        | clean_label                   |
-| Medium                   | -     | -        | -                             |
-| High                     | -     | -        | static_patch, learned_trigger |
+| Severity \ Probability   | Low   | Medium   | High                         |
+|--------------------------|-------|----------|------------------------------|
+| Low                      | -     | -        | -                            |
+| Medium                   | -     | -        | label_flipping, static_patch |
+| High                     | -     | -        | pgd, spsa                    |
 
 ## Risk Ranking
 
-1. **learned_trigger** — risk score: 1.62 → [Report](../../module2_attack_simulation/results/backdoor/learned_trigger/learned_trigger_report.md)
-2. **static_patch** — risk score: 1.40 → [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)
-3. **clean_label** — risk score: 0.24 → [Report](../../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md)
+1. **pgd** — risk score: 1.70 → [Report](../../module2_attack_simulation/results/evasion/pgd/pgd_report.md)
+2. **spsa** — risk score: 1.44 → [Report](../../module2_attack_simulation/results/evasion/spsa/spsa_report.md)
+3. **label_flipping** — risk score: 0.79 → [Report](../../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md)
+4. **static_patch** — risk score: 0.46 → [Report](../../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)
 
 ## Recommendations
 
-- **clean_label**: Large poisoned subset detected. Use data provenance tracking or influence functions.
-- **clean_label**: Low overall risk. No immediate action required, but monitor for future drift or attack evolution.
-- **learned_trigger**: Fully blended backdoor trigger. Use activation clustering and spectral signature defenses.
-- **learned_trigger**: Backdoor with high ASR and high risk. Suggest fine-pruning or model inspection techniques.
+- **label_flipping**: Flip rate above 5%. Recommend data cleaning and per-class accuracy monitoring.
+- **static_patch**: Fully blended backdoor trigger. Use activation clustering and spectral signature defenses.
+- **pgd**: Very high-risk evasion attack. Recommend adversarial training and randomized smoothing
+- **spsa**: Stealthy but strong evasion attack. Suggest gradient masking and input preprocessing (e.g., JPEG compression).

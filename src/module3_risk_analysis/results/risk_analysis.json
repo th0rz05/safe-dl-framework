@@ -1,65 +1,32 @@
 {
   "label_flipping": {
     "type": "data_poisoning",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.5488,
-    "severity": 0.422,
+    "accuracy_clean": 0.8293,
+    "accuracy_attack": 0.6578,
+    "severity": 0.572,
     "probability": 1.0,
-    "visibility": 0.705,
-    "risk_score": 0.547,
-    "flip_rate": 0.1,
-    "num_flipped": 4049
-  },
-  "clean_label": {
-    "type": "data_poisoning",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.6276,
-    "severity": 0.159,
-    "probability": 0.9,
-    "visibility": 0.3,
-    "risk_score": 0.244,
-    "fraction_poison": 0.15,
-    "avg_perturbation_norm": 0.0743
+    "visibility": 0.624,
+    "risk_score": 0.787,
+    "flip_rate": 0.08,
+    "num_flipped": 3240
   },
   "static_patch": {
     "type": "backdoor",
-    "accuracy_clean": 0.6058,
-    "asr": 0.7799,
-    "severity": 1.0,
+    "accuracy_clean": 0.7004,
+    "asr": 0.03,
+    "severity": 0.33,
     "probability": 1.0,
     "visibility": 0.6,
-    "risk_score": 1.4,
+    "risk_score": 0.461,
     "patch_size_ratio": 0.15,
     "poison_fraction": 0.05,
-    "blend_alpha": 0.25
-  },
-  "learned_trigger": {
-    "type": "backdoor",
-    "accuracy_clean": 0.5422,
-    "asr": 1.0,
-    "severity": 1.0,
-    "probability": 0.9,
-    "visibility": 0.2,
-    "risk_score": 1.62,
-    "poison_fraction": 0.1,
     "blend_alpha": 1.0
-  },
-  "fgsm": {
-    "type": "evasion",
-    "attack_name": "fgsm",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.0065,
-    "severity": 1.0,
-    "probability": 1.0,
-    "visibility": 0.3,
-    "risk_score": 1.7,
-    "epsilon": 0.03
   },
   "pgd": {
     "type": "evasion",
     "attack_name": "pgd",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.0,
+    "accuracy_clean": 0.837,
+    "accuracy_attack": 0.191,
     "severity": 1.0,
     "probability": 1.0,
     "visibility": 0.3,
@@ -67,61 +34,15 @@
     "epsilon": 0.03,
     "pgd_steps": 10
   },
-  "cw": {
-    "type": "evasion",
-    "attack_name": "cw",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.2301,
-    "severity": 1.0,
-    "probability": 0.9,
-    "visibility": 0.3,
-    "risk_score": 1.53,
-    "norm_type": "l2",
-    "confidence": 0.1,
-    "avg_perturbation_norm": 0.0
-  },
-  "deepfool": {
-    "type": "evasion",
-    "attack_name": "deepfool",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.158,
-    "severity": 1.0,
-    "probability": 1.0,
-    "visibility": 0.1,
-    "risk_score": 1.9,
-    "avg_perturbation_norm": 0.0
-  },
-  "nes": {
-    "type": "evasion",
-    "attack_name": "nes",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.0137,
-    "severity": 1.0,
-    "probability": 0.8,
-    "visibility": 0.2,
-    "risk_score": 1.44,
-    "avg_perturbation_norm": 0.0
-  },
   "spsa": {
     "type": "evasion",
     "attack_name": "spsa",
-    "accuracy_clean": 0.686,
-    "accuracy_attack": 0.022,
+    "accuracy_clean": 0.824,
+    "accuracy_attack": 0.292,
     "severity": 1.0,
     "probability": 0.8,
     "visibility": 0.2,
     "risk_score": 1.44,
-    "avg_perturbation_norm": 0.0
-  },
-  "transfer": {
-    "type": "evasion",
-    "attack_name": "transfer",
-    "accuracy_clean": 0.6754,
-    "accuracy_attack": 0.2001,
-    "severity": 1.0,
-    "probability": 0.85,
-    "visibility": 0.2,
-    "risk_score": 1.53,
     "avg_perturbation_norm": 0.0
   }
 }
