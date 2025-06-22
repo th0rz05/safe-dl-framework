@@ -163,9 +163,15 @@ def save_model(model, profile_name, model_name):
     print(f"[✔] Model saved to {model_path}")
 
 
-def load_model(model_name, profile):
+def load_model(model_name, profile,path=None):
     profile_name = profile.get("name", "default")
-    model_path = os.path.join("saved_models", f"{profile_name}_{model_name}.pth")
+    if path:
+        model_path = os.path.join(path, f"{profile_name}_{model_name}.pth")
+    else:
+        model_path = os.path.join("saved_models", f"{profile_name}_{model_name}.pth")
+    
+    if model_path is None:
+        raise ValueError("Model path cannot be None. Please provide a valid path.")
 
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"[!] Model file not found at {model_path}. Make sure it was trained and saved.")

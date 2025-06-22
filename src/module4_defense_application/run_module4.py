@@ -20,7 +20,19 @@ from defenses.randomized_smoothing.randomized_smoothing import run_randomized_sm
 from defenses.gradient_masking.gradient_masking import run_gradient_masking_defense
 from defenses.jpeg_preprocessing.jpeg_preprocessing import run_jpeg_preprocessing_defense
 
+import random
+import numpy as np
+import torch
 
+def set_seed(seed=42):
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    torch.cuda.manual_seed_all(seed)  # se usares multi-GPU
+
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
 
 
 # Add module2 path for shared functions
@@ -113,12 +125,13 @@ def apply_evasion_defenses(profile, trainset, testset, valset, class_names):
 
 
 def main():
+    set_seed(42)  # Set a fixed seed for reproducibility
     print("=== Safe-DL: Defense Application Module (Module 4) ===\n")
     profile_name = choose_profile()
     profile = load_profile(profile_name)
 
     print("\n[*] Loading dataset...")
-    trainset, testset, valset, class_names, _ = load_dataset_from_profile(profile)
+    trainset, testset, valset, class_names, _ = load_builtin_dataset(profile, augment=False)
 
     print("[*] Starting defense application...\n")
 

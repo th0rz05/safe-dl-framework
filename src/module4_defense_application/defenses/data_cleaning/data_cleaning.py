@@ -8,11 +8,13 @@ import matplotlib.pyplot as plt
 from defenses.data_cleaning.generate_data_cleaning_report import generate_data_cleaning_report
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..","..", "module2_attack_simulation")))
-from attacks.utils import train_model, evaluate_model, get_class_labels, load_model_cfg_from_profile
+from attacks.utils import train_model, evaluate_model, get_class_labels, load_model
 from attacks.data_poisoning.label_flipping.run_label_flipping import flip_labels  # Only for label_flipping
+from dataset_loader import unnormalize, get_normalization_params
 
 
-def save_cleaned_examples(dataset, removed_indices, output_dir="results/data_poisoning/cleaned_examples", class_names=None, max_examples=5):
+
+def save_cleaned_examples(dataset, removed_indices, output_dir="results/data_poisoning/cleaned_examples", class_names=None, max_examples=5,profile = None):
     os.makedirs(output_dir, exist_ok=True)
     saved = 0
 
@@ -25,12 +27,18 @@ def save_cleaned_examples(dataset, removed_indices, output_dir="results/data_poi
         except Exception as e:
             print(f"[!] Failed to remove file {file_path}: {e}")
 
+    mean, std = get_normalization_params(profile['dataset']['name']) if profile else (None, None)
+
     for idx in removed_indices:
         try:
             img, label = dataset[idx]
             label_name = class_names[label] if class_names else str(label)
 
-            img = img.cpu()
+            if mean is not None and std is not None:
+                img = unnormalize(img.cpu(), mean, std).clamp(0, 1)
+            else:
+                img = img.cpu().clamp(0, 1)
+                
             if img.shape[0] in [3, 4]:  # RGB or RGBA
                 img = img.permute(1, 2, 0)  # [H, W, C]
             img = img.squeeze()
@@ -120,7 +128,7 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
     defense_cfg = profile["defense_config"]["data_poisoning"][attack_type]["data_cleaning"]
 
     # Load model for training after cleaning
-    model = load_model_cfg_from_profile(profile)
+    model = load_model("label_flipping_model",profile["name"],path = "../module2_attack_simulation/saved_models/")
 
     # Generate poisoned dataset depending on the attack type
     if attack_type == "label_flipping":
@@ -136,22 +144,18 @@ def run_data_cleaning_defense(profile, trainset, testset, valset, class_names, a
     else:
         raise NotImplementedError(f"Data cleaning for attack '{attack_type}' not implemented yet.")
 
-    # Save poisoned model to temp for loss-based filtering
-    print("[*] Saving temporary model for loss analysis...")
-    temp_model = load_model_cfg_from_profile(profile)
-    train_model(temp_model, poisoned_trainset, valset, epochs=3, class_names=class_names)
 
     # Apply cleaning
-    cleaned_dataset = apply_data_cleaning(poisoned_trainset, temp_model, defense_cfg)
+    cleaned_dataset = apply_data_cleaning(poisoned_trainset, model, defense_cfg)
 
     removed_indices = list(set(poisoned_trainset.indices) - set(cleaned_dataset.indices))
     print(f"[*] Saving up to 5 removed examples ({len(removed_indices)} identified)...")
     save_cleaned_examples(poisoned_trainset.dataset, removed_indices,
                           output_dir=f"results/data_poisoning/{attack_type}/cleaned_examples",
-                          class_names=class_names, max_examples=5)
+                          class_names=class_names, max_examples=5,profile =  profile)
 
     # Train final model on cleaned data
-    train_model(model, cleaned_dataset, valset, epochs=3, class_names=class_names)
+    model = train_model(model, cleaned_dataset, valset, epochs=1, class_names=class_names)
 
     # Evaluate
     acc, per_class = evaluate_model(model, testset, class_names=class_names)
