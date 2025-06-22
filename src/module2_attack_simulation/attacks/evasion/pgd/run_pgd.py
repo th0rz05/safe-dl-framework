@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 from attacks.utils import load_model, evaluate_model
 from attacks.evasion.pgd.generate_pgd_report import generate_pgd_report
+from dataset_loader import get_normalization_params, unnormalize
 
 def pgd_attack(model, x, y, epsilon, alpha, num_iter, random_start=True):
     if random_start:
@@ -98,7 +99,11 @@ def run_pgd(testset, profile, class_names):
 
         # Save up to 5 visual examples
         if len(example_log) < 5:
-            vis = adv_x[0].detach().cpu().clone()
+            mean, std = get_normalization_params(profile["dataset"]["name"])
+
+            # Unnormalize before saving
+            vis = unnormalize(adv_x[0].detach().cpu(), mean, std)
+            
             if vis.shape[0] in (3, 4):
                 vis = vis.permute(1, 2, 0)
             vis = torch.clamp(vis, 0.0, 1.0)

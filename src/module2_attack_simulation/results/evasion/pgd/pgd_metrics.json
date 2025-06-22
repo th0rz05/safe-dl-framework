@@ -4,64 +4,64 @@
   "alpha": 0.01,
   "num_iter": 50,
   "random_start": true,
-  "accuracy_clean_testset": 0.6754,
-  "accuracy_adversarial_testset": 0.0,
+  "accuracy_clean_testset": 0.837,
+  "accuracy_adversarial_testset": 0.191,
   "per_class_clean": {
-    "airplane": 0.672,
-    "automobile": 0.783,
-    "bird": 0.638,
-    "cat": 0.357,
-    "deer": 0.636,
-    "dog": 0.608,
-    "frog": 0.694,
-    "horse": 0.784,
-    "ship": 0.862,
-    "truck": 0.72
+    "airplane": 0.8155,
+    "automobile": 0.9213,
+    "bird": 0.78,
+    "cat": 0.699,
+    "deer": 0.8556,
+    "dog": 0.686,
+    "frog": 0.8839,
+    "horse": 0.8725,
+    "ship": 0.9151,
+    "truck": 0.9174
   },
   "per_class_adversarial": {
-    "airplane": 0.0,
-    "automobile": 0.0,
-    "bird": 0.0,
-    "cat": 0.0,
-    "deer": 0.0,
-    "dog": 0.0,
-    "frog": 0.0,
-    "horse": 0.0,
-    "ship": 0.0,
-    "truck": 0.0
+    "airplane": 0.2524,
+    "automobile": 0.0225,
+    "bird": 0.22,
+    "cat": 0.1942,
+    "deer": 0.2778,
+    "dog": 0.1395,
+    "frog": 0.1607,
+    "horse": 0.049,
+    "ship": 0.566,
+    "truck": 0.0092
   },
   "example_adversarial_samples": [
     {
       "index": 0,
       "true_label": 3,
       "true_label_name": "cat",
-      "pred_clean": 8,
-      "pred_adv": 8,
-      "example_image_path": "examples/pgd_0_cat_ship.png"
+      "pred_clean": 3,
+      "pred_adv": 3,
+      "example_image_path": "examples/pgd_0_cat_cat.png"
     },
     {
       "index": 1,
       "true_label": 8,
       "true_label_name": "ship",
       "pred_clean": 8,
-      "pred_adv": 1,
-      "example_image_path": "examples/pgd_1_ship_automobile.png"
+      "pred_adv": 8,
+      "example_image_path": "examples/pgd_1_ship_ship.png"
     },
     {
       "index": 2,
       "true_label": 8,
       "true_label_name": "ship",
       "pred_clean": 8,
-      "pred_adv": 0,
-      "example_image_path": "examples/pgd_2_ship_airplane.png"
+      "pred_adv": 6,
+      "example_image_path": "examples/pgd_2_ship_frog.png"
     },
     {
       "index": 3,
       "true_label": 0,
       "true_label_name": "airplane",
       "pred_clean": 0,
-      "pred_adv": 8,
-      "example_image_path": "examples/pgd_3_airplane_ship.png"
+      "pred_adv": 2,
+      "example_image_path": "examples/pgd_3_airplane_bird.png"
     },
     {
       "index": 4,

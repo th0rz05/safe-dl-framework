@@ -10,38 +10,38 @@
 
 ## Performance Metrics
 
-- **Accuracy on Clean Test Set (CDA):** 0.6754
-- **Accuracy on Adversarial Test Set (ADA):** 0.0000
+- **Accuracy on Clean Test Set (CDA):** 0.8370
+- **Accuracy on Adversarial Test Set (ADA):** 0.1910
 
 ### Per‑Class Accuracy (Clean Test Set)
 
 | Class | Accuracy |
 |-------|----------|
-| airplane | 0.6720 |
-| automobile | 0.7830 |
-| bird | 0.6380 |
-| cat | 0.3570 |
-| deer | 0.6360 |
-| dog | 0.6080 |
-| frog | 0.6940 |
-| horse | 0.7840 |
-| ship | 0.8620 |
-| truck | 0.7200 |
+| airplane | 0.8155 |
+| automobile | 0.9213 |
+| bird | 0.7800 |
+| cat | 0.6990 |
+| deer | 0.8556 |
+| dog | 0.6860 |
+| frog | 0.8839 |
+| horse | 0.8725 |
+| ship | 0.9151 |
+| truck | 0.9174 |
 
 ### Per‑Class Accuracy (Adversarial Test Set)
 
 | Class | Accuracy |
 |-------|----------|
-| airplane | 0.0000 |
-| automobile | 0.0000 |
-| bird | 0.0000 |
-| cat | 0.0000 |
-| deer | 0.0000 |
-| dog | 0.0000 |
-| frog | 0.0000 |
-| horse | 0.0000 |
-| ship | 0.0000 |
-| truck | 0.0000 |
+| airplane | 0.2524 |
+| automobile | 0.0225 |
+| bird | 0.2200 |
+| cat | 0.1942 |
+| deer | 0.2778 |
+| dog | 0.1395 |
+| frog | 0.1607 |
+| horse | 0.0490 |
+| ship | 0.5660 |
+| truck | 0.0092 |
 
 ## Example Adversarial Samples
 
@@ -55,9 +55,9 @@ pgd<index>_<true_class>_<pred_adv_class>.png
 - `<pred_adv_class>`: Predicted label after attack.
 
 <div style="display: flex; gap: 10px;">
-<div style="text-align:center;"><small>examples/pgd_0_cat_ship.png</small><br><img src="examples/pgd_0_cat_ship.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>examples/pgd_1_ship_automobile.png</small><br><img src="examples/pgd_1_ship_automobile.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>examples/pgd_2_ship_airplane.png</small><br><img src="examples/pgd_2_ship_airplane.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>examples/pgd_3_airplane_ship.png</small><br><img src="examples/pgd_3_airplane_ship.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/pgd_0_cat_cat.png</small><br><img src="examples/pgd_0_cat_cat.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/pgd_1_ship_ship.png</small><br><img src="examples/pgd_1_ship_ship.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/pgd_2_ship_frog.png</small><br><img src="examples/pgd_2_ship_frog.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/pgd_3_airplane_bird.png</small><br><img src="examples/pgd_3_airplane_bird.png" style="width: 120px;"></div>
 <div style="text-align:center;"><small>examples/pgd_4_frog_deer.png</small><br><img src="examples/pgd_4_frog_deer.png" style="width: 120px;"></div>
 </div>
