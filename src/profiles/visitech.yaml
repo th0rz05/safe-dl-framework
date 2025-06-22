@@ -6,7 +6,7 @@ attack_overrides:
       patch_position: bottom_right
       patch_size_ratio: 0.15
       patch_type: white_square
-      poison_fraction: 0.05
+      poison_fraction: 0.15
       target_class: 7
   data_poisoning:
     label_flipping:
