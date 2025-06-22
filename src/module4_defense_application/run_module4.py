@@ -54,7 +54,7 @@ def load_profile(filename):
         return yaml.safe_load(f)
 
 
-def load_dataset_from_profile(profile):
+def load_dataset_from_profile(profile, augment=True):
     dataset_info = profile.get("dataset", {})
     name = dataset_info.get("name")
     dataset_type = dataset_info.get("type")
@@ -62,7 +62,7 @@ def load_dataset_from_profile(profile):
     if dataset_type == "custom":
         return load_user_dataset()
     else:
-        return load_builtin_dataset(name)
+        return load_builtin_dataset(name, augment=augment)
 
 
 def apply_data_poisoning_defenses(profile, trainset, testset, valset, class_names):
@@ -131,7 +131,7 @@ def main():
     profile = load_profile(profile_name)
 
     print("\n[*] Loading dataset...")
-    trainset, testset, valset, class_names, _ = load_builtin_dataset(profile, augment=False)
+    trainset, testset, valset, class_names, _ = load_dataset_from_profile(profile, augment=False)
 
     print("[*] Starting defense application...\n")
 
