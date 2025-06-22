@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 from attacks.data_poisoning.label_flipping.generate_label_flipping_report import \
     generate_label_flipping_report
-from attacks.utils import train_model, evaluate_model, get_class_labels
+from attacks.utils import train_model, evaluate_model, get_class_labels, save_model
 
 
 def flip_labels(dataset, flip_rate=0.1, strategy="one_to_one",
@@ -185,8 +185,11 @@ def run_label_flipping(trainset, testset, valset, model, profile, class_names):
 
     poisoned_trainset, flip_log, flip_map = apply_label_flipping(trainset, profile, class_names)
 
+
+    
     print("[*] Training model on poisoned dataset...")
-    train_model(model, poisoned_trainset, valset, epochs=3)
+    train_model(model, poisoned_trainset, valset, epochs=100, class_names=class_names)
+    save_model(model,profile.get("name"), "label_flipping_model")
 
     acc, per_class_accuracy = evaluate_model(
         model,

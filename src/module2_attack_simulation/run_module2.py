@@ -152,10 +152,13 @@ def main():
     trainset, testset, valset, class_names, num_classes = load_dataset_from_profile(profile, augment=True)
 
     print("[*] Training clean model...")
-    train_clean_model(profile, trainset, testset, valset, class_names)
+    #train_clean_model(profile, trainset, testset, valset, class_names)
+
+    trainset_static, testset, valset, class_names, _ = load_dataset_from_profile(profile, augment=False)
+
 
     print("[*] Starting attack simulations...\n")
-    #run_attacks(profile,trainset, testset, valset, class_names)
+    run_attacks(profile,trainset_static, testset, valset, class_names)
 
 
 if __name__ == "__main__":
