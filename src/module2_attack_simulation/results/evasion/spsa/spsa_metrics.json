@@ -3,74 +3,74 @@
   "epsilon": 0.03,
   "delta": 0.01,
   "learning_rate": 0.01,
-  "num_steps": 50,
+  "num_steps": 150,
   "batch_size": 32,
-  "accuracy_clean_testset": 0.686,
-  "accuracy_adversarial_testset": 0.022,
+  "accuracy_clean_testset": 0.824,
+  "accuracy_adversarial_testset": 0.292,
   "per_class_clean": {
-    "airplane": 0.7193,
-    "automobile": 0.878,
-    "bird": 0.6863,
-    "cat": 0.2857,
-    "deer": 0.6,
-    "dog": 0.5208,
-    "frog": 0.6667,
-    "horse": 0.7872,
+    "airplane": 0.8421,
+    "automobile": 0.9024,
+    "bird": 0.7843,
+    "cat": 0.6735,
+    "deer": 0.85,
+    "dog": 0.6667,
+    "frog": 0.9259,
+    "horse": 0.8085,
     "ship": 0.8772,
-    "truck": 0.8036
+    "truck": 0.8929
   },
   "per_class_adversarial": {
-    "airplane": 0.0175,
-    "automobile": 0.0488,
-    "bird": 0.0,
-    "cat": 0.0,
-    "deer": 0.0,
-    "dog": 0.0208,
-    "frog": 0.0185,
-    "horse": 0.0426,
-    "ship": 0.0526,
-    "truck": 0.0179
+    "airplane": 0.4035,
+    "automobile": 0.0244,
+    "bird": 0.3529,
+    "cat": 0.3061,
+    "deer": 0.475,
+    "dog": 0.1667,
+    "frog": 0.3519,
+    "horse": 0.1064,
+    "ship": 0.6316,
+    "truck": 0.0357
   },
   "example_adversarial_samples": [
     {
       "index": 0,
       "true_label": 3,
       "true_label_name": "cat",
-      "pred_clean": 8,
-      "pred_adv": 8,
-      "example_image_path": "examples/spsa_0_cat_ship.png"
+      "pred_clean": 3,
+      "pred_adv": 3,
+      "example_image_path": "examples/spsa_0_cat_cat.png"
     },
     {
       "index": 1,
       "true_label": 8,
       "true_label_name": "ship",
       "pred_clean": 8,
-      "pred_adv": 1,
-      "example_image_path": "examples/spsa_1_ship_automobile.png"
+      "pred_adv": 8,
+      "example_image_path": "examples/spsa_1_ship_ship.png"
     },
     {
       "index": 2,
       "true_label": 8,
       "true_label_name": "ship",
       "pred_clean": 8,
-      "pred_adv": 0,
-      "example_image_path": "examples/spsa_2_ship_airplane.png"
+      "pred_adv": 6,
+      "example_image_path": "examples/spsa_2_ship_frog.png"
     },
     {
       "index": 3,
       "true_label": 0,
       "true_label_name": "airplane",
       "pred_clean": 0,
-      "pred_adv": 8,
-      "example_image_path": "examples/spsa_3_airplane_ship.png"
+      "pred_adv": 0,
+      "example_image_path": "examples/spsa_3_airplane_airplane.png"
     },
     {
       "index": 4,
       "true_label": 6,
       "true_label_name": "frog",
       "pred_clean": 6,
-      "pred_adv": 4,
-      "example_image_path": "examples/spsa_4_frog_deer.png"
+      "pred_adv": 6,
+      "example_image_path": "examples/spsa_4_frog_frog.png"
     }
   ]
 }

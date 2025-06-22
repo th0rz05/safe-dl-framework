@@ -6,43 +6,43 @@
 - **Epsilon (max perturbation):** 0.03
 - **Delta (finite difference step):** 0.01
 - **Learning Rate:** 0.01
-- **Number of Steps:** 50
+- **Number of Steps:** 150
 - **Batch Size:** 32
 
 ## Performance Metrics
 
-- **Accuracy on Clean Test Set (CDA):** 0.6860
-- **Accuracy on Adversarial Test Set (ADA):** 0.0220
+- **Accuracy on Clean Test Set (CDA):** 0.8240
+- **Accuracy on Adversarial Test Set (ADA):** 0.2920
 
 ### Per-Class Accuracy (Clean Test Set)
 
 | Class | Accuracy |
 |-------|----------|
-| airplane | 0.7193 |
-| automobile | 0.8780 |
-| bird | 0.6863 |
-| cat | 0.2857 |
-| deer | 0.6000 |
-| dog | 0.5208 |
-| frog | 0.6667 |
-| horse | 0.7872 |
+| airplane | 0.8421 |
+| automobile | 0.9024 |
+| bird | 0.7843 |
+| cat | 0.6735 |
+| deer | 0.8500 |
+| dog | 0.6667 |
+| frog | 0.9259 |
+| horse | 0.8085 |
 | ship | 0.8772 |
-| truck | 0.8036 |
+| truck | 0.8929 |
 
 ### Per-Class Accuracy (Adversarial Test Set)
 
 | Class | Accuracy |
 |-------|----------|
-| airplane | 0.0175 |
-| automobile | 0.0488 |
-| bird | 0.0000 |
-| cat | 0.0000 |
-| deer | 0.0000 |
-| dog | 0.0208 |
-| frog | 0.0185 |
-| horse | 0.0426 |
-| ship | 0.0526 |
-| truck | 0.0179 |
+| airplane | 0.4035 |
+| automobile | 0.0244 |
+| bird | 0.3529 |
+| cat | 0.3061 |
+| deer | 0.4750 |
+| dog | 0.1667 |
+| frog | 0.3519 |
+| horse | 0.1064 |
+| ship | 0.6316 |
+| truck | 0.0357 |
 
 ## Example Adversarial Samples
 
@@ -56,9 +56,9 @@ spsa_<index>_<true_class>_<pred_adv_class>.png
 - `<pred_adv_class>`: Predicted label after the attack.
 
 <div style="display: flex; gap: 10px;">
-<div style="text-align:center;"><small>examples/spsa_0_cat_ship.png</small><br><img src="examples/spsa_0_cat_ship.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>examples/spsa_1_ship_automobile.png</small><br><img src="examples/spsa_1_ship_automobile.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>examples/spsa_2_ship_airplane.png</small><br><img src="examples/spsa_2_ship_airplane.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>examples/spsa_3_airplane_ship.png</small><br><img src="examples/spsa_3_airplane_ship.png" style="width: 120px;"></div>
-<div style="text-align:center;"><small>examples/spsa_4_frog_deer.png</small><br><img src="examples/spsa_4_frog_deer.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/spsa_0_cat_cat.png</small><br><img src="examples/spsa_0_cat_cat.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/spsa_1_ship_ship.png</small><br><img src="examples/spsa_1_ship_ship.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/spsa_2_ship_frog.png</small><br><img src="examples/spsa_2_ship_frog.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/spsa_3_airplane_airplane.png</small><br><img src="examples/spsa_3_airplane_airplane.png" style="width: 120px;"></div>
+<div style="text-align:center;"><small>examples/spsa_4_frog_frog.png</small><br><img src="examples/spsa_4_frog_frog.png" style="width: 120px;"></div>
 </div>
