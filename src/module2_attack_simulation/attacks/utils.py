@@ -38,7 +38,7 @@ def train_model(model,
     train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
     val_loader   = DataLoader(valset,   batch_size=batch_size) if valset else None
 
-    early_stop_patience=5
+    early_stop_patience=15
     best_val_acc = 0.0
     epochs_no_improve = 0
     best_model_state = None

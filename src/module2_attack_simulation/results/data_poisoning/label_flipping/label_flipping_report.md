@@ -4,60 +4,60 @@
 
 - **Attack Type:** label_flipping
 - **Strategy:** many_to_one
-- **Flip Rate:** 0.15
+- **Flip Rate:** 0.08
 - **Target Class:** 9
 - **Source Classes:** All except target
-- **Number of Flipped Samples:** 6077
+- **Number of Flipped Samples:** 3240
 
 ## Performance Metrics
 
-- **Accuracy After Attack:** 0.6337
+- **Accuracy After Attack:** 0.6578
 
 ### Per-Class Accuracy
 
 | Class | Accuracy |
 |--------|----------|
-| airplane | 0.6960 |
-| automobile | 0.6670 |
-| bird | 0.5030 |
-| cat | 0.3940 |
-| deer | 0.5900 |
-| dog | 0.5240 |
-| frog | 0.7260 |
-| horse | 0.6730 |
-| ship | 0.7200 |
-| truck | 0.8440 |
+| airplane | 0.7110 |
+| automobile | 0.7080 |
+| bird | 0.5050 |
+| cat | 0.4180 |
+| deer | 0.6010 |
+| dog | 0.5890 |
+| frog | 0.7570 |
+| horse | 0.7120 |
+| ship | 0.7780 |
+| truck | 0.7990 |
 
 ## Flip Summary
 
 | Original -> New | Count |
 |------------------|--------|
-| frog->truck | 639 |
-| ship->truck | 670 |
-| cat->truck | 708 |
-| dog->truck | 653 |
-| bird->truck | 715 |
-| automobile->truck | 690 |
-| horse->truck | 652 |
-| airplane->truck | 708 |
-| deer->truck | 642 |
+| ship->truck | 361 |
+| automobile->truck | 363 |
+| dog->truck | 384 |
+| bird->truck | 362 |
+| frog->truck | 332 |
+| deer->truck | 353 |
+| airplane->truck | 349 |
+| cat->truck | 347 |
+| horse->truck | 389 |
 
 ## Example Flips
 
 | Index | Original Label | New Label |
 |--------|----------------|-----------|
-| 46043 | frog | truck |
-| 47971 | ship | truck |
-| 17098 | cat | truck |
-| 24516 | dog | truck |
-| 6704 | bird | truck |
+| 39442 | ship | truck |
+| 26239 | ship | truck |
+| 13006 | automobile | truck |
+| 17898 | dog | truck |
+| 18331 | automobile | truck |
 
 ## Visual Flip Examples (first 5)
 
 <div style="display: flex; gap: 10px;">
-<div style="text-align: center;"><small><strong>frog -> truck</strong></small><br><img src="examples/flip_46043_6_to_9.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>ship -> truck</strong></small><br><img src="examples/flip_47971_8_to_9.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>cat -> truck</strong></small><br><img src="examples/flip_17098_3_to_9.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>dog -> truck</strong></small><br><img src="examples/flip_24516_5_to_9.png" alt="flip" style="width: 120px;"></div>
-<div style="text-align: center;"><small><strong>bird -> truck</strong></small><br><img src="examples/flip_6704_2_to_9.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>ship -> truck</strong></small><br><img src="examples/flip_39442_8_to_9.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>ship -> truck</strong></small><br><img src="examples/flip_26239_8_to_9.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>automobile -> truck</strong></small><br><img src="examples/flip_13006_1_to_9.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>dog -> truck</strong></small><br><img src="examples/flip_17898_5_to_9.png" alt="flip" style="width: 120px;"></div>
+<div style="text-align: center;"><small><strong>automobile -> truck</strong></small><br><img src="examples/flip_18331_1_to_9.png" alt="flip" style="width: 120px;"></div>
 </div>
