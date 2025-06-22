@@ -466,24 +466,29 @@ def configure_pgd(profile_data):
 
     random_start = True  # always beneficial in PGD
 
+    suggested_max_samples = 1000
+
     # ======= SHOW SUGGESTION =======
     print("Suggested configuration:")
     print(f"- Epsilon      : {epsilon}")
     print(f"- Alpha        : {alpha}")
     print(f"- Num Iterations: {num_iter}")
     print(f"- Random Start : {random_start}")
+    print(f"  • Max samples to attack          : {suggested_max_samples}")
 
     if not questionary.confirm("Do you want to accept these suggestions?").ask():
         epsilon = float(questionary.text("Epsilon (maximum perturbation, e.g., 0.03):", default=str(epsilon)).ask())
         alpha = float(questionary.text("Alpha (step size per iteration, e.g., 0.01):", default=str(alpha)).ask())
         num_iter = int(questionary.text("Number of PGD iterations (e.g., 40):", default=str(num_iter)).ask())
         random_start = questionary.confirm("Use random start?", default=random_start).ask()
+        suggested_max_samples = int(questionary.text("Max samples to attack (0 = all):", default=str(suggested_max_samples)).ask())
 
     return {
         "epsilon": epsilon,
         "alpha": alpha,
         "num_iter": num_iter,
-        "random_start": random_start
+        "random_start": random_start,
+        "max_samples": suggested_max_samples
     }
 
 
