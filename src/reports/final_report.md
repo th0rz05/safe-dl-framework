@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `visitech.yaml`
-**Report Generated On**: 2025-06-23 12:56:36
+**Report Generated On**: 2025-06-23 16:42:23
 
 ---
 
@@ -173,20 +173,20 @@ This section presents the evaluation of applied defenses, summarizing their miti
 
 | Attack Category   | Attack Method   | Defense               |   Mitigation |   CAD |   Cost |   Final Score |
 |:------------------|:----------------|:----------------------|-------------:|------:|-------:|--------------:|
-| Backdoor          | Static Patch    | Activation Clustering |       -0.105 | 0.214 |    0.3 |        -0.017 |
-| Backdoor          | Static Patch    | Spectral Signatures   |        0.027 | 0     |    0.5 |         0     |
-| Data Poisoning    | Label Flipping  | Data Cleaning         |        0.151 | 0     |    0.2 |         0     |
-| Evasion           | Pgd             | Adversarial Training  |        0.357 | 0.362 |    0.8 |         0.072 |
-| Evasion           | Pgd             | Randomized Smoothing  |        0.012 | 0     |    0.5 |         0     |
-| Evasion           | Spsa            | Gradient Masking      |        0.007 | 0.987 |    0.4 |         0.005 |
-| Evasion           | Spsa            | Jpeg Preprocessing    |        0.004 | 0     |    0.1 |         0     |
+| Backdoor          | Static Patch    | Activation Clustering |        0.97  | 0.887 |    0.3 |         0.926 |
+| Backdoor          | Static Patch    | Spectral Signatures   |        0     | 0.743 |    0.5 |         0.142 |
+| Data Poisoning    | Label Flipping  | Data Cleaning         |        0.151 | 1.039 |    0.2 |         0.322 |
+| Evasion           | Pgd             | Adversarial Training  |        0.282 | 0.923 |    0.8 |         0.38  |
+| Evasion           | Pgd             | Randomized Smoothing  |        0.01  | 0.449 |    0.5 |         0.093 |
+| Evasion           | Spsa            | Gradient Masking      |        0.006 | 0.998 |    0.4 |         0.196 |
+| Evasion           | Spsa            | Jpeg Preprocessing    |        0.003 | 0.144 |    0.1 |         0.031 |
 
 ### 7.2 Top-Performing Defenses
 
-- **Backdoor / Static Patch**: Top defense is **Spectral Signatures** (Mitigation: 0.027, CAD: 0.000, Cost: 0.500, Final Score: 0.000).
-- **Data Poisoning / Label Flipping**: Top defense is **Data Cleaning** (Mitigation: 0.151, CAD: 0.000, Cost: 0.200, Final Score: 0.000).
-- **Evasion / Pgd**: Top defense is **Adversarial Training** (Mitigation: 0.357, CAD: 0.362, Cost: 0.800, Final Score: 0.072).
-- **Evasion / Spsa**: Top defense is **Gradient Masking** (Mitigation: 0.007, CAD: 0.987, Cost: 0.400, Final Score: 0.005).
+- **Backdoor / Static Patch**: Top defense is **Activation Clustering** (Mitigation: 0.970, CAD: 0.887, Cost: 0.300, Final Score: 0.926).
+- **Data Poisoning / Label Flipping**: Top defense is **Data Cleaning** (Mitigation: 0.151, CAD: 1.039, Cost: 0.200, Final Score: 0.322).
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Mitigation: 0.282, CAD: 0.923, Cost: 0.800, Final Score: 0.380).
+- **Evasion / Spsa**: Top defense is **Gradient Masking** (Mitigation: 0.006, CAD: 0.998, Cost: 0.400, Final Score: 0.196).
 
 ### 7.3 Observations and Recommendations
 
@@ -194,25 +194,25 @@ Based on the evaluation scores above, consider the following:
 
 **Detailed per-attack-method rankings:**
 **Backdoor / Static Patch**:
-- Spectral Signatures: Final Score 0.000 (Mitigation 0.027, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-- Activation Clustering: Final Score -0.017 (Mitigation -0.105, CAD 0.214, Cost 0.300) — net zero or negative (no effective balance: no effective mitigation).
+- Activation Clustering: Final Score 0.926 (Mitigation 0.970, CAD 0.887, Cost 0.300) 
+- Spectral Signatures: Final Score 0.142 (Mitigation 0.000, CAD 0.743, Cost 0.500) 
 
 **Data Poisoning / Label Flipping**:
-- Data Cleaning: Final Score 0.000 (Mitigation 0.151, CAD 0.000, Cost 0.200) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Data Cleaning: Final Score 0.322 (Mitigation 0.151, CAD 1.039, Cost 0.200) 
 
 **Evasion / Pgd**:
-- Adversarial Training: Final Score 0.072 (Mitigation 0.357, CAD 0.362, Cost 0.800) 
-- Randomized Smoothing: Final Score 0.000 (Mitigation 0.012, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Adversarial Training: Final Score 0.380 (Mitigation 0.282, CAD 0.923, Cost 0.800) 
+- Randomized Smoothing: Final Score 0.093 (Mitigation 0.010, CAD 0.449, Cost 0.500) 
 
 **Evasion / Spsa**:
-- Gradient Masking: Final Score 0.005 (Mitigation 0.007, CAD 0.987, Cost 0.400) — marginal improvement; likely not worth deploying alone.
-- Jpeg Preprocessing: Final Score 0.000 (Mitigation 0.004, CAD 0.000, Cost 0.100) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Gradient Masking: Final Score 0.196 (Mitigation 0.006, CAD 0.998, Cost 0.400) 
+- Jpeg Preprocessing: Final Score 0.031 (Mitigation 0.003, CAD 0.144, Cost 0.100) — marginal improvement; likely not worth deploying alone.
 
 **Overall Recommendation:**
-- **Backdoor / Static Patch**: Top defense is **Spectral Signatures** (Final Score 0.000) — No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods.
-- **Data Poisoning / Label Flipping**: Top defense is **Data Cleaning** (Final Score 0.000) — No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods.
-- **Evasion / Pgd**: Top defense is **Adversarial Training** (Final Score 0.072) — Recommended.
-- **Evasion / Spsa**: Top defense is **Gradient Masking** (Final Score 0.005) — Only marginal benefit; consider combined approaches or reevaluate cost versus gain.
+- **Backdoor / Static Patch**: Top defense is **Activation Clustering** (Final Score 0.926) — Recommended.
+- **Data Poisoning / Label Flipping**: Top defense is **Data Cleaning** (Final Score 0.322) — Recommended.
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Final Score 0.380) — Recommended.
+- **Evasion / Spsa**: Top defense is **Gradient Masking** (Final Score 0.196) — Recommended.
 
 For more details, refer to the full defense evaluation report: [Details](../module5_defense_evaluation/results/defense_evaluation_report.md).
 
@@ -224,22 +224,19 @@ For more details, refer to the full defense evaluation report: [Details](../modu
 **Also high risk:** Spsa (1.440), Label Flipping (0.787).
 
 **Most Effective Defenses Identified:**
-- Against **Static Patch**, top defense: **Spectral Signatures** (Final Score: 0.000).
-- Against **Label Flipping**, top defense: **Data Cleaning** (Final Score: 0.000).
-- Against **Pgd**, top defense: **Adversarial Training** (Final Score: 0.072).
-- Against **Spsa**, top defense: **Gradient Masking** (Final Score: 0.005).
-
-**Notable Gaps:**
-- The following attack methods showed no defense with positive net benefit at current settings: Label Flipping, Static Patch.
+- Against **Static Patch**, top defense: **Activation Clustering** (Final Score: 0.926).
+- Against **Label Flipping**, top defense: **Data Cleaning** (Final Score: 0.322).
+- Against **Pgd**, top defense: **Adversarial Training** (Final Score: 0.380).
+- Against **Spsa**, top defense: **Gradient Masking** (Final Score: 0.196).
 
 **Overall Security Posture:**
 - Pgd identified as highest risk. Effective defenses identified for most attacks, except some evasion methods.
 
 **Practical Recommendations:**
+- Prioritize deploying **Activation Clustering** against Static Patch.
+- Prioritize deploying **Data Cleaning** against Label Flipping.
 - Prioritize deploying **Adversarial Training** against Pgd.
 - Prioritize deploying **Gradient Masking** against Spsa.
-- For Label Flipping, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.
-- For Static Patch, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.
 
 ---
 ## 9. Recommendations for Continuous Monitoring and Post-Deployment
