@@ -12,36 +12,36 @@
 
 ## Accuracy After Defense
 
-- **Clean Accuracy:** 0.5057
-- **ASR After Defense:** `0.8573`
+- **Clean Accuracy:** 0.5158
+- **ASR After Defense:** `0.0376`
 
 ## Per-Class Accuracy (Clean)
 
-- airplane: 0.7280
-- automobile: 0.3180
-- bird: 0.2380
-- cat: 0.3820
-- deer: 0.5960
-- dog: 0.8120
-- frog: 0.5430
-- horse: 0.6230
-- ship: 0.4710
-- truck: 0.3460
+- airplane: 0.7810
+- automobile: 0.2820
+- bird: 0.5350
+- cat: 0.5450
+- deer: 0.6210
+- dog: 0.4730
+- frog: 0.8050
+- horse: 0.4840
+- ship: 0.2710
+- truck: 0.3610
 
 ### Per-Original-Class ASR
-- **Original Class airplane**: `0.7770`
-- **Original Class automobile**: `0.8590`
-- **Original Class bird**: `0.8900`
-- **Original Class cat**: `0.7920`
-- **Original Class deer**: `0.9460`
-- **Original Class dog**: `0.8000`
-- **Original Class frog**: `0.8160`
-- **Original Class ship**: `0.9410`
-- **Original Class truck**: `0.8950`
+- **Original Class airplane**: `0.0250`
+- **Original Class automobile**: `0.0670`
+- **Original Class bird**: `0.0280`
+- **Original Class cat**: `0.0300`
+- **Original Class deer**: `0.0310`
+- **Original Class dog**: `0.0380`
+- **Original Class frog**: `0.0090`
+- **Original Class ship**: `0.0200`
+- **Original Class truck**: `0.0900`
 
 ## Removed Samples Summary
 
-- **Total Removed:** 19327
+- **Total Removed:** 19529
 
 ## Spectral Signature Histogram
 
@@ -50,22 +50,22 @@
 
 ## Examples of Removed Samples
 
-- **Index**: 1, **Label**: truck
+- **Index**: 2, **Label**: horse
 
-  ![Removed](./spectral_removed/removed_1_9.png)
+  ![Removed](./spectral_removed/removed_2_7.png)
 
-- **Index**: 2, **Label**: truck
+- **Index**: 5, **Label**: automobile
 
-  ![Removed](./spectral_removed/removed_2_9.png)
+  ![Removed](./spectral_removed/removed_5_1.png)
 
-- **Index**: 4, **Label**: automobile
+- **Index**: 9, **Label**: cat
 
-  ![Removed](./spectral_removed/removed_4_1.png)
+  ![Removed](./spectral_removed/removed_9_3.png)
 
-- **Index**: 7, **Label**: horse
+- **Index**: 10, **Label**: deer
 
-  ![Removed](./spectral_removed/removed_7_7.png)
+  ![Removed](./spectral_removed/removed_10_4.png)
 
-- **Index**: 9, **Label**: horse
+- **Index**: 14, **Label**: horse
 
-  ![Removed](./spectral_removed/removed_9_7.png)
+  ![Removed](./spectral_removed/removed_14_7.png)
