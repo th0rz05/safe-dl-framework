@@ -2,40 +2,40 @@
   "backdoor": {
     "static_patch": {
       "activation_clustering": {
-        "mitigation_score": 0.035,
-        "cad_score": 0.0,
+        "mitigation_score": 0.022,
+        "cad_score": 0.658,
         "defense_cost_score": 0.3,
-        "final_score": 0.0
+        "final_score": 0.145
       },
       "spectral_signatures": {
-        "mitigation_score": 0.111,
-        "cad_score": 0.0,
+        "mitigation_score": 0.071,
+        "cad_score": 0.759,
         "defense_cost_score": 0.5,
-        "final_score": 0.0
+        "final_score": 0.199
       },
       "anomaly_detection": {
-        "mitigation_score": 0.004,
-        "cad_score": 0.754,
+        "mitigation_score": 0.003,
+        "cad_score": 0.963,
         "defense_cost_score": 0.3,
-        "final_score": 0.003
+        "final_score": 0.189
       },
       "pruning": {
-        "mitigation_score": 0.09,
-        "cad_score": 0.0,
+        "mitigation_score": 0.058,
+        "cad_score": 0.505,
         "defense_cost_score": 0.3,
-        "final_score": 0.0
+        "final_score": 0.143
       },
       "fine_pruning": {
-        "mitigation_score": 0.691,
-        "cad_score": 1.071,
+        "mitigation_score": 0.441,
+        "cad_score": 1.011,
         "defense_cost_score": 0.4,
-        "final_score": 0.528
+        "final_score": 0.533
       },
       "model_inspection": {
-        "mitigation_score": 0.013,
-        "cad_score": 0.778,
+        "mitigation_score": 0.008,
+        "cad_score": 0.967,
         "defense_cost_score": 0.2,
-        "final_score": 0.008
+        "final_score": 0.196
       }
     }
   },
@@ -43,71 +43,71 @@
     "clean_label": {
       "provenance_tracking": {
         "mitigation_score": 0.561,
-        "cad_score": 0.79,
+        "cad_score": 1.043,
         "defense_cost_score": 0.5,
-        "final_score": 0.295
+        "final_score": 0.626
       },
       "influence_functions": {
         "mitigation_score": 0.573,
-        "cad_score": 0.796,
+        "cad_score": 1.044,
         "defense_cost_score": 0.5,
-        "final_score": 0.304
+        "final_score": 0.636
       }
     },
     "label_flipping": {
       "data_cleaning": {
         "mitigation_score": 0.603,
-        "cad_score": 0.497,
+        "cad_score": 1.139,
         "defense_cost_score": 0.2,
-        "final_score": 0.25
+        "final_score": 0.696
       },
       "per_class_monitoring": {
         "mitigation_score": 0.0,
-        "cad_score": 0.0,
+        "cad_score": 1.0,
         "defense_cost_score": 0.2,
-        "final_score": 0.0
+        "final_score": 0.196
       },
       "robust_loss": {
         "mitigation_score": 0.675,
-        "cad_score": 0.588,
+        "cad_score": 1.156,
         "defense_cost_score": 0.5,
-        "final_score": 0.264
+        "final_score": 0.734
       },
       "dp_training": {
         "mitigation_score": -1.449,
-        "cad_score": 0.0,
+        "cad_score": 0.666,
         "defense_cost_score": 0.7,
-        "final_score": -0.0
+        "final_score": -0.959
       }
     }
   },
   "evasion": {
     "pgd": {
       "adversarial_training": {
-        "mitigation_score": 0.288,
-        "cad_score": 0.0,
+        "mitigation_score": 0.194,
+        "cad_score": 0.657,
         "defense_cost_score": 0.8,
-        "final_score": 0.0
+        "final_score": 0.266
       },
       "randomized_smoothing": {
-        "mitigation_score": 0.07,
-        "cad_score": 0.0,
+        "mitigation_score": 0.048,
+        "cad_score": 0.366,
         "defense_cost_score": 0.5,
-        "final_score": 0.0
+        "final_score": 0.106
       }
     },
     "spsa": {
       "gradient_masking": {
-        "mitigation_score": 0.02,
-        "cad_score": 0.954,
+        "mitigation_score": 0.013,
+        "cad_score": 0.993,
         "defense_cost_score": 0.4,
-        "final_score": 0.014
+        "final_score": 0.201
       },
       "jpeg_preprocessing": {
-        "mitigation_score": 0.525,
-        "cad_score": 0.691,
+        "mitigation_score": 0.351,
+        "cad_score": 0.954,
         "defense_cost_score": 0.1,
-        "final_score": 0.33
+        "final_score": 0.467
       }
     }
   }

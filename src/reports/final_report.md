@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-14 16:05:57
+**Report Generated On**: 2025-06-23 16:25:52
 
 ---
 
@@ -195,30 +195,30 @@ This section presents the evaluation of applied defenses, summarizing their miti
 
 | Attack Category   | Attack Method   | Defense               |   Mitigation |   CAD |   Cost |   Final Score |
 |:------------------|:----------------|:----------------------|-------------:|------:|-------:|--------------:|
-| Backdoor          | Static Patch    | Activation Clustering |        0.035 | 0     |    0.3 |         0     |
-| Backdoor          | Static Patch    | Spectral Signatures   |        0.111 | 0     |    0.5 |         0     |
-| Backdoor          | Static Patch    | Anomaly Detection     |        0.004 | 0.754 |    0.3 |         0.003 |
-| Backdoor          | Static Patch    | Pruning               |        0.09  | 0     |    0.3 |         0     |
-| Backdoor          | Static Patch    | Fine Pruning          |        0.691 | 1.071 |    0.4 |         0.528 |
-| Backdoor          | Static Patch    | Model Inspection      |        0.013 | 0.778 |    0.2 |         0.008 |
-| Data Poisoning    | Clean Label     | Provenance Tracking   |        0.561 | 0.79  |    0.5 |         0.295 |
-| Data Poisoning    | Clean Label     | Influence Functions   |        0.573 | 0.796 |    0.5 |         0.304 |
-| Data Poisoning    | Label Flipping  | Data Cleaning         |        0.603 | 0.497 |    0.2 |         0.25  |
-| Data Poisoning    | Label Flipping  | Per Class Monitoring  |        0     | 0     |    0.2 |         0     |
-| Data Poisoning    | Label Flipping  | Robust Loss           |        0.675 | 0.588 |    0.5 |         0.264 |
-| Data Poisoning    | Label Flipping  | Dp Training           |       -1.449 | 0     |    0.7 |        -0     |
-| Evasion           | Pgd             | Adversarial Training  |        0.288 | 0     |    0.8 |         0     |
-| Evasion           | Pgd             | Randomized Smoothing  |        0.07  | 0     |    0.5 |         0     |
-| Evasion           | Spsa            | Gradient Masking      |        0.02  | 0.954 |    0.4 |         0.014 |
-| Evasion           | Spsa            | Jpeg Preprocessing    |        0.525 | 0.691 |    0.1 |         0.33  |
+| Backdoor          | Static Patch    | Activation Clustering |        0.022 | 0.658 |    0.3 |         0.145 |
+| Backdoor          | Static Patch    | Spectral Signatures   |        0.071 | 0.759 |    0.5 |         0.199 |
+| Backdoor          | Static Patch    | Anomaly Detection     |        0.003 | 0.963 |    0.3 |         0.189 |
+| Backdoor          | Static Patch    | Pruning               |        0.058 | 0.505 |    0.3 |         0.143 |
+| Backdoor          | Static Patch    | Fine Pruning          |        0.441 | 1.011 |    0.4 |         0.533 |
+| Backdoor          | Static Patch    | Model Inspection      |        0.008 | 0.967 |    0.2 |         0.196 |
+| Data Poisoning    | Clean Label     | Provenance Tracking   |        0.561 | 1.043 |    0.5 |         0.626 |
+| Data Poisoning    | Clean Label     | Influence Functions   |        0.573 | 1.044 |    0.5 |         0.636 |
+| Data Poisoning    | Label Flipping  | Data Cleaning         |        0.603 | 1.139 |    0.2 |         0.696 |
+| Data Poisoning    | Label Flipping  | Per Class Monitoring  |        0     | 1     |    0.2 |         0.196 |
+| Data Poisoning    | Label Flipping  | Robust Loss           |        0.675 | 1.156 |    0.5 |         0.734 |
+| Data Poisoning    | Label Flipping  | Dp Training           |       -1.449 | 0.666 |    0.7 |        -0.959 |
+| Evasion           | Pgd             | Adversarial Training  |        0.194 | 0.657 |    0.8 |         0.266 |
+| Evasion           | Pgd             | Randomized Smoothing  |        0.048 | 0.366 |    0.5 |         0.106 |
+| Evasion           | Spsa            | Gradient Masking      |        0.013 | 0.993 |    0.4 |         0.201 |
+| Evasion           | Spsa            | Jpeg Preprocessing    |        0.351 | 0.954 |    0.1 |         0.467 |
 
 ### 7.2 Top-Performing Defenses
 
-- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Mitigation: 0.691, CAD: 1.071, Cost: 0.400, Final Score: 0.528).
-- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Mitigation: 0.573, CAD: 0.796, Cost: 0.500, Final Score: 0.304).
-- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Mitigation: 0.675, CAD: 0.588, Cost: 0.500, Final Score: 0.264).
-- **Evasion / Pgd**: Top defense is **Adversarial Training** (Mitigation: 0.288, CAD: 0.000, Cost: 0.800, Final Score: 0.000).
-- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Mitigation: 0.525, CAD: 0.691, Cost: 0.100, Final Score: 0.330).
+- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Mitigation: 0.441, CAD: 1.011, Cost: 0.400, Final Score: 0.533).
+- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Mitigation: 0.573, CAD: 1.044, Cost: 0.500, Final Score: 0.636).
+- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Mitigation: 0.675, CAD: 1.156, Cost: 0.500, Final Score: 0.734).
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Mitigation: 0.194, CAD: 0.657, Cost: 0.800, Final Score: 0.266).
+- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Mitigation: 0.351, CAD: 0.954, Cost: 0.100, Final Score: 0.467).
 
 ### 7.3 Observations and Recommendations
 
@@ -226,37 +226,37 @@ Based on the evaluation scores above, consider the following:
 
 **Detailed per-attack-method rankings:**
 **Backdoor / Static Patch**:
-- Fine Pruning: Final Score 0.528 (Mitigation 0.691, CAD 1.071, Cost 0.400) 
-- Model Inspection: Final Score 0.008 (Mitigation 0.013, CAD 0.778, Cost 0.200) — marginal improvement; likely not worth deploying alone.
-- Anomaly Detection: Final Score 0.003 (Mitigation 0.004, CAD 0.754, Cost 0.300) — marginal improvement; likely not worth deploying alone.
-- Activation Clustering: Final Score 0.000 (Mitigation 0.035, CAD 0.000, Cost 0.300) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-- Spectral Signatures: Final Score 0.000 (Mitigation 0.111, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-- Pruning: Final Score 0.000 (Mitigation 0.090, CAD 0.000, Cost 0.300) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Fine Pruning: Final Score 0.533 (Mitigation 0.441, CAD 1.011, Cost 0.400) 
+- Spectral Signatures: Final Score 0.199 (Mitigation 0.071, CAD 0.759, Cost 0.500) 
+- Model Inspection: Final Score 0.196 (Mitigation 0.008, CAD 0.967, Cost 0.200) 
+- Anomaly Detection: Final Score 0.189 (Mitigation 0.003, CAD 0.963, Cost 0.300) 
+- Activation Clustering: Final Score 0.145 (Mitigation 0.022, CAD 0.658, Cost 0.300) 
+- Pruning: Final Score 0.143 (Mitigation 0.058, CAD 0.505, Cost 0.300) 
 
 **Data Poisoning / Clean Label**:
-- Influence Functions: Final Score 0.304 (Mitigation 0.573, CAD 0.796, Cost 0.500) 
-- Provenance Tracking: Final Score 0.295 (Mitigation 0.561, CAD 0.790, Cost 0.500) 
+- Influence Functions: Final Score 0.636 (Mitigation 0.573, CAD 1.044, Cost 0.500) 
+- Provenance Tracking: Final Score 0.626 (Mitigation 0.561, CAD 1.043, Cost 0.500) 
 
 **Data Poisoning / Label Flipping**:
-- Robust Loss: Final Score 0.264 (Mitigation 0.675, CAD 0.588, Cost 0.500) 
-- Data Cleaning: Final Score 0.250 (Mitigation 0.603, CAD 0.497, Cost 0.200) 
-- Per Class Monitoring: Final Score 0.000 (Mitigation 0.000, CAD 0.000, Cost 0.200) — net zero or negative (no effective balance: no effective mitigation).
-- Dp Training: Final Score -0.000 (Mitigation -1.449, CAD 0.000, Cost 0.700) — net zero or negative (no effective balance: no effective mitigation).
+- Robust Loss: Final Score 0.734 (Mitigation 0.675, CAD 1.156, Cost 0.500) 
+- Data Cleaning: Final Score 0.696 (Mitigation 0.603, CAD 1.139, Cost 0.200) 
+- Per Class Monitoring: Final Score 0.196 (Mitigation 0.000, CAD 1.000, Cost 0.200) 
+- Dp Training: Final Score -0.959 (Mitigation -1.449, CAD 0.666, Cost 0.700) — net zero or negative (no effective balance: no effective mitigation).
 
 **Evasion / Pgd**:
-- Adversarial Training: Final Score 0.000 (Mitigation 0.288, CAD 0.000, Cost 0.800) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-- Randomized Smoothing: Final Score 0.000 (Mitigation 0.070, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Adversarial Training: Final Score 0.266 (Mitigation 0.194, CAD 0.657, Cost 0.800) 
+- Randomized Smoothing: Final Score 0.106 (Mitigation 0.048, CAD 0.366, Cost 0.500) 
 
 **Evasion / Spsa**:
-- Jpeg Preprocessing: Final Score 0.330 (Mitigation 0.525, CAD 0.691, Cost 0.100) 
-- Gradient Masking: Final Score 0.014 (Mitigation 0.020, CAD 0.954, Cost 0.400) — marginal improvement; likely not worth deploying alone.
+- Jpeg Preprocessing: Final Score 0.467 (Mitigation 0.351, CAD 0.954, Cost 0.100) 
+- Gradient Masking: Final Score 0.201 (Mitigation 0.013, CAD 0.993, Cost 0.400) 
 
 **Overall Recommendation:**
-- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Final Score 0.528) — Recommended.
-- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Final Score 0.304) — Recommended.
-- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Final Score 0.264) — Recommended.
-- **Evasion / Pgd**: Top defense is **Adversarial Training** (Final Score 0.000) — No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods.
-- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Final Score 0.330) — Recommended.
+- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Final Score 0.533) — Recommended.
+- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Final Score 0.636) — Recommended.
+- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Final Score 0.734) — Recommended.
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Final Score 0.266) — Recommended.
+- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Final Score 0.467) — Recommended.
 
 For more details, refer to the full defense evaluation report: [Details](../module5_defense_evaluation/results/defense_evaluation_report.md).
 
@@ -268,14 +268,11 @@ For more details, refer to the full defense evaluation report: [Details](../modu
 **Also high risk:** Fgsm (1.700), Pgd (1.700).
 
 **Most Effective Defenses Identified:**
-- Against **Static Patch**, top defense: **Fine Pruning** (Final Score: 0.528).
-- Against **Clean Label**, top defense: **Influence Functions** (Final Score: 0.304).
-- Against **Label Flipping**, top defense: **Robust Loss** (Final Score: 0.264).
-- Against **Pgd**, top defense: **Adversarial Training** (Final Score: 0.000).
-- Against **Spsa**, top defense: **Jpeg Preprocessing** (Final Score: 0.330).
-
-**Notable Gaps:**
-- The following attack methods showed no defense with positive net benefit at current settings: Pgd.
+- Against **Static Patch**, top defense: **Fine Pruning** (Final Score: 0.533).
+- Against **Clean Label**, top defense: **Influence Functions** (Final Score: 0.636).
+- Against **Label Flipping**, top defense: **Robust Loss** (Final Score: 0.734).
+- Against **Pgd**, top defense: **Adversarial Training** (Final Score: 0.266).
+- Against **Spsa**, top defense: **Jpeg Preprocessing** (Final Score: 0.467).
 
 **Overall Security Posture:**
 - Deepfool identified as highest risk. Effective defenses identified for most attacks, except some evasion methods.
@@ -284,8 +281,8 @@ For more details, refer to the full defense evaluation report: [Details](../modu
 - Prioritize deploying **Fine Pruning** against Static Patch.
 - Prioritize deploying **Influence Functions** against Clean Label.
 - Prioritize deploying **Robust Loss** against Label Flipping.
+- Prioritize deploying **Adversarial Training** against Pgd.
 - Prioritize deploying **Jpeg Preprocessing** against Spsa.
-- For Pgd, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.
 
 ---
 ## 9. Recommendations for Continuous Monitoring and Post-Deployment

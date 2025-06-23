@@ -1,34 +1,62 @@
 def compute_mitigation_score(acc_baseline, acc_attack, acc_defense):
     """
     Computes how effectively the defense recovers the performance drop caused by the attack.
-
-    Args:
-        acc_baseline (float): Accuracy on clean data before the attack.
-        acc_attack (float): Accuracy after the attack (no defense applied).
-        acc_defense (float): Accuracy after the defense has been applied.
-
-    Returns:
-        float: Mitigation score (can be < 0 if defense made it worse).
     """
-    if acc_baseline == acc_attack:
-        return 0.0  # No degradation to mitigate
+    if abs(acc_baseline - acc_attack) < 1e-5:
+        return 0.0
     return (acc_defense - acc_attack) / (acc_baseline - acc_attack)
 
-
-def compute_cad_score(acc_baseline, acc_defense, max_allowed_drop=0.1):
+def compute_mitigation_score_evasion(acc_attack, acc_defense_adv, max_possible=1.0):
     """
-    Computes a normalized score for clean accuracy drop caused by the defense.
+    Computes the mitigation score specifically for evasion defenses,
+    based on the improvement in adversarial accuracy.
 
     Args:
-        acc_baseline (float): Accuracy on clean data before any attack or defense.
-        acc_defense (float): Accuracy on clean data after defense is applied.
-        max_allowed_drop (float): Maximum acceptable drop in accuracy (default: 10%).
+        acc_attack (float): Accuracy on adversarial samples before defense.
+        acc_defense_adv (float): Accuracy on adversarial samples after defense.
+        max_possible (float): Max possible accuracy (usually 1.0)
 
     Returns:
-        float: Clean Accuracy Drop score in [0, 1], where 1 means no drop.
+        float: Score in [0, 1], measuring how much adversarial accuracy improved.
     """
-    drop = acc_baseline - acc_defense
-    return max(0.0, 1.0 - drop / max_allowed_drop)
+    improvement = acc_defense_adv - acc_attack
+    range_possible = max_possible - acc_attack
+    if range_possible == 0:
+        return 0.0
+    return max(0.0, improvement / range_possible)
+
+
+def compute_asr_mitigation_score(asr_before, asr_after):
+    """
+    Computes how much the defense reduced the attack success rate (ASR).
+
+    Args:
+        asr_before (float): ASR before applying the defense (higher = worse).
+        asr_after (float): ASR after applying the defense (lower = better).
+
+    Returns:
+        float: Mitigation score in [0, 1], where 1.0 means complete ASR elimination.
+               Can be < 0 if defense increased the ASR.
+    """
+    if abs(asr_before) < 1e-5:
+        return 0.0  # No ASR to mitigate
+    return max(0.0, (asr_before - asr_after) / asr_before)
+
+
+def compute_cad_score(acc_clean_attack, acc_clean_defense):
+    """
+    Computes the Clean Accuracy Drop score as a percentage of retained performance,
+    using accuracy after the attack as a baseline instead of a fixed threshold.
+
+    Returns:
+        float in [0, 1], where 1 means no drop compared to clean-after-attack.
+    """
+    if acc_clean_attack == 0:
+        return 0.0  # avoid division by zero
+    drop = acc_clean_attack - acc_clean_defense
+    return max(0.0, 1.0 - drop / acc_clean_attack)
+
+
 
 def estimate_defense_cost(defense_name):
     """
@@ -60,19 +88,18 @@ def estimate_defense_cost(defense_name):
     }
     return COST_MAP.get(defense_name, 0.5)
 
-def compute_defense_score(ms, cad_score, pcr=1.0, cs=1.0, dcs=0.0):
+def compute_defense_score(ms, cad_score, dcs=0.0):
     """
-    Combines all individual scores into a final defense score.
-
-    Args:
-        ms (float): Mitigation Score (effectiveness in restoring accuracy).
-        cad_score (float): Clean Accuracy Drop score.
-        pcr (float, optional): Per-Class Recovery score (default: 1.0 if not available).
-        cs (float, optional): Coverage Score — how broadly the defense was applied (default: 1.0).
-        dcs (float, optional): Defense Cost Score — computational overhead estimate (default: 0.0).
-
-    Returns:
-        float: Final defense score, normalized such that higher means more effective and efficient.
+    Final defense score based only on:
+    - Mitigation (ms)
+    - Clean Accuracy Drop score (cad_score)
+    - Defense Cost (dcs)
     """
-    return (ms * cad_score) * (0.5 + 0.5 * pcr) * (0.5 + 0.5 * cs) / (1.0 + dcs)
+    W_MS = 0.8   # Prioridade principal: recuperar performance
+    W_CAD = 0.2  # Penalizar quedas na clean
+    W_COST = 0.1 # Penalizar custos de defesa
 
+    effectiveness = W_MS * ms + W_CAD * cad_score
+    penalty = 1 + W_COST * dcs
+
+    return round(effectiveness / penalty, 3)
