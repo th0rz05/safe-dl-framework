@@ -2,16 +2,16 @@
   "backdoor": {
     "static_patch": {
       "activation_clustering": {
-        "mitigation_score": -0.105,
-        "cad_score": 0.214,
+        "mitigation_score": 0.97,
+        "cad_score": 0.887,
         "defense_cost_score": 0.3,
-        "final_score": -0.017
+        "final_score": 0.926
       },
       "spectral_signatures": {
-        "mitigation_score": 0.027,
-        "cad_score": 0.0,
+        "mitigation_score": 0.0,
+        "cad_score": 0.743,
         "defense_cost_score": 0.5,
-        "final_score": 0.0
+        "final_score": 0.142
       }
     }
   },
@@ -19,39 +19,39 @@
     "label_flipping": {
       "data_cleaning": {
         "mitigation_score": 0.151,
-        "cad_score": 0.0,
+        "cad_score": 1.039,
         "defense_cost_score": 0.2,
-        "final_score": 0.0
+        "final_score": 0.322
       }
     }
   },
   "evasion": {
     "pgd": {
       "adversarial_training": {
-        "mitigation_score": 0.357,
-        "cad_score": 0.362,
+        "mitigation_score": 0.282,
+        "cad_score": 0.923,
         "defense_cost_score": 0.8,
-        "final_score": 0.072
+        "final_score": 0.38
       },
       "randomized_smoothing": {
-        "mitigation_score": 0.012,
-        "cad_score": 0.0,
+        "mitigation_score": 0.01,
+        "cad_score": 0.449,
         "defense_cost_score": 0.5,
-        "final_score": 0.0
+        "final_score": 0.093
       }
     },
     "spsa": {
       "gradient_masking": {
-        "mitigation_score": 0.007,
-        "cad_score": 0.987,
+        "mitigation_score": 0.006,
+        "cad_score": 0.998,
         "defense_cost_score": 0.4,
-        "final_score": 0.005
+        "final_score": 0.196
       },
       "jpeg_preprocessing": {
-        "mitigation_score": 0.004,
-        "cad_score": 0.0,
+        "mitigation_score": 0.003,
+        "cad_score": 0.144,
         "defense_cost_score": 0.1,
-        "final_score": 0.0
+        "final_score": 0.031
       }
     }
   }
