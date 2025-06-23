@@ -90,21 +90,62 @@ The module takes the following as inputs:
 
 This module evaluates each defense based on a combination of performance recovery, trade-offs on clean data, computational cost, and coverage. The following metrics are computed:
 
+
 ### 3.1 Mitigation Score
 
-Measures how effectively the defense recovers accuracy lost due to the attack:
+Measures how effectively the defense mitigates the effect of the attack. The definition depends on the attack type:
 
-**Mitigation Score** = (Accuracy_defense - Accuracy_attack) / (Accuracy_baseline - Accuracy_attack)
+####  **Data Poisoning Defenses**
 
-If the attack caused no degradation, the score is 0.
+When the model's overall accuracy drops due to poisoned data:
+
+```
+Mitigation Score = (Accuracy_defense - Accuracy_attack) / (Accuracy_baseline - Accuracy_attack)
+```
+
+* `Accuracy_attack`: Accuracy after the poisoning attack (no defense).
+* `Accuracy_defense`: Accuracy after applying the defense.
+* `Accuracy_baseline`: Clean accuracy before any attack.
+
+This score reflects how much the defense recovers the drop in clean performance. A score of `1.0` means full recovery.
+
+---
+
+####  **Backdoor Defenses**
+
+When the goal is to reduce the Attack Success Rate (ASR):
+
+```
+Mitigation Score = (ASR_before_defense - ASR_after_defense) / ASR_before_defense
+```
+
+* The lower the ASR, the better. A score of `1.0` means the defense completely eliminated the backdoor.
+* If ASR increases, the score may be `0.0`.
+
+---
+
+#### **Evasion Defenses**
+
+When the model is attacked with adversarial samples (e.g., PGD or SPSA):
+
+```
+Mitigation Score = (Accuracy_defense_adv - Accuracy_attack) / (1.0 - Accuracy_attack)
+```
+
+* `Accuracy_attack`: Accuracy on adversarial examples (no defense).
+* `Accuracy_defense_adv`: Accuracy on adversarial examples after defense.
+
+This score rewards defenses that improve adversarial accuracy, with diminishing returns near 0% or 100%. A score of `1.0` means full recovery to perfect robustness.
+
+
 
 ### 3.2 Clean Accuracy Drop (CAD) Score
 
 Evaluates the cost of the defense on clean data. A higher score indicates less degradation:
 
-**CAD Score** = max(0.0, 1.0 - (Accuracy_baseline - Accuracy_clean_after_defense) / Max_Drop)
+CAD Score = max(0.0, 1.0 - (Accuracy_clean_after_attack - Accuracy_clean_after_defense) / Accuracy_clean_after_attack)
 
-A max drop of 10% is used as the acceptable threshold by default.
+This score quantifies how much of the clean performance was retained after the defense, using the clean accuracy after the attack as the new baseline. A score of 1.0 indicates no additional degradation caused by the defense, while lower values represent further loss of performance.
 
 ### 3.3 Cost Score
 
@@ -117,16 +158,34 @@ Represents the computational or implementation cost of the defense. It is based 
 | certified_defense      | 0.9  |
 | jpeg_preprocessing     | 0.1  |
 
+
 ### 3.4 Final Score
 
-Aggregates all metrics into a single score, rewarding effectiveness and efficiency while penalizing expensive defenses:
+Aggregates all metrics into a single value that reflects how effective, clean, and efficient a defense is.
 
-**Final Score** = ((Mitigation × CAD) × (0.5 + 0.5 × PCR) × (0.5 + 0.5 × Coverage)) / (1 + Cost)
+The final score is computed using a weighted combination of:
+
+* **Mitigation Score (MS)**: How well the defense neutralizes the attack.
+* **Clean Accuracy Drop Score (CAD)**: How much clean performance is preserved.
+* **Defense Cost Score (Cost)**: Estimated computational or implementation burden.
+
+```
+Final Score = (W₁ × MS + W₂ × CAD) / (1 + W₃ × Cost)
+```
 
 Where:
-- **PCR**: Per-Class Recovery (default: 1.0 if not available)
-- **Coverage**: Class-wise coverage (default: 1.0)
-- **Cost**: Cost Score
+
+* `W₁ = 0.8` (Mitigation has the most weight)
+* `W₂ = 0.2` (Some emphasis on preserving clean accuracy)
+* `W₃ = 0.1` (Light penalty on expensive defenses)
+
+This formula prioritizes defenses that:
+
+* Restore or maintain performance against attacks,
+* Avoid harming clean accuracy too much,
+* And are not too costly to deploy.
+
+The score is normalized to fall within `[0, 1]` in most practical cases. A higher score indicates a more desirable defense.
 
 
 ## 4. Implementation Details
