@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
-**Profile Selected**: `test.yaml`
-**Report Generated On**: 2025-06-14 16:05:57
+**Profile Selected**: `visitech.yaml`
+**Report Generated On**: 2025-06-23 12:46:49
 
 ---
 
@@ -11,11 +11,10 @@ This comprehensive report aggregates the findings from the Safe-DL framework's s
 This section details the core components of the system analyzed in this report, as defined in the selected threat profile.
 
 ### 2.1 Model Details
-- **Name**: `cnn`
+- **Name**: `resnet18`
 - **Type**: `builtin`
 - **Input Shape**: `[3, 32, 32]`
 - **Number of Classes**: `10`
-- **Parameters**: `{'conv_filters': 32, 'hidden_size': 128}`
 
 
 ### 2.2 Dataset Details
@@ -65,11 +64,10 @@ This section summarizes the outcomes of the adversarial attack simulations perfo
 
 | Attack Category | Attack Method | Clean Acc. (Pre-Attack) | Impact on Clean Acc. | Attack Metric | Key Parameters | Full Results |
 |:----------------|:--------------|:------------------------|:---------------------|:--------------|:---------------|:-------------|
-| Data Poisoning | Clean Label | 67.54% | 62.76% | 62.76% (Degraded Acc.) | Poison Fraction: 0.05, Target Class: 5 | [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md) |
-| Data Poisoning | Label Flipping | 67.54% | 54.88% | 54.88% (Degraded Acc.) | Flip Rate: 0.08, Target Class: 1 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
-| Backdoor | Static Patch | 67.54% | 66.62% | 92.30% (ASR) | Poison Frac.: 0.05, Target Class: 7, Patch Type: white_square | [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md) |
-| Evasion | Pgd | 67.54% | 67.54% | 0.00% (Adv. Acc.) | Epsilon: 0.03, Num Iter: 50 | [Details](../module2_attack_simulation/results/evasion/pgd/pgd_report.md) |
-| Evasion | Spsa | 67.54% | 68.60% | 2.20% (Adv. Acc.) | Epsilon: 0.03, Num Steps: 150, Delta: 0.01 | [Details](../module2_attack_simulation/results/evasion/spsa/spsa_report.md) |
+| Data Poisoning | Label Flipping | 82.93% | 65.78% | 65.78% (Degraded Acc.) | Flip Rate: 0.08, Target Class: 9 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
+| Backdoor | Static Patch | 82.93% | 69.40% | 3.00% (ASR) | Poison Frac.: 0.15, Target Class: 7, Patch Type: white_square | [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md) |
+| Evasion | Pgd | 82.93% | 83.70% | 19.10% (Adv. Acc.) | Epsilon: 0.03, Num Iter: 50 | [Details](../module2_attack_simulation/results/evasion/pgd/pgd_report.md) |
+| Evasion | Spsa | 82.93% | 82.40% | 29.20% (Adv. Acc.) | Epsilon: 0.03, Num Steps: 150, Delta: 0.01 | [Details](../module2_attack_simulation/results/evasion/spsa/spsa_report.md) |
 
 **Note**: 'Clean Acc. (Pre-Attack)' represents the model's accuracy on clean data before any attack preparations. 'Impact on Clean Acc.' shows the model's accuracy on clean data *after* being subjected to the attack (e.g., trained with poisoned data, or backdoor injected). For Data Poisoning attacks, 'Attack Metric' displays the degraded accuracy of the model on clean inputs after poisoning. For Backdoor attacks, 'Attack Metric' displays the Attack Success Rate (ASR), indicating the percentage of adversarial samples (with trigger) successfully misclassified to the target class. For Evasion attacks, 'Attack Metric' displays the Adversarial Accuracy (Adv. Acc.) on perturbed inputs, where a lower value indicates a more successful attack.
 
@@ -86,9 +84,8 @@ This section summarizes the risk assessment performed on the simulated attacks. 
 |:--------------|:--------------|:--------------|:--------------|:--------------|:--------------|:--------------|
 | Pgd | Evasion | 1.00 | 1.00 | 0.30 | 1.70 | [Details](../module2_attack_simulation/results/evasion/pgd/pgd_report.md) |
 | Spsa | Evasion | 1.00 | 0.80 | 0.20 | 1.44 | [Details](../module2_attack_simulation/results/evasion/spsa/spsa_report.md) |
-| Static Patch | Backdoor | 1.00 | 1.00 | 0.60 | 1.40 | [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md) |
-| Label Flipping | Data Poisoning | 0.42 | 1.00 | 0.70 | 0.55 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
-| Clean Label | Data Poisoning | 0.16 | 0.90 | 0.30 | 0.24 | [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md) |
+| Label Flipping | Data Poisoning | 0.57 | 1.00 | 0.62 | 0.79 | [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md) |
+| Static Patch | Backdoor | 0.34 | 1.00 | 0.60 | 0.47 | [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md) |
 
 
 ### 5.2 Risk Matrix (Qualitative)
@@ -97,9 +94,9 @@ This matrix categorizes attacks based on their qualitative Severity and Probabil
 
 | Severity \ Probability | Low | Medium | High |
 |:-----------------------|:-----------------------|:-----------------------|:-----------------------|
-| High | - | - | Pgd, Spsa, Static Patch |
+| High | - | - | Pgd, Spsa |
 | Medium | - | - | Label Flipping |
-| Low | - | - | Clean Label |
+| Low | - | - | Static Patch |
 
 
 ### 5.3 Risk Ranking
@@ -108,9 +105,8 @@ Attacks ranked by their calculated Risk Score, from highest to lowest.
 
 1. **Pgd** — Risk Score: 1.70 → [Details](../module2_attack_simulation/results/evasion/pgd/pgd_report.md)
 2. **Spsa** — Risk Score: 1.44 → [Details](../module2_attack_simulation/results/evasion/spsa/spsa_report.md)
-3. **Static Patch** — Risk Score: 1.40 → [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)
-4. **Label Flipping** — Risk Score: 0.55 → [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md)
-5. **Clean Label** — Risk Score: 0.24 → [Details](../module2_attack_simulation/results/data_poisoning/clean_label/clean_label_report.md)
+3. **Label Flipping** — Risk Score: 0.79 → [Details](../module2_attack_simulation/results/data_poisoning/label_flipping/label_flipping_report.md)
+4. **Static Patch** — Risk Score: 0.47 → [Details](../module2_attack_simulation/results/backdoor/static_patch/static_patch_report.md)
 
 
 
@@ -118,9 +114,6 @@ Attacks ranked by their calculated Risk Score, from highest to lowest.
 
 Based on the identified risks and threat profile, the following defense recommendations are provided:
 
-- **Clean Label**:
-  - provenance_tracking
-  - influence_functions
 - **Label Flipping**:
   - data_cleaning
   - per_class_monitoring
@@ -130,6 +123,9 @@ Based on the identified risks and threat profile, the following defense recommen
 - **Spsa**:
   - gradient_masking
   - jpeg_preprocessing
+- **Static Patch**:
+  - activation_clustering
+  - spectral_signatures
 
 
 
@@ -141,24 +137,15 @@ For more in-depth information about individual attacks, including raw metrics, a
 ## 6. Defense Application (Module 4)
 This section details the performance of the implemented defenses against the simulated attacks identified in the risk analysis. For each attack, the table shows the model's accuracy on clean data *before* and *after* defense, and the metric on malicious inputs *before* and *after* defense (ASR for backdoor, adversarial accuracy for evasion). Key defense parameters are also provided, along with a link to a detailed report.
 
-| Attack Category   | Attack Method   | Defense Applied       | Clean Acc. (Pre-Defense)   | Metric on Malicious Inputs (Pre-Defense)   | Clean Acc. (Post-Defense)   | Metric on Malicious Inputs (Post-Defense)   | Key Parameters                                                       | Link to Details                                                                                                |
-|:------------------|:----------------|:----------------------|:---------------------------|:-------------------------------------------|:----------------------------|:--------------------------------------------|:---------------------------------------------------------------------|:---------------------------------------------------------------------------------------------------------------|
-| Backdoor          | Static Patch    | Activation Clustering | 66.62%                     | ASR: 92.30%                                | 43.86%                      | ASR: 90.24%                                 | num_clusters: 2                                                      | [Details](../module4_defense_application/results/backdoor/static_patch/activation_clustering_report.md)        |
-| Backdoor          | Static Patch    | Spectral Signatures   | 66.62%                     | ASR: 92.30%                                | 50.57%                      | ASR: 85.73%                                 | threshold: 0.9                                                       | [Details](../module4_defense_application/results/backdoor/static_patch/spectral_signatures_report.md)          |
-| Backdoor          | Static Patch    | Anomaly Detection     | 66.62%                     | ASR: 92.30%                                | 64.16%                      | ASR: 92.04%                                 | type: isolation_forest                                               | [Details](../module4_defense_application/results/backdoor/static_patch/anomaly_detection_report.md)            |
-| Backdoor          | Static Patch    | Pruning               | 66.62%                     | ASR: 92.30%                                | 33.61%                      | ASR: 86.98%                                 | pruning_ratio: 0.2, scope: all_layers                                | [Details](../module4_defense_application/results/backdoor/static_patch/pruning_report.md)                      |
-| Backdoor          | Static Patch    | Fine Pruning          | 66.62%                     | ASR: 92.30%                                | 67.33%                      | ASR: 51.61%                                 | pruning_ratio: 0.2                                                   | [Details](../module4_defense_application/results/backdoor/static_patch/fine_pruning_report.md)                 |
-| Backdoor          | Static Patch    | Model Inspection      | 66.62%                     | ASR: 92.30%                                | 64.40%                      | ASR: 91.53%                                 | layers: ['conv.0.weight', 'conv.0.bias', 'fc.1.weight', 'fc.1.bias'] | [Details](../module4_defense_application/results/backdoor/static_patch/model_inspection_report.md)             |
-| Data Poisoning    | Clean Label     | Provenance Tracking   | 62.76%                     | N/A                                        | 65.44%                      | N/A                                         | granularity: sample                                                  | [Details](../module4_defense_application/results/data_poisoning/clean_label/provenance_tracking_report.md)     |
-| Data Poisoning    | Clean Label     | Influence Functions   | 62.76%                     | N/A                                        | 65.50%                      | N/A                                         | method: grad_influence, sample_size: 500                             | [Details](../module4_defense_application/results/data_poisoning/clean_label/influence_functions_report.md)     |
-| Data Poisoning    | Label Flipping  | Data Cleaning         | 54.88%                     | N/A                                        | 62.51%                      | N/A                                         | method: loss_filtering, threshold: 0.9                               | [Details](../module4_defense_application/results/data_poisoning/label_flipping/data_cleaning_report.md)        |
-| Data Poisoning    | Label Flipping  | Per Class Monitoring  | 54.88%                     | N/A                                        | 54.88%                      | N/A                                         | std_threshold: 2.0                                                   | [Details](../module4_defense_application/results/data_poisoning/label_flipping/per_class_monitoring_report.md) |
-| Data Poisoning    | Label Flipping  | Robust Loss           | 54.88%                     | N/A                                        | 63.42%                      | N/A                                         | type: gce                                                            | [Details](../module4_defense_application/results/data_poisoning/label_flipping/robust_loss_report.md)          |
-| Data Poisoning    | Label Flipping  | Dp Training           | 54.88%                     | N/A                                        | 36.53%                      | N/A                                         | clip_norm: 1.0, delta: 1e-05, epsilon: 2.0                           | [Details](../module4_defense_application/results/data_poisoning/label_flipping/dp_training_report.md)          |
-| Evasion           | Pgd             | Adversarial Training  | 67.54%                     | Adv. Acc.: 0.00%                           | 44.39%                      | Adv. Acc.: 19.42%                           | attack_type: fgsm, epsilon: 0.03                                     | [Details](../module4_defense_application/results/evasion/pgd/adversarial_training_report.md)                   |
-| Evasion           | Pgd             | Randomized Smoothing  | 67.54%                     | Adv. Acc.: 0.00%                           | 24.72%                      | Adv. Acc.: 4.76%                            | sigma: 0.25                                                          | [Details](../module4_defense_application/results/evasion/pgd/randomized_smoothing_report.md)                   |
-| Evasion           | Spsa            | Gradient Masking      | 68.60%                     | Adv. Acc.: 2.20%                           | 67.08%                      | Adv. Acc.: 3.50%                            | strength: 0.5                                                        | [Details](../module4_defense_application/results/evasion/spsa/gradient_masking_report.md)                      |
-| Evasion           | Spsa            | Jpeg Preprocessing    | 68.60%                     | Adv. Acc.: 2.20%                           | 64.45%                      | Adv. Acc.: 36.50%                           | quality: 75                                                          | [Details](../module4_defense_application/results/evasion/spsa/jpeg_preprocessing_report.md)                    |
+| Attack Category   | Attack Method   | Defense Applied       | Clean Acc. (Pre-Defense)   | Metric on Malicious Inputs (Pre-Defense)   | Clean Acc. (Post-Defense)   | Metric on Malicious Inputs (Post-Defense)   | Key Parameters                         | Link to Details                                                                                         |
+|:------------------|:----------------|:----------------------|:---------------------------|:-------------------------------------------|:----------------------------|:--------------------------------------------|:---------------------------------------|:--------------------------------------------------------------------------------------------------------|
+| Backdoor          | Static Patch    | Activation Clustering | 69.40%                     | ASR: 3.00%                                 | 61.54%                      | ASR: 0.09%                                  | num_clusters: 2                        | [Details](../module4_defense_application/results/backdoor/static_patch/activation_clustering_report.md) |
+| Backdoor          | Static Patch    | Spectral Signatures   | 69.40%                     | ASR: 3.00%                                 | 51.58%                      | ASR: 3.76%                                  | threshold: 0.9                         | [Details](../module4_defense_application/results/backdoor/static_patch/spectral_signatures_report.md)   |
+| Data Poisoning    | Label Flipping  | Data Cleaning         | 65.78%                     | N/A                                        | 68.37%                      | N/A                                         | method: loss_filtering, threshold: 0.9 | [Details](../module4_defense_application/results/data_poisoning/label_flipping/data_cleaning_report.md) |
+| Evasion           | Pgd             | Adversarial Training  | 83.70%                     | Adv. Acc.: 19.10%                          | 76.55%                      | Adv. Acc.: 41.88%                           | attack_type: fgsm, epsilon: 0.03       | [Details](../module4_defense_application/results/evasion/pgd/adversarial_training_report.md)            |
+| Evasion           | Pgd             | Randomized Smoothing  | 83.70%                     | Adv. Acc.: 19.10%                          | 37.20%                      | Adv. Acc.: 19.88%                           | sigma: 0.25                            | [Details](../module4_defense_application/results/evasion/pgd/randomized_smoothing_report.md)            |
+| Evasion           | Spsa            | Gradient Masking      | 82.40%                     | Adv. Acc.: 29.20%                          | 82.80%                      | Adv. Acc.: 29.60%                           | strength: 0.5                          | [Details](../module4_defense_application/results/evasion/spsa/gradient_masking_report.md)               |
+| Evasion           | Spsa            | Jpeg Preprocessing    | 82.40%                     | Adv. Acc.: 29.20%                          | 11.94%                      | Adv. Acc.: 29.40%                           | quality: 75                            | [Details](../module4_defense_application/results/evasion/spsa/jpeg_preprocessing_report.md)             |
 
 **Note**:
 - **Clean Acc. (Pre-Defense)**: Accuracy of the attacked or original model on clean data before applying defense. For data poisoning and backdoor, this is the compromised model’s clean accuracy after poisoning/injection; for evasion, the original model’s clean accuracy.
@@ -172,19 +159,10 @@ The following defenses were applied and evaluated to mitigate the identified ris
 
 * **Activation Clustering**: A defense aimed at detecting and neutralizing backdoors in models. It works by clustering intermediate layer activations of the model to identify and isolate training samples containing the malicious trigger, allowing for their removal.
 * **Adversarial Training**: One of the most common and effective defenses against evasion attacks. It involves augmenting the training dataset with adversarial examples (generated by the attack itself) and retraining the model. This improves the model's robustness, making it more resistant to future adversarial perturbations.
-* **Anomaly Detection**: Applies algorithms to identify data points or model behaviors that deviate significantly from normal patterns, potentially indicating the presence of an attack (e.g., poisoned samples or triggered backdoor inputs).
 * **Data Cleaning**: A general approach to remove corrupted, mislabeled, or outlier samples from the training dataset. It aims to improve the overall quality and integrity of the data, thereby making the model more robust to various forms of data-based attacks, including poisoning.
-* **Dp Training**: Differentially Private Training adds noise to the training process (e.g., to gradients) to protect the privacy of individual training data points. While primarily for privacy, it can also offer some robustness benefits against certain data poisoning attacks by limiting the influence of individual samples.
-* **Fine Pruning**: A defense method primarily against backdoor attacks. It involves pruning specific neurons or connections in the neural network that are highly activated by the backdoor trigger but are less critical for clean accuracy, effectively disrupting the backdoor's functionality.
 * **Gradient Masking**: This defense aims to obscure or modify the gradients seen by an attacker, making it harder for gradient-based adversarial attacks to succeed. It can involve various techniques like non-differentiable transformations or adding noise to gradients.
-* **Influence Functions**: This technique is used to identify and remove training samples that have a disproportionate or negative influence on the model. It is particularly effective against data poisoning attacks, such as 'Clean Label', by helping to purify the training dataset.
 * **Jpeg Preprocessing**: A simple defense that applies JPEG compression to inputs before feeding them to the model. The compression process can flatten out small adversarial perturbations, making the adversarial examples less effective against the model.
-* **Model Inspection**: Involves analyzing the internal states and behaviors of the model (e.g., activations, weights) to identify anomalies or patterns indicative of malicious injections like backdoors. This is a diagnostic defense often used in conjunction with other mitigation techniques.
-* **Per Class Monitoring**: This defense involves monitoring the model's performance or internal states on a per-class basis. Anomalies in specific class predictions or feature distributions can indicate a targeted attack, such as label flipping, allowing for timely intervention.
-* **Provenance Tracking**: This defense focuses on tracing the origin and modifications of data throughout the pipeline. By maintaining a verifiable history of data, it helps detect and prevent data poisoning by identifying unauthorized or malicious alterations to the training set.
-* **Pruning**: Reduces the size of the neural network by removing less important connections or neurons. While often used for model compression, it can also help remove redundant capacity that might be exploited by certain attacks, including backdoors.
 * **Randomized Smoothing**: A certified defense that provides provable robustness guarantees against adversarial attacks. It works by adding random noise to inputs during inference and then classifying based on the aggregated predictions, making it difficult for an attacker to craft effective adversarial examples.
-* **Robust Loss**: Utilizing loss functions that are less sensitive to noisy or adversarial labels during training. This can help the model learn more robust features and reduce the impact of poisoned data.
 * **Spectral Signatures**: A backdoor detection technique that analyzes the spectral properties of the hidden layer activations. It identifies anomalous patterns indicative of a backdoor trigger embedded in the training data, allowing for the isolation and mitigation of poisoned samples.
 
 ---
@@ -195,30 +173,20 @@ This section presents the evaluation of applied defenses, summarizing their miti
 
 | Attack Category   | Attack Method   | Defense               |   Mitigation |   CAD |   Cost |   Final Score |
 |:------------------|:----------------|:----------------------|-------------:|------:|-------:|--------------:|
-| Backdoor          | Static Patch    | Activation Clustering |        0.035 | 0     |    0.3 |         0     |
-| Backdoor          | Static Patch    | Spectral Signatures   |        0.111 | 0     |    0.5 |         0     |
-| Backdoor          | Static Patch    | Anomaly Detection     |        0.004 | 0.754 |    0.3 |         0.003 |
-| Backdoor          | Static Patch    | Pruning               |        0.09  | 0     |    0.3 |         0     |
-| Backdoor          | Static Patch    | Fine Pruning          |        0.691 | 1.071 |    0.4 |         0.528 |
-| Backdoor          | Static Patch    | Model Inspection      |        0.013 | 0.778 |    0.2 |         0.008 |
-| Data Poisoning    | Clean Label     | Provenance Tracking   |        0.561 | 0.79  |    0.5 |         0.295 |
-| Data Poisoning    | Clean Label     | Influence Functions   |        0.573 | 0.796 |    0.5 |         0.304 |
-| Data Poisoning    | Label Flipping  | Data Cleaning         |        0.603 | 0.497 |    0.2 |         0.25  |
-| Data Poisoning    | Label Flipping  | Per Class Monitoring  |        0     | 0     |    0.2 |         0     |
-| Data Poisoning    | Label Flipping  | Robust Loss           |        0.675 | 0.588 |    0.5 |         0.264 |
-| Data Poisoning    | Label Flipping  | Dp Training           |       -1.449 | 0     |    0.7 |        -0     |
-| Evasion           | Pgd             | Adversarial Training  |        0.288 | 0     |    0.8 |         0     |
-| Evasion           | Pgd             | Randomized Smoothing  |        0.07  | 0     |    0.5 |         0     |
-| Evasion           | Spsa            | Gradient Masking      |        0.02  | 0.954 |    0.4 |         0.014 |
-| Evasion           | Spsa            | Jpeg Preprocessing    |        0.525 | 0.691 |    0.1 |         0.33  |
+| Backdoor          | Static Patch    | Activation Clustering |       -0.105 | 0.214 |    0.3 |        -0.017 |
+| Backdoor          | Static Patch    | Spectral Signatures   |        0.027 | 0     |    0.5 |         0     |
+| Data Poisoning    | Label Flipping  | Data Cleaning         |        0.151 | 0     |    0.2 |         0     |
+| Evasion           | Pgd             | Adversarial Training  |        0.357 | 0.362 |    0.8 |         0.072 |
+| Evasion           | Pgd             | Randomized Smoothing  |        0.012 | 0     |    0.5 |         0     |
+| Evasion           | Spsa            | Gradient Masking      |        0.007 | 0.987 |    0.4 |         0.005 |
+| Evasion           | Spsa            | Jpeg Preprocessing    |        0.004 | 0     |    0.1 |         0     |
 
 ### 7.2 Top-Performing Defenses
 
-- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Mitigation: 0.691, CAD: 1.071, Cost: 0.400, Final Score: 0.528).
-- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Mitigation: 0.573, CAD: 0.796, Cost: 0.500, Final Score: 0.304).
-- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Mitigation: 0.675, CAD: 0.588, Cost: 0.500, Final Score: 0.264).
-- **Evasion / Pgd**: Top defense is **Adversarial Training** (Mitigation: 0.288, CAD: 0.000, Cost: 0.800, Final Score: 0.000).
-- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Mitigation: 0.525, CAD: 0.691, Cost: 0.100, Final Score: 0.330).
+- **Backdoor / Static Patch**: Top defense is **Spectral Signatures** (Mitigation: 0.027, CAD: 0.000, Cost: 0.500, Final Score: 0.000).
+- **Data Poisoning / Label Flipping**: Top defense is **Data Cleaning** (Mitigation: 0.151, CAD: 0.000, Cost: 0.200, Final Score: 0.000).
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Mitigation: 0.357, CAD: 0.362, Cost: 0.800, Final Score: 0.072).
+- **Evasion / Spsa**: Top defense is **Gradient Masking** (Mitigation: 0.007, CAD: 0.987, Cost: 0.400, Final Score: 0.005).
 
 ### 7.3 Observations and Recommendations
 
@@ -226,66 +194,52 @@ Based on the evaluation scores above, consider the following:
 
 **Detailed per-attack-method rankings:**
 **Backdoor / Static Patch**:
-- Fine Pruning: Final Score 0.528 (Mitigation 0.691, CAD 1.071, Cost 0.400) 
-- Model Inspection: Final Score 0.008 (Mitigation 0.013, CAD 0.778, Cost 0.200) — marginal improvement; likely not worth deploying alone.
-- Anomaly Detection: Final Score 0.003 (Mitigation 0.004, CAD 0.754, Cost 0.300) — marginal improvement; likely not worth deploying alone.
-- Activation Clustering: Final Score 0.000 (Mitigation 0.035, CAD 0.000, Cost 0.300) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-- Spectral Signatures: Final Score 0.000 (Mitigation 0.111, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-- Pruning: Final Score 0.000 (Mitigation 0.090, CAD 0.000, Cost 0.300) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-
-**Data Poisoning / Clean Label**:
-- Influence Functions: Final Score 0.304 (Mitigation 0.573, CAD 0.796, Cost 0.500) 
-- Provenance Tracking: Final Score 0.295 (Mitigation 0.561, CAD 0.790, Cost 0.500) 
+- Spectral Signatures: Final Score 0.000 (Mitigation 0.027, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Activation Clustering: Final Score -0.017 (Mitigation -0.105, CAD 0.214, Cost 0.300) — net zero or negative (no effective balance: no effective mitigation).
 
 **Data Poisoning / Label Flipping**:
-- Robust Loss: Final Score 0.264 (Mitigation 0.675, CAD 0.588, Cost 0.500) 
-- Data Cleaning: Final Score 0.250 (Mitigation 0.603, CAD 0.497, Cost 0.200) 
-- Per Class Monitoring: Final Score 0.000 (Mitigation 0.000, CAD 0.000, Cost 0.200) — net zero or negative (no effective balance: no effective mitigation).
-- Dp Training: Final Score -0.000 (Mitigation -1.449, CAD 0.000, Cost 0.700) — net zero or negative (no effective balance: no effective mitigation).
+- Data Cleaning: Final Score 0.000 (Mitigation 0.151, CAD 0.000, Cost 0.200) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
 
 **Evasion / Pgd**:
-- Adversarial Training: Final Score 0.000 (Mitigation 0.288, CAD 0.000, Cost 0.800) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
-- Randomized Smoothing: Final Score 0.000 (Mitigation 0.070, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
+- Adversarial Training: Final Score 0.072 (Mitigation 0.357, CAD 0.362, Cost 0.800) 
+- Randomized Smoothing: Final Score 0.000 (Mitigation 0.012, CAD 0.000, Cost 0.500) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
 
 **Evasion / Spsa**:
-- Jpeg Preprocessing: Final Score 0.330 (Mitigation 0.525, CAD 0.691, Cost 0.100) 
-- Gradient Masking: Final Score 0.014 (Mitigation 0.020, CAD 0.954, Cost 0.400) — marginal improvement; likely not worth deploying alone.
+- Gradient Masking: Final Score 0.005 (Mitigation 0.007, CAD 0.987, Cost 0.400) — marginal improvement; likely not worth deploying alone.
+- Jpeg Preprocessing: Final Score 0.000 (Mitigation 0.004, CAD 0.000, Cost 0.100) — net zero or negative (no effective balance: mitigation too small relative to cost or clean-accuracy impact).
 
 **Overall Recommendation:**
-- **Backdoor / Static Patch**: Top defense is **Fine Pruning** (Final Score 0.528) — Recommended.
-- **Data Poisoning / Clean Label**: Top defense is **Influence Functions** (Final Score 0.304) — Recommended.
-- **Data Poisoning / Label Flipping**: Top defense is **Robust Loss** (Final Score 0.264) — Recommended.
-- **Evasion / Pgd**: Top defense is **Adversarial Training** (Final Score 0.000) — No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods.
-- **Evasion / Spsa**: Top defense is **Jpeg Preprocessing** (Final Score 0.330) — Recommended.
+- **Backdoor / Static Patch**: Top defense is **Spectral Signatures** (Final Score 0.000) — No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods.
+- **Data Poisoning / Label Flipping**: Top defense is **Data Cleaning** (Final Score 0.000) — No defense shows clear positive net benefit; consider revisiting defense configurations or exploring alternate methods.
+- **Evasion / Pgd**: Top defense is **Adversarial Training** (Final Score 0.072) — Recommended.
+- **Evasion / Spsa**: Top defense is **Gradient Masking** (Final Score 0.005) — Only marginal benefit; consider combined approaches or reevaluate cost versus gain.
 
 For more details, refer to the full defense evaluation report: [Details](../module5_defense_evaluation/results/defense_evaluation_report.md).
 
 ---
 ## 8. Conclusions and Executive Summary
 
-**Highest-Risk Attack:** Deepfool (Risk Score: 1.900).
-- Severity: 1.000, Probability: 1.000, Visibility: 0.100.
-**Also high risk:** Fgsm (1.700), Pgd (1.700).
+**Highest-Risk Attack:** Pgd (Risk Score: 1.700).
+- Severity: 1.000, Probability: 1.000, Visibility: 0.300.
+**Also high risk:** Spsa (1.440), Label Flipping (0.787).
 
 **Most Effective Defenses Identified:**
-- Against **Static Patch**, top defense: **Fine Pruning** (Final Score: 0.528).
-- Against **Clean Label**, top defense: **Influence Functions** (Final Score: 0.304).
-- Against **Label Flipping**, top defense: **Robust Loss** (Final Score: 0.264).
-- Against **Pgd**, top defense: **Adversarial Training** (Final Score: 0.000).
-- Against **Spsa**, top defense: **Jpeg Preprocessing** (Final Score: 0.330).
+- Against **Static Patch**, top defense: **Spectral Signatures** (Final Score: 0.000).
+- Against **Label Flipping**, top defense: **Data Cleaning** (Final Score: 0.000).
+- Against **Pgd**, top defense: **Adversarial Training** (Final Score: 0.072).
+- Against **Spsa**, top defense: **Gradient Masking** (Final Score: 0.005).
 
 **Notable Gaps:**
-- The following attack methods showed no defense with positive net benefit at current settings: Pgd.
+- The following attack methods showed no defense with positive net benefit at current settings: Label Flipping, Static Patch.
 
 **Overall Security Posture:**
-- Deepfool identified as highest risk. Effective defenses identified for most attacks, except some evasion methods.
+- Pgd identified as highest risk. Effective defenses identified for most attacks, except some evasion methods.
 
 **Practical Recommendations:**
-- Prioritize deploying **Fine Pruning** against Static Patch.
-- Prioritize deploying **Influence Functions** against Clean Label.
-- Prioritize deploying **Robust Loss** against Label Flipping.
-- Prioritize deploying **Jpeg Preprocessing** against Spsa.
-- For Pgd, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.
+- Prioritize deploying **Adversarial Training** against Pgd.
+- Prioritize deploying **Gradient Masking** against Spsa.
+- For Label Flipping, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.
+- For Static Patch, revisit defense parameters or explore alternative defenses, as none yielded positive net benefit.
 
 ---
 ## 9. Recommendations for Continuous Monitoring and Post-Deployment
