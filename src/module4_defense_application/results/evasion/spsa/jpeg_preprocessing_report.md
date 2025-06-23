@@ -7,29 +7,29 @@
 
 ## Accuracy After Defense
 
-- **Accuracy on Clean Images:** 0.6445
-- **Accuracy on Adversarial Images:** 0.3650
+- **Accuracy on Clean Images:** 0.1194
+- **Accuracy on Adversarial Images:** 0.2940
 
 ### Per-Class Accuracy (Clean)
-- **airplane**: 0.6060
-- **automobile**: 0.7110
-- **bird**: 0.5550
-- **cat**: 0.3940
-- **deer**: 0.6020
-- **dog**: 0.5470
-- **frog**: 0.6800
-- **horse**: 0.7320
-- **ship**: 0.8770
-- **truck**: 0.7410
+- **airplane**: 0.0040
+- **automobile**: 0.0000
+- **bird**: 0.1470
+- **cat**: 0.0510
+- **deer**: 0.7350
+- **dog**: 0.0020
+- **frog**: 0.2440
+- **horse**: 0.0000
+- **ship**: 0.0110
+- **truck**: 0.0000
 
 ### Per-Class Accuracy (Adversarial)
-- **airplane**: 0.3000
-- **automobile**: 0.5000
-- **bird**: 0.4762
-- **cat**: 0.0526
-- **deer**: 0.1333
-- **dog**: 0.1111
-- **frog**: 0.4231
-- **horse**: 0.2778
-- **ship**: 0.6786
-- **truck**: 0.4762
+- **airplane**: 0.3684
+- **automobile**: 0.0244
+- **bird**: 0.3333
+- **cat**: 0.3469
+- **deer**: 0.5000
+- **dog**: 0.1458
+- **frog**: 0.3519
+- **horse**: 0.0851
+- **ship**: 0.7018
+- **truck**: 0.0179
