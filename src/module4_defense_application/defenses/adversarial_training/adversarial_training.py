@@ -28,12 +28,21 @@ def run_adversarial_training_defense(profile, trainset, testset, valset, class_n
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-    loader = DataLoader(trainset, batch_size=64, shuffle=True)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=20, gamma=0.5)
+    train_loader = DataLoader(trainset, batch_size=64, shuffle=True)
+    val_loader = DataLoader(valset, batch_size=64)
+
+    best_val_acc = 0.0
+    epochs_no_improve = 0
+    patience = 15
+    best_model_state = None
 
     print(f"[*] Training model with adversarial examples using {base_attack} (epsilon={epsilon}, mixed with clean)")
-    model.train()
-    for epoch in range(3):
-        pbar = tqdm(loader, desc=f"Epoch {epoch + 1}/3")
+    for epoch in range(100):
+        model.train()
+        pbar = tqdm(train_loader, desc=f"Epoch {epoch + 1}/100")
+        running_loss = 0.0
+
         for x, y in pbar:
             x, y = x.to(device), y.to(device)
 
@@ -51,7 +60,27 @@ def run_adversarial_training_defense(profile, trainset, testset, valset, class_n
             loss = F.cross_entropy(outputs, y_mix)
             loss.backward()
             optimizer.step()
-            pbar.set_postfix(loss=loss.item())
+            running_loss += loss.item()
+
+        scheduler.step()
+
+        # Validation accuracy
+        val_acc, _ = evaluate_model(model, valset, class_names=class_names)
+        print(f"Epoch {epoch+1:02d} - Loss: {running_loss:.4f} | Validation Accuracy: {val_acc:.4f}")
+
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            best_model_state = model.state_dict()
+            epochs_no_improve = 0
+        else:
+            epochs_no_improve += 1
+            print(f"[!] No improvement. ({epochs_no_improve}/{patience})")
+            if epochs_no_improve >= patience:
+                print(f"[✔] Early stopping triggered at epoch {epoch + 1}")
+                break
+
+    if best_model_state:
+        model.load_state_dict(best_model_state)
 
     print("[*] Evaluating model on clean test set...")
     clean_acc, per_class_clean = evaluate_model(model, testset, class_names=class_names)
