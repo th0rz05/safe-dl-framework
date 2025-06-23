@@ -119,7 +119,7 @@ def main():
     print(f"\n[✓] All scores saved to {RESULTS_JSON_PATH}")
 
     generate_report(
-        profile_path="../profiles/test.yaml",
+        profile_path="../profiles/" + profile['name']+ ".yaml",
         json_path="results/defense_evaluation.json",
         md_path="results/defense_evaluation_report.md"
     )
