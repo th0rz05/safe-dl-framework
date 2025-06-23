@@ -527,9 +527,9 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
         "This matrix categorizes attacks based on their qualitative Severity and Probability levels.\n")
 
     def bucketize_qualitative(value):
-        if value < 0.4:
+        if value < 0.33:
             return "Low"
-        elif value < 0.7:
+        elif value < 0.66:
             return "Medium"
         else:
             return "High"
@@ -551,7 +551,7 @@ def generate_risk_analysis_section(profile_data: dict) -> str:
     matrix_table_str = "| " + " | ".join(matrix_headers) + " |\n"
     matrix_table_str += "|:-----------------------" * len(matrix_headers) + "|\n"
 
-    severity_order = ["High", "Medium", "Low"]
+    severity_order = ["Low","Medium","High"]
     probability_order = ["Low", "Medium", "High"]
 
     for sev_bucket in severity_order:

@@ -107,8 +107,8 @@ risk_analysis:
       visibility: 0.2
     static_patch:
       probability: 1.0
-      risk_score: 0.461
-      severity: 0.33
+      risk_score: 0.47
+      severity: 0.336
       visibility: 0.6
 threat_model:
   attack_goal: targeted

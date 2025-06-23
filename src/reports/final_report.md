@@ -1,6 +1,6 @@
 # Safe-DL Framework - Final Security Report
 **Profile Selected**: `visitech.yaml`
-**Report Generated On**: 2025-06-23 12:46:49
+**Report Generated On**: 2025-06-23 12:56:36
 
 ---
 
@@ -94,9 +94,9 @@ This matrix categorizes attacks based on their qualitative Severity and Probabil
 
 | Severity \ Probability | Low | Medium | High |
 |:-----------------------|:-----------------------|:-----------------------|:-----------------------|
+| Low | - | - | - |
+| Medium | - | - | Label Flipping, Static Patch |
 | High | - | - | Pgd, Spsa |
-| Medium | - | - | Label Flipping |
-| Low | - | - | Static Patch |
 
 
 ### 5.3 Risk Ranking
