@@ -453,25 +453,34 @@ This framework is part of the master’s thesis:
   
 ## License  
   
-Copyright (c) 2025 Tiago Barbosa    
-All rights reserved.  
-  
-This software is made available for **viewing purposes only**.  
-  
-Permission is granted to access and read the source code for **educational and non-commercial purposes**.    
-However, any of the following actions are **strictly prohibited** without prior, explicit written permission from the author:  
-  
-- Use or execution of the software in any environment or application  
-      
-- Copying or redistributing any part of the codebase  
-      
-- Modification or creation of derivative works  
-      
-- Incorporation of any part of the code into other software projects  
-      
-- Commercial use of any kind  
-      
-  
-This software is provided “as is,” without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose, and noninfringement.  
-  
-If you wish to use this software beyond viewing, please contact the author for licensing inquiries.
+MIT Non-Commercial License
+
+Copyright (c) 2025 Tiago Barbosa
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to use,
+copy, modify, merge, publish, and distribute the Software for educational,
+research, or personal use, subject to the following conditions:
+
+1. **Non-Commercial Use Only**:  
+   The Software may not be used, either in whole or in part, for any commercial purposes
+   without explicit prior written permission from the author. Commercial purposes include, but are not limited to:
+   - Selling the software or its derivatives
+   - Incorporating the software into proprietary systems
+   - Offering services based on the software in exchange for compensation
+
+2. **Attribution**:  
+   The above copyright notice and this permission notice shall be included in all copies
+   or substantial portions of the Software.
+
+3. **Contributions**:  
+   Contributions are welcome. By submitting code or suggestions, you agree that they may be incorporated
+   into the project under the same license.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY.
+
+For commercial licensing inquiries, please contact: tiago.filipe.barbosa@gmail.com
+
+
