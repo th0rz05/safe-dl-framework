@@ -3,7 +3,9 @@
 # Safe-DL — Modular Deep-Learning Security Framework  
   
 *A step-by-step pipeline that takes a neural-network project from threat modelling,    
-through attack simulation and defence hardening, to a final audit-ready report.*  
+through attack simulation and defence hardening, to a final audit-ready report.* 
+
+Full Dissertation: [PDF](docs/Tiago_Barbosa_Dissertacao_SafeDL_FEUP_2025.pdf)
   
 > **Developed by Tiago Barbosa** (MSc in Informatics Engineering, FEUP, 2025)  
   
