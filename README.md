@@ -66,7 +66,11 @@ src/
 -   `module6_reporting/` — consolidates all results into a final, human-readable summary report.  
       
   
-> All modules use and update the same `profile.yaml`, which acts as the central configuration and logging artifact throughout the pipeline.  
+> All modules use and update the same `profile.yaml`, which acts as the central configuration and logging artifact throughout the pipeline.
+
+### Take a Breather — Mini Tetris
+
+Need a quick break between running heavy simulations? Open `docs/tetris/index.html` in your browser for a lightweight, client-only Tetris clone built with vanilla JS. It includes keyboard controls, scoring, and a next-piece preview so you can unwind while the experiments crunch the numbers.
   
   
 

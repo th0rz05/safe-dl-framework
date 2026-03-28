@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Safe-DL Mini Games — Tetris</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="game-panel">
+        <header class="header">
+          <h1>Safe-DL Mini Games</h1>
+          <p>A bite-sized Tetris clone to take a break between experiments.</p>
+        </header>
+        <canvas id="board" width="300" height="600" aria-label="Tetris board" role="img"></canvas>
+        <div class="status-bar" aria-live="polite">
+          <div>Score: <span id="score">0</span></div>
+          <div>Lines: <span id="lines">0</span></div>
+          <div>Level: <span id="level">1</span></div>
+        </div>
+        <div class="controls">
+          <h2>Controls</h2>
+          <ul>
+            <li><kbd>←</kbd>/<kbd>→</kbd> — Move piece</li>
+            <li><kbd>↑</kbd> — Rotate</li>
+            <li><kbd>↓</kbd> — Soft drop</li>
+            <li><kbd>Space</kbd> — Hard drop</li>
+            <li><kbd>P</kbd> — Pause / Resume</li>
+          </ul>
+        </div>
+      </section>
+      <aside class="sidebar">
+        <h2>Next Piece</h2>
+        <canvas id="next" width="120" height="120" aria-label="Next tetromino preview" role="img"></canvas>
+        <button id="restart" class="btn">Restart</button>
+        <p class="hint">
+          The game gradually speeds up. Clearing multiple lines at once boosts your score!
+        </p>
+      </aside>
+    </main>
+    <script src="tetris.js"></script>
+  </body>
+</html>
