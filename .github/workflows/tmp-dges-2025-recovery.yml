@@ -9,42 +9,195 @@ permissions:
   contents: read
 
 jobs:
-  probe-replay-variants:
+  build-recovered-dataset:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
     steps:
-      - name: Probe archived-page replay variants
+      - name: Download confirmed archived pages
         shell: bash
         run: |
-          set +e
-          orig='https://www.dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1106&CodCurso=9494&ids=91&ide=120&Mx=723'
-          ts='20251106120407'
-          encoded=$(python -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$orig")
-          urls=(
-            "https://web.archive.org/web/${ts}/${orig}"
-            "https://web.archive.org/web/${ts}id_/${orig}"
-            "https://web.archive.org/web/${ts}if_/${orig}"
-            "https://web.archive.org/web/${ts}im_/${orig}"
-            "https://web.archive.org/web/${ts}/${encoded}"
-            "https://web.archive.org/web/${ts}id_/${encoded}"
-            "https://archive.org/wayback/available?url=${encoded}&timestamp=${ts}"
-            "http://web.archive.org/web/${ts}id_/${orig}"
-          )
-          i=0
-          mkdir -p replay-probe
-          for u in "${urls[@]}"; do
-            i=$((i+1))
-            echo "===== VARIANT $i ====="
-            echo "$u"
-            curl -L --compressed --connect-timeout 5 --max-time 12 \
-              -A 'Mozilla/5.0 (compatible; DGES2025Recovery/1.0)' \
-              -D "replay-probe/${i}.headers" -o "replay-probe/${i}.body" \
-              -w 'HTTP=%{http_code} final=%{url_effective} bytes=%{size_download} type=%{content_type} time=%{time_total}\n' "$u"
-            echo '-- headers --'; sed -n '1,30p' "replay-probe/${i}.headers"
-            echo '-- body preview --'; head -c 1200 "replay-probe/${i}.body" | tr '\000' ' '; echo
-          done
-      - uses: actions/upload-artifact@v4
+          set -euo pipefail
+          mkdir -p dges-2025-recuperado/html
+          cat > /tmp/captures.tsv <<'EOF'
+          20251106120603	https://www.dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1106&CodCurso=9494&ids=31&ide=60&Mx=723
+          20251106120404	https://www.dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1106&CodCurso=9494&ids=61&ide=90&Mx=723
+          20251106120407	https://www.dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1106&CodCurso=9494&ids=91&ide=120&Mx=723
+          20251106120420	https://www.dges.gov.pt/coloc/2025/col1listaser.asp?CodCurso=9494&ids=121&ide=150&Mx=723&CodEstab=1106
+          20251106120502	https://www.dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1106&CodCurso=9494&ids=421&ide=450&Mx=723
+          20251106120505	https://www.dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1106&CodCurso=9494&ids=451&ide=480&Mx=723
+          20251106120513	https://www.dges.gov.pt/coloc/2025/col1listaser.asp?ide=480&Mx=723&CodEstab=1106&CodCurso=9494&ids=451
+          EOF
+          n=0
+          while IFS=$'\t' read -r ts orig; do
+            n=$((n+1))
+            printf -v fn 'dges-2025-recuperado/html/pagina_%02d_%s.html' "$n" "$ts"
+            replay="https://web.archive.org/web/${ts}id_/${orig}"
+            echo "A descarregar $n: $replay"
+            curl -fL --compressed --retry 4 --retry-delay 1 --connect-timeout 8 --max-time 30 \
+              -A 'Mozilla/5.0 (compatible; DGES2025Recovery/1.0; public archival research)' \
+              -o "$fn" "$replay"
+            printf '%s\t%s\t%s\n' "$n" "$ts" "$orig" >> dges-2025-recuperado/fontes.tsv
+            wc -c "$fn"
+          done < /tmp/captures.tsv
+
+          # Record all candidate-list and placed-list captures indexed by Wayback for 2025.
+          python - <<'PY'
+          import json, subprocess, urllib.parse
+          out=[]
+          for host in ('dges.gov.pt','www.dges.gov.pt'):
+              for endpoint in ('col1listaser.asp*','col1listacol.asp*','col1listas.asp*','col1listaredir.asp*','col2listaser.asp*','col2listacol.asp*','col3listaser.asp*','col3listacol.asp*'):
+                  pattern=f'{host}/coloc/2025/{endpoint}'
+                  q=urllib.parse.urlencode({'url':pattern,'output':'json','filter':'statuscode:200','fl':'timestamp,original,statuscode,mimetype,digest,length','from':'2025','to':'2026','limit':'100000'})
+                  url='https://web.archive.org/cdx/search/cdx?'+q
+                  p=subprocess.run(['curl','-fsSL','--compressed','--connect-timeout','8','--max-time','25','-A','Mozilla/5.0 (compatible; DGES2025Recovery/1.0)',url],capture_output=True)
+                  if p.returncode: continue
+                  try:
+                      arr=json.loads(p.stdout)
+                      if arr and isinstance(arr,list):
+                          head=arr[0]
+                          for row in arr[1:]:
+                              x=dict(zip(head,row)); x['pattern']=pattern; out.append(x)
+                  except Exception: pass
+          seen=set(); uniq=[]
+          for x in out:
+              k=(x.get('timestamp'),x.get('original'),x.get('digest'))
+              if k not in seen: seen.add(k); uniq.append(x)
+          open('dges-2025-recuperado/indice_wayback.json','w',encoding='utf-8').write(json.dumps(sorted(uniq,key=lambda x:(x.get('original',''),x.get('timestamp',''))),ensure_ascii=False,indent=2))
+          print('Capturas de listas indexadas:',len(uniq))
+          for x in uniq: print(x.get('timestamp'),x.get('original'))
+          PY
+
+      - name: Parse HTML tables and create CSV files
+        shell: bash
+        run: |
+          python - <<'PY'
+          from __future__ import annotations
+          import csv, json, re
+          from html.parser import HTMLParser
+          from pathlib import Path
+          from urllib.parse import parse_qs, urlparse
+
+          ROOT=Path('dges-2025-recuperado'); HTML=ROOT/'html'
+          sources=[]
+          for line in (ROOT/'fontes.tsv').read_text(encoding='utf-8').splitlines():
+              n,ts,orig=line.split('\t',2); sources.append((int(n),ts,orig))
+
+          class TableParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.rows=[]; self.row=None; self.cell=None; self.title=[]; self.in_title=False
+                  self.in_script=0; self.in_style=0
+              def handle_starttag(self,tag,attrs):
+                  tag=tag.lower()
+                  if tag=='script': self.in_script+=1
+                  if tag=='style': self.in_style+=1
+                  if tag=='title': self.in_title=True
+                  if tag=='tr': self.row=[]
+                  elif tag in ('td','th') and self.row is not None: self.cell=[]
+              def handle_endtag(self,tag):
+                  tag=tag.lower()
+                  if tag=='script' and self.in_script: self.in_script-=1
+                  if tag=='style' and self.in_style: self.in_style-=1
+                  if tag=='title': self.in_title=False
+                  if tag in ('td','th') and self.cell is not None and self.row is not None:
+                      self.row.append(' '.join(''.join(self.cell).replace('\xa0',' ').split())); self.cell=None
+                  elif tag=='tr' and self.row is not None:
+                      if any(c.strip() for c in self.row): self.rows.append(self.row)
+                      self.row=None; self.cell=None
+              def handle_data(self,data):
+                  if self.in_title: self.title.append(data)
+                  if not self.in_script and not self.in_style and self.cell is not None: self.cell.append(data)
+
+          pages=[]; raw_rows=[]
+          for n,ts,orig in sources:
+              fn=HTML/f'pagina_{n:02d}_{ts}.html'; body=fn.read_bytes()
+              text=body.decode('iso-8859-1','replace')
+              p=TableParser(); p.feed(text)
+              q=parse_qs(urlparse(orig).query)
+              pages.append({'pagina':n,'timestamp':ts,'url_original':orig,'ficheiro':str(fn),'titulo':' '.join(''.join(p.title).split()),'linhas_tabela':len(p.rows),'intervalo_inicio':q.get('ids',[''])[0],'intervalo_fim':q.get('ide',[''])[0],'total_candidatos':q.get('Mx',[''])[0]})
+              for rno,cells in enumerate(p.rows): raw_rows.append({'pagina':n,'timestamp':ts,'url_original':orig,'linha':rno,'cells':cells})
+
+          # Deduplicate the duplicate capture of 451-480 while retaining page/source metadata from the first copy.
+          unique=[]; seen=set()
+          for r in raw_rows:
+              key=tuple(r['cells'])
+              if key in seen: continue
+              seen.add(key); unique.append(r)
+
+          maxcols=max([len(r['cells']) for r in unique] or [0])
+          base=['pagina','timestamp','url_original','linha_origem']
+          fields=base+[f'campo_{i+1}' for i in range(maxcols)]
+          def write_csv(path,rows):
+              with path.open('w',newline='',encoding='utf-8-sig') as f:
+                  w=csv.writer(f); w.writerow(fields)
+                  for r in rows: w.writerow([r['pagina'],r['timestamp'],r['url_original'],r['linha']]+r['cells'])
+          write_csv(ROOT/'todas_as_linhas.csv',unique)
+
+          # Identify the candidate records after locating the candidate table header.
+          candidate_rows=[]; header_rows=[]
+          for r in unique:
+              lower=' | '.join(r['cells']).lower()
+              if 'nota de candidatura' in lower or ('nome' in lower and ('opção' in lower or 'opcao' in lower)):
+                  header_rows.append(r); continue
+              c=r['cells']
+              if len(c)>=6:
+                  numeric=sum(bool(re.search(r'\d',x)) for x in c)
+                  # Candidate records contain a name/identifier and several numerical classifications.
+                  if numeric>=3 and not any(term in lower for term in ('universidade do porto','ciências farmacêuticas','listagem ordenada','página anterior','página seguinte')):
+                      candidate_rows.append(r)
+          write_csv(ROOT/'candidatos_recuperados.csv',candidate_rows)
+
+          # A friendlier normalized table when the recovered candidate rows have a consistent width.
+          widths={}
+          for r in candidate_rows: widths[len(r['cells'])]=widths.get(len(r['cells']),0)+1
+          dominant=max(widths,key=widths.get) if widths else 0
+          normalized=[r for r in candidate_rows if len(r['cells'])==dominant]
+          with (ROOT/'candidatos_normalizados.csv').open('w',newline='',encoding='utf-8-sig') as f:
+              w=csv.writer(f)
+              w.writerow(['pagina','timestamp']+[f'coluna_{i+1}' for i in range(dominant)])
+              for r in normalized: w.writerow([r['pagina'],r['timestamp']]+r['cells'])
+
+          summary={
+              'curso_codigo':'1106/9494',
+              'instituicao':'Universidade do Porto - Faculdade de Farmácia',
+              'curso':'Ciências Farmacêuticas',
+              'fase':'1.ª fase de 2025',
+              'total_indicado_nas_paginas':723,
+              'intervalos_recuperados':['31-60','61-90','91-120','121-150','421-450','451-480'],
+              'paginas_arquivadas':len(pages),
+              'linhas_tabela_brutas':len(raw_rows),
+              'linhas_unicas':len(unique),
+              'registos_candidato_estimados':len(candidate_rows),
+              'largura_dominante':dominant,
+              'distribuicao_larguras':widths,
+              'nota':'Recuperação parcial: o Wayback não preservou todos os 723 candidatos; preservou seis intervalos de 30 posições, com duas capturas do último intervalo.'
+          }
+          (ROOT/'paginas_recuperadas.json').write_text(json.dumps(pages,ensure_ascii=False,indent=2),encoding='utf-8')
+          (ROOT/'resumo.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
+          (ROOT/'LEIA-ME.txt').write_text(
+              'RECUPERAÇÃO DE LISTAS DGES 2025\n\n'
+              'Curso: 1106/9494 — Universidade do Porto, Faculdade de Farmácia — Ciências Farmacêuticas.\n'
+              'Fonte: páginas públicas da DGES preservadas pela Wayback Machine em 6 de novembro de 2025.\n'
+              'Intervalos preservados: 31–150 e 421–480 da lista ordenada de 723 candidatos.\n'
+              'A captura 451–480 existe duas vezes e foi desduplicada nos CSV.\n\n'
+              'Ficheiros:\n'
+              '- html/: páginas originais preservadas;\n'
+              '- candidatos_recuperados.csv: linhas identificadas automaticamente como candidatos;\n'
+              '- candidatos_normalizados.csv: subconjunto com largura consistente;\n'
+              '- todas_as_linhas.csv: todas as linhas de todas as tabelas, para auditoria;\n'
+              '- indice_wayback.json: todas as capturas de endpoints de listas encontradas;\n'
+              '- resumo.json: âmbito e contagens.\n',encoding='utf-8')
+          print('RESUMO',json.dumps(summary,ensure_ascii=False))
+          print('Cabeçalhos encontrados:',[r['cells'] for r in header_rows])
+          PY
+
+          zip -qr dges-2025-recuperado.zip dges-2025-recuperado
+
+      - name: Upload recovered dataset
+        uses: actions/upload-artifact@v4
         with:
-          name: dges-wayback-replay-probe
-          path: replay-probe/
+          name: dges-2025-recuperado
+          path: |
+            dges-2025-recuperado/
+            dges-2025-recuperado.zip
           retention-days: 1
