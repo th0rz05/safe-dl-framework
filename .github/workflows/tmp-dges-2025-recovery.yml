@@ -1,4 +1,4 @@
-name: Temporary DGES 2025 placed-list recovery
+name: Temporary DGES 2025 placed-list probe
 
 on:
   push:
@@ -9,11 +9,11 @@ permissions:
   contents: read
 
 jobs:
-  recover-placed-lists:
+  minimal-placed-probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 3
     steps:
-      - name: Query and replay col1listacol captures
+      - name: Query exact col1listacol endpoints and replay captures
         shell: bash
         run: |
           set -euo pipefail
@@ -27,136 +27,81 @@ jobs:
           root=Path('dges-2025-colocados'); html_dir=root/'html'
           ua='Mozilla/5.0 (compatible; DGES2025Recovery/1.0; public archival research)'
 
-          patterns=[
-              'dges.gov.pt/coloc/2025/col1listacol.asp*',
-              'www.dges.gov.pt/coloc/2025/col1listacol.asp*',
-              'http://dges.gov.pt/coloc/2025/col1listacol.asp*',
-              'http://www.dges.gov.pt/coloc/2025/col1listacol.asp*',
-              'https://dges.gov.pt/coloc/2025/col1listacol.asp*',
-              'https://www.dges.gov.pt/coloc/2025/col1listacol.asp*',
-          ]
-
-          def curl(url, max_time=35):
-              p=subprocess.run([
-                  'curl','-fsSL','--compressed','--retry','3','--retry-delay','1',
-                  '--connect-timeout','8','--max-time',str(max_time),'-A',ua,url
-              ],capture_output=True)
+          def get(url, timeout=20):
+              p=subprocess.run(['curl','-fsSL','--compressed','--retry','2','--retry-delay','1','--connect-timeout','6','--max-time',str(timeout),'-A',ua,url],capture_output=True)
               return p.returncode,p.stdout,p.stderr.decode('utf-8','replace')
 
-          entries=[]; query_log=[]
-          for pattern in patterns:
-              params=[
-                  ('url',pattern),('output','json'),('filter','statuscode:200'),
-                  ('fl','timestamp,original,statuscode,mimetype,digest,length'),
-                  ('from','2025'),('to','2026'),('limit','100000')
-              ]
+          entries=[]; queries=[]
+          for pattern in ('dges.gov.pt/coloc/2025/col1listacol.asp*','www.dges.gov.pt/coloc/2025/col1listacol.asp*'):
+              params=[('url',pattern),('output','json'),('filter','statuscode:200'),('fl','timestamp,original,statuscode,mimetype,digest,length'),('from','2025'),('to','2026'),('limit','100000')]
               api='https://web.archive.org/cdx/search/cdx?'+urllib.parse.urlencode(params)
-              rc,body,err=curl(api)
-              query_log.append({'pattern':pattern,'api':api,'returncode':rc,'bytes':len(body),'stderr':err[:1000]})
-              print('CDX',pattern,'rc',rc,'bytes',len(body),flush=True)
-              if rc: continue
-              try:
-                  obj=json.loads(body)
-                  if obj and isinstance(obj,list):
-                      head=obj[0]
-                      for row in obj[1:]:
-                          x=dict(zip(head,row)); x['pattern']=pattern; entries.append(x)
-              except Exception as exc:
-                  print('CDX parse error',repr(exc),body[:300],flush=True)
-
-          # Also scan the 2025 directory and retain anything whose URL contains listacol.
-          for host in ('dges.gov.pt','www.dges.gov.pt'):
-              params=[
-                  ('url',f'{host}/coloc/2025/*'),('output','json'),('filter','statuscode:200'),
-                  ('fl','timestamp,original,statuscode,mimetype,digest,length'),
-                  ('from','2025'),('to','2026'),('limit','100000')
-              ]
-              api='https://web.archive.org/cdx/search/cdx?'+urllib.parse.urlencode(params)
-              rc,body,err=curl(api,max_time=45)
-              query_log.append({'pattern':host+'/coloc/2025/*','api':api,'returncode':rc,'bytes':len(body),'stderr':err[:1000]})
-              print('DIR CDX',host,'rc',rc,'bytes',len(body),flush=True)
-              if rc: continue
-              try:
-                  obj=json.loads(body); head=obj[0]
-                  for row in obj[1:]:
-                      x=dict(zip(head,row))
-                      if 'listacol' in x.get('original','').lower():
-                          x['pattern']=host+'/coloc/2025/*'; entries.append(x)
-              except Exception as exc:
-                  print('DIR parse error',repr(exc),flush=True)
+              rc,body,err=get(api,25)
+              queries.append({'pattern':pattern,'api':api,'returncode':rc,'bytes':len(body),'stderr':err[:1000],'body_preview':body[:1000].decode('utf-8','replace')})
+              print('QUERY',pattern,'RC',rc,'BYTES',len(body),flush=True)
+              if rc==0:
+                  try:
+                      obj=json.loads(body)
+                      if obj and isinstance(obj,list):
+                          head=obj[0]
+                          for row in obj[1:]: entries.append(dict(zip(head,row)))
+                  except Exception as exc: print('PARSE ERROR',repr(exc),flush=True)
 
           seen=set(); unique=[]
           for x in entries:
-              key=(x.get('timestamp'),x.get('original'),x.get('digest'))
-              if key not in seen:
-                  seen.add(key); unique.append(x)
+              k=(x.get('timestamp'),x.get('original'),x.get('digest'))
+              if k not in seen: seen.add(k); unique.append(x)
           unique=sorted(unique,key=lambda x:(x.get('timestamp',''),x.get('original',''),x.get('digest','')))
-          (root/'cdx_queries.json').write_text(json.dumps(query_log,ensure_ascii=False,indent=2),encoding='utf-8')
-          (root/'capturas_colocados.json').write_text(json.dumps(unique,ensure_ascii=False,indent=2),encoding='utf-8')
-          print('UNIQUE PLACED-LIST CAPTURES',len(unique),flush=True)
+          print('CAPTURE COUNT',len(unique),flush=True)
           for x in unique: print('CAPTURE',x.get('timestamp'),x.get('original'),x.get('digest'),flush=True)
 
-          class Parser(HTMLParser):
+          class P(HTMLParser):
               def __init__(self):
-                  super().__init__(convert_charrefs=True)
-                  self.rows=[]; self.row=None; self.cell=None; self.title=[]; self.in_title=False
-                  self.in_script=0; self.in_style=0
-              def handle_starttag(self,tag,attrs):
-                  tag=tag.lower()
-                  if tag=='script': self.in_script+=1
-                  if tag=='style': self.in_style+=1
-                  if tag=='title': self.in_title=True
-                  if tag=='tr': self.row=[]
-                  elif tag in ('td','th') and self.row is not None: self.cell=[]
-              def handle_endtag(self,tag):
-                  tag=tag.lower()
-                  if tag=='script' and self.in_script: self.in_script-=1
-                  if tag=='style' and self.in_style: self.in_style-=1
-                  if tag=='title': self.in_title=False
-                  if tag in ('td','th') and self.cell is not None and self.row is not None:
+                  super().__init__(convert_charrefs=True); self.rows=[]; self.row=None; self.cell=None; self.title=[]; self.it=False
+              def handle_starttag(self,t,a):
+                  t=t.lower()
+                  if t=='title': self.it=True
+                  if t=='tr': self.row=[]
+                  elif t in ('td','th') and self.row is not None: self.cell=[]
+              def handle_endtag(self,t):
+                  t=t.lower()
+                  if t=='title': self.it=False
+                  if t in ('td','th') and self.cell is not None and self.row is not None:
                       self.row.append(' '.join(''.join(self.cell).replace('\xa0',' ').split())); self.cell=None
-                  elif tag=='tr' and self.row is not None:
+                  elif t=='tr' and self.row is not None:
                       if any(c.strip() for c in self.row): self.rows.append(self.row)
                       self.row=None; self.cell=None
-              def handle_data(self,data):
-                  if self.in_title: self.title.append(data)
-                  if not self.in_script and not self.in_style and self.cell is not None: self.cell.append(data)
+              def handle_data(self,d):
+                  if self.it: self.title.append(d)
+                  if self.cell is not None: self.cell.append(d)
 
           pages=[]; rows=[]
           for i,x in enumerate(unique,1):
-              ts=x.get('timestamp',''); original=x.get('original','')
-              replay=f'https://web.archive.org/web/{ts}id_/{original}'
-              rc,body,err=curl(replay,max_time=35)
-              fn=html_dir/f'pagina_{i:03d}_{ts}.html'; fn.write_bytes(body)
-              text=body.decode('iso-8859-1','replace')
-              p=Parser()
+              ts=x.get('timestamp',''); orig=x.get('original','')
+              replay=f'https://web.archive.org/web/{ts}id_/{orig}'
+              rc,body,err=get(replay,25)
+              (html_dir/f'pagina_{i:03d}_{ts}.html').write_bytes(body)
+              text=body.decode('iso-8859-1','replace'); p=P()
               try: p.feed(text)
-              except Exception as exc: print('HTML parse error',repr(exc),flush=True)
+              except Exception as exc: print('HTML ERROR',repr(exc),flush=True)
               title=' '.join(''.join(p.title).split())
-              marker=bool(re.search(r'Lista(?:gem)?\s+(?:de\s+)?Colocados|Colocados no Ensino Superior|Lista de Colocados',text,re.I))
-              page={'pagina':i,'timestamp':ts,'original':original,'replay':replay,'returncode':rc,'bytes':len(body),'title':title,'row_count':len(p.rows),'placed_marker':marker,'stderr':err[:1000]}
-              pages.append(page)
-              print('REPLAY',i,'rc',rc,'bytes',len(body),'rows',len(p.rows),'marker',marker,'title',title,flush=True)
-              for n,cells in enumerate(p.rows): rows.append({'pagina':i,'timestamp':ts,'original':original,'linha':n,'cells':cells})
-              for cells in p.rows[:8]:
-                  safe=['[PESSOAL]' if j in (1,2) and len(cells)>=4 else c for j,c in enumerate(cells)]
-                  print('ROW',json.dumps(safe,ensure_ascii=False),flush=True)
+              marker=bool(re.search(r'Lista(?:gem)?\s+(?:de\s+)?Colocados|Colocados no Ensino Superior',text,re.I))
+              pages.append({'pagina':i,'timestamp':ts,'original':orig,'replay':replay,'returncode':rc,'bytes':len(body),'title':title,'rows':len(p.rows),'marcador_colocados':marker,'stderr':err[:1000]})
+              print('PAGE',i,'RC',rc,'BYTES',len(body),'ROWS',len(p.rows),'MARKER',marker,'TITLE',title,flush=True)
+              for n,c in enumerate(p.rows): rows.append({'pagina':i,'timestamp':ts,'original':orig,'linha':n,'cells':c})
 
-          maxcols=max([len(r['cells']) for r in rows] or [0])
-          with (root/'todas_as_linhas_colocados.csv').open('w',newline='',encoding='utf-8-sig') as f:
-              w=csv.writer(f); w.writerow(['pagina','timestamp','url_original','linha_origem']+[f'campo_{i+1}' for i in range(maxcols)])
-              for r in rows: w.writerow([r['pagina'],r['timestamp'],r['original'],r['linha']]+r['cells'])
-          summary={'capturas_encontradas':len(unique),'paginas_reproduzidas':len(pages),'paginas_com_marcador_colocados':sum(p['placed_marker'] for p in pages),'linhas_tabela':len(rows),'paginas':pages}
-          (root/'resumo.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
-          (root/'LEIA-ME.txt').write_text(
-              'Pesquisa específica de capturas Wayback do endpoint DGES 2025 col1listacol.asp, usado para as listas nominais de colocados.\n'
-              'Consulte resumo.json e capturas_colocados.json para o resultado verificável.\n',encoding='utf-8')
-          print('SUMMARY',json.dumps(summary,ensure_ascii=False),flush=True)
+          maxc=max([len(x['cells']) for x in rows] or [0])
+          with (root/'linhas.csv').open('w',newline='',encoding='utf-8-sig') as f:
+              w=csv.writer(f); w.writerow(['pagina','timestamp','url_original','linha']+[f'campo_{i+1}' for i in range(maxc)])
+              for x in rows: w.writerow([x['pagina'],x['timestamp'],x['original'],x['linha']]+x['cells'])
+          result={'consultas':queries,'capturas':unique,'paginas':pages,'resumo':{'capturas_encontradas':len(unique),'paginas_reproduzidas':len(pages),'paginas_com_marcador_colocados':sum(p['marcador_colocados'] for p in pages),'linhas_tabela':len(rows)}}
+          (root/'resultado.json').write_text(json.dumps(result,ensure_ascii=False,indent=2),encoding='utf-8')
+          (root/'LEIA-ME.txt').write_text('Resultado da pesquisa Wayback aos endpoints DGES 2025 col1listacol.asp, sem colapsar capturas.\n',encoding='utf-8')
+          print('RESULT',json.dumps(result['resumo'],ensure_ascii=False),flush=True)
           PY
           zip -qr dges-2025-colocados.zip dges-2025-colocados
       - uses: actions/upload-artifact@v4
         with:
-          name: dges-2025-colocados
+          name: dges-2025-colocados-probe
           path: |
             dges-2025-colocados/
             dges-2025-colocados.zip
