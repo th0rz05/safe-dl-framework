@@ -9,250 +9,59 @@ permissions:
   contents: read
 
 jobs:
-  recover:
+  probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v4
-      - name: Query public web archives
+      - name: Fast archive probe
         shell: bash
         run: |
           python - <<'PY'
-          from __future__ import annotations
-          import gzip
-          import io
-          import json
-          import re
-          import time
-          import urllib.parse
-          import urllib.request
+          import json, urllib.parse, urllib.request, urllib.error
           from pathlib import Path
 
-          OUT = Path("dges-2025-recovery")
-          OUT.mkdir(exist_ok=True)
-          UA = "Mozilla/5.0 (compatible; DGES2025Recovery/1.0; public archival research)"
+          out = Path('dges-fast-probe')
+          out.mkdir()
+          ua = 'Mozilla/5.0 (compatible; DGES2025ArchiveProbe/1.0)'
+          results=[]
 
-          def get(url, headers=None, attempts=3, timeout=90):
-              h = {"User-Agent": UA, "Accept": "*/*", "Accept-Encoding": "identity"}
-              if headers: h.update(headers)
-              last = None
-              for i in range(attempts):
-                  try:
-                      req = urllib.request.Request(url, headers=h)
-                      with urllib.request.urlopen(req, timeout=timeout) as r:
-                          return r.status, dict(r.headers.items()), r.read(), r.geturl()
-                  except Exception as e:
-                      last = repr(e)
-                      time.sleep(1 + i * 2)
-              return 0, {}, (last or "unknown").encode(), url
-
-          def parse_records(body):
-              text = body.decode("utf-8", "replace").strip()
-              if not text: return []
+          def fetch(label, url, timeout=15):
+              print(f'>>> {label}\n{url}', flush=True)
               try:
-                  obj = json.loads(text)
-                  if isinstance(obj, list):
-                      if obj and isinstance(obj[0], list):
-                          return [dict(zip(obj[0], row)) for row in obj[1:] if isinstance(row, list)]
-                      return [x for x in obj if isinstance(x, dict)]
-                  if isinstance(obj, dict):
-                      for key in ("response_items", "items", "results"):
-                          if isinstance(obj.get(key), list): return obj[key]
-                      return [obj]
-              except Exception:
-                  pass
-              out = []
-              for line in text.splitlines():
-                  line = line.strip()
-                  if not line: continue
-                  # Arquivo/pywb CDXJ: urlkey timestamp {json}
-                  candidate = line
-                  parts = line.split(" ", 2)
-                  if len(parts) == 3 and parts[2].lstrip().startswith("{"):
-                      candidate = parts[2]
-                  try:
-                      x = json.loads(candidate)
-                      if isinstance(x, dict): out.append(x)
-                  except Exception:
-                      pass
-              return out
+                  req=urllib.request.Request(url, headers={'User-Agent':ua,'Accept':'*/*','Accept-Encoding':'identity'})
+                  with urllib.request.urlopen(req, timeout=timeout) as r:
+                      body=r.read()
+                      rec={'label':label,'url':url,'status':r.status,'final':r.geturl(),'type':r.headers.get('Content-Type',''),'bytes':len(body),'preview':body[:4000].decode('utf-8','replace')}
+              except urllib.error.HTTPError as e:
+                  body=e.read()
+                  rec={'label':label,'url':url,'status':e.code,'final':e.geturl(),'type':e.headers.get('Content-Type',''),'bytes':len(body),'preview':body[:4000].decode('utf-8','replace')}
+              except Exception as e:
+                  rec={'label':label,'url':url,'status':0,'final':url,'type':'','bytes':0,'preview':repr(e)}
+              results.append(rec)
+              print(json.dumps(rec, ensure_ascii=False), flush=True)
+              (out/(str(len(results)).zfill(2)+'_'+label.replace('/','_')+'.txt')).write_text(rec['preview'], encoding='utf-8')
+              return rec
 
-          exact_targets = []
-          for scheme in ("https", "http"):
-              for host in ("dges.gov.pt", "www.dges.gov.pt"):
-                  base = f"{scheme}://{host}/coloc/2025/col1listaser.asp"
-                  exact_targets += [
-                      base,
-                      base + "?CodEstab=1108&CodCurso=9813&ids=0&ide=10000&Mx=10000",
-                      base + "?CodCurso=9813&CodEstab=1108&ids=0&ide=10000&Mx=10000",
-                      base + "?CodEstab=1108&CodCurso=9813&ids=1&ide=2000&Mx=2000",
-                      base + "?CodEstab=1108&CodCurso=9813",
-                  ]
-
-          report = {"live": [], "arquivo_timemap": [], "arquivo_cdx": [], "wayback_cdx": [], "commoncrawl": [], "replays": []}
-          archive_entries = []
-          wayback_entries = []
-          cc_entries = []
-
-          # 1) Test the exact original endpoints and redirects.
-          for target in exact_targets:
-              st, hd, body, final = get(target, attempts=1, timeout=30)
-              report["live"].append({"target": target, "status": st, "final": final, "type": hd.get("Content-Type", ""), "bytes": len(body), "preview": body[:500].decode("utf-8", "replace")})
-
-          # 2) Arquivo.pt exact TimeMaps.
-          for target in exact_targets:
-              encoded = urllib.parse.quote(target, safe=":/?=&%")
-              api = "https://arquivo.pt/wayback/timemap/json/" + encoded
-              st, hd, body, final = get(api)
-              recs = parse_records(body) if st == 200 else []
-              report["arquivo_timemap"].append({"target": target, "api": api, "status": st, "final": final, "type": hd.get("Content-Type", ""), "bytes": len(body), "records": len(recs), "preview": body[:1000].decode("utf-8", "replace")})
-              for x in recs:
-                  y = dict(x); y["queried_target"] = target; archive_entries.append(y)
-
-          # 3) Arquivo.pt CDX prefix queries, including whole 2025 placement directory.
-          prefix_targets = []
-          for scheme in ("https", "http"):
-              for host in ("dges.gov.pt", "www.dges.gov.pt"):
-                  prefix_targets += [
-                      f"{scheme}://{host}/coloc/2025/",
-                      f"{scheme}://{host}/coloc/2025/col1listas.asp",
-                      f"{scheme}://{host}/coloc/2025/col1listaredir.asp",
-                      f"{scheme}://{host}/coloc/2025/col1listaser.asp",
-                      f"{scheme}://{host}/coloc/2025/col1listacol.asp",
-                  ]
-          for target in prefix_targets:
-              p = {"url": target, "matchType": "prefix", "output": "json", "limit": "100000", "from": "2025", "to": "2026"}
-              api = "https://arquivo.pt/wayback/cdx?" + urllib.parse.urlencode(p)
-              st, hd, body, final = get(api)
-              recs = parse_records(body) if st == 200 else []
-              report["arquivo_cdx"].append({"target": target, "api": api, "status": st, "final": final, "type": hd.get("Content-Type", ""), "bytes": len(body), "records": len(recs), "preview": body[:1000].decode("utf-8", "replace")})
-              for x in recs:
-                  y = dict(x); y["queried_target"] = target; archive_entries.append(y)
-
-          # 4) Internet Archive CDX.
-          for target in prefix_targets:
-              p = {"url": target + "*", "output": "json", "filter": "statuscode:200", "fl": "timestamp,original,statuscode,mimetype,digest,length", "from": "2025", "to": "2026", "limit": "100000"}
-              api = "https://web.archive.org/cdx/search/cdx?" + urllib.parse.urlencode(p)
-              st, hd, body, final = get(api)
-              recs = parse_records(body) if st == 200 else []
-              report["wayback_cdx"].append({"target": target, "api": api, "status": st, "final": final, "type": hd.get("Content-Type", ""), "bytes": len(body), "records": len(recs), "preview": body[:1000].decode("utf-8", "replace")})
-              for x in recs:
-                  y = dict(x); y["queried_target"] = target; wayback_entries.append(y)
-
-          # 5) Common Crawl indexes around the period when the lists were online.
-          crawls = ["CC-MAIN-2025-30", "CC-MAIN-2025-33", "CC-MAIN-2025-38", "CC-MAIN-2025-43", "CC-MAIN-2025-47", "CC-MAIN-2025-51", "CC-MAIN-2026-04"]
-          cc_targets = [
-              "dges.gov.pt/coloc/2025/col1listaser.asp*",
-              "www.dges.gov.pt/coloc/2025/col1listaser.asp*",
-              "dges.gov.pt/coloc/2025/*",
-              "www.dges.gov.pt/coloc/2025/*",
-          ]
-          for crawl in crawls:
-              for target in cc_targets:
-                  api = f"https://index.commoncrawl.org/{crawl}-index?" + urllib.parse.urlencode({"url": target, "output": "json"})
-                  st, hd, body, final = get(api)
-                  recs = parse_records(body) if st == 200 else []
-                  report["commoncrawl"].append({"crawl": crawl, "target": target, "api": api, "status": st, "final": final, "type": hd.get("Content-Type", ""), "bytes": len(body), "records": len(recs), "preview": body[:1000].decode("utf-8", "replace")})
-                  for x in recs:
-                      y = dict(x); y["crawl"] = crawl; y["queried_target"] = target; cc_entries.append(y)
-
-          def original(e):
-              return str(e.get("url") or e.get("original") or e.get("uri") or "")
-          def stamp(e):
-              return str(e.get("timestamp") or e.get("datetime") or "").replace("-", "").replace(":", "").replace("T", "").replace("Z", "")[:14]
-          def dedupe(seq):
-              out=[]; seen=set()
-              for e in seq:
-                  k=(stamp(e), original(e), str(e.get("digest", "")))
-                  if k in seen: continue
-                  seen.add(k); out.append(e)
-              return out
-
-          archive_entries = dedupe(archive_entries)
-          wayback_entries = dedupe(wayback_entries)
-          cc_entries = dedupe(cc_entries)
-          (OUT/"arquivo_entries.json").write_text(json.dumps(archive_entries, ensure_ascii=False, indent=2), encoding="utf-8")
-          (OUT/"wayback_entries.json").write_text(json.dumps(wayback_entries, ensure_ascii=False, indent=2), encoding="utf-8")
-          (OUT/"commoncrawl_entries.json").write_text(json.dumps(cc_entries, ensure_ascii=False, indent=2), encoding="utf-8")
-
-          # 6) Replay promising Arquivo/Wayback captures.
-          promising = [e for e in archive_entries if any(s in original(e).lower() for s in ("col1lista", "listaser", "listacol"))]
-          for e in promising[:300]:
-              ts, url = stamp(e), original(e)
-              if not ts or not url: continue
-              candidates = [
-                  f"https://arquivo.pt/noFrame/replay/{ts}/{url}",
-                  f"https://arquivo.pt/wayback/{ts}id_/{url}",
-                  f"https://arquivo.pt/wayback/{ts}/{url}",
-              ]
-              for replay in candidates:
-                  st, hd, body, final = get(replay, attempts=1, timeout=60)
-                  text = body.decode("utf-8", "replace")
-                  marker = bool(re.search(r"Lista\s+Ordenada\s+de\s+Candidatos|Nota\s+de\s+Candidatura|Classifica[cç][aã]o.*prova.*ingresso|Colocado", text, re.I|re.S))
-                  report["replays"].append({"source":"arquivo", "timestamp":ts, "original":url, "replay":replay, "status":st, "final":final, "type":hd.get("Content-Type", ""), "bytes":len(body), "marker":marker, "preview":text[:1000]})
-                  if st == 200 and len(body) > 500:
-                      name = re.sub(r"[^A-Za-z0-9_.-]+", "_", f"arquivo_{ts}_{url}")[:180] + ".html"
-                      (OUT/name).write_bytes(body)
-                  if st == 200: break
-
-          for e in wayback_entries[:100]:
-              ts, url = stamp(e), original(e)
-              if not ts or not url: continue
-              replay = f"https://web.archive.org/web/{ts}id_/{url}"
-              st, hd, body, final = get(replay, attempts=1, timeout=60)
-              text = body.decode("utf-8", "replace")
-              marker = bool(re.search(r"Lista\s+Ordenada\s+de\s+Candidatos|Nota\s+de\s+Candidatura|Colocado", text, re.I|re.S))
-              report["replays"].append({"source":"wayback", "timestamp":ts, "original":url, "replay":replay, "status":st, "final":final, "type":hd.get("Content-Type", ""), "bytes":len(body), "marker":marker, "preview":text[:1000]})
-              if st == 200 and len(body)>500:
-                  name = re.sub(r"[^A-Za-z0-9_.-]+", "_", f"wayback_{ts}_{url}")[:180] + ".html"
-                  (OUT/name).write_bytes(body)
-
-          # 7) Retrieve Common Crawl WARC records for candidate endpoints and likely list pages.
-          for i, e in enumerate([x for x in cc_entries if "list" in original(x).lower()][:100]):
-              fn, off, ln = e.get("filename"), e.get("offset"), e.get("length")
-              if not (fn and off is not None and ln is not None): continue
-              try:
-                  off_i, ln_i = int(off), int(ln)
-              except Exception:
-                  continue
-              warc_url = "https://data.commoncrawl.org/" + str(fn)
-              st, hd, body, final = get(warc_url, headers={"Range": f"bytes={off_i}-{off_i+ln_i-1}"}, attempts=2, timeout=120)
-              raw = body
-              try:
-                  raw = gzip.GzipFile(fileobj=io.BytesIO(body)).read()
-              except Exception:
-                  pass
-              text = raw.decode("utf-8", "replace")
-              marker = bool(re.search(r"Lista\s+Ordenada\s+de\s+Candidatos|Nota\s+de\s+Candidatura|Colocado", text, re.I|re.S))
-              report.setdefault("commoncrawl_warc", []).append({"index":i, "url":original(e), "warc_url":warc_url, "offset":off_i, "length":ln_i, "status":st, "bytes":len(body), "decoded_bytes":len(raw), "marker":marker, "preview":text[:2000]})
-              (OUT/f"commoncrawl_{i:03d}.warc-record").write_bytes(raw)
-
-          report["totals"] = {
-              "arquivo_entries": len(archive_entries),
-              "arquivo_list_entries": len(promising),
-              "wayback_entries": len(wayback_entries),
-              "commoncrawl_entries": len(cc_entries),
-              "successful_replays": sum(1 for x in report["replays"] if x["status"] == 200),
-              "marker_replays": sum(1 for x in report["replays"] if x["marker"]),
-              "commoncrawl_marker_records": sum(1 for x in report.get("commoncrawl_warc", []) if x["marker"]),
-          }
-          (OUT/"report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
-          print("=== TOTALS ===")
-          print(json.dumps(report["totals"], ensure_ascii=False, indent=2))
-          print("=== ARQUIVO LIST URLS ===")
-          for e in promising[:200]: print(stamp(e), original(e))
-          print("=== WAYBACK URLS ===")
-          for e in wayback_entries[:200]: print(stamp(e), original(e))
-          print("=== COMMON CRAWL URLS ===")
-          for e in cc_entries[:500]: print(e.get("crawl"), e.get("timestamp"), original(e), e.get("status"), e.get("filename"), e.get("offset"), e.get("length"))
-          print("=== MARKER REPLAYS ===")
-          for x in report["replays"]:
-              if x["marker"]: print(x["source"], x["timestamp"], x["original"], x["replay"], x["status"], x["bytes"])
+          target='https://dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1108&CodCurso=9813&ids=0&ide=10000&Mx=10000'
+          base='https://dges.gov.pt/coloc/2025/col1listaser.asp'
+          directory='https://dges.gov.pt/coloc/2025/'
+          fetch('live_exact', target)
+          for i,t in enumerate([base,target]):
+              enc=urllib.parse.quote(t, safe=':/?=&%')
+              fetch(f'arquivo_timemap_{i}', 'https://arquivo.pt/wayback/timemap/json/'+enc)
+              fetch(f'arquivo_timemap_link_{i}', 'https://arquivo.pt/wayback/timemap/link/'+enc)
+          for i,t in enumerate([base,target,directory]):
+              q=urllib.parse.urlencode({'url':t,'matchType':'prefix','output':'json','from':'2025','to':'2026','limit':'100000'})
+              fetch(f'arquivo_cdx_{i}', 'https://arquivo.pt/wayback/cdx?'+q)
+          for crawl in ['CC-MAIN-2025-33','CC-MAIN-2025-38','CC-MAIN-2025-43','CC-MAIN-2025-47','CC-MAIN-2025-51','CC-MAIN-2026-04']:
+              q=urllib.parse.urlencode({'url':'dges.gov.pt/coloc/2025/col1listaser.asp*','output':'json'})
+              fetch('cc_'+crawl, f'https://index.commoncrawl.org/{crawl}-index?'+q)
+          q=urllib.parse.urlencode({'url':'dges.gov.pt/coloc/2025/col1listaser.asp*','output':'json','filter':'statuscode:200','fl':'timestamp,original,statuscode,mimetype,digest,length','from':'2025','to':'2026','limit':'100000'})
+          fetch('wayback_cdx', 'https://web.archive.org/cdx/search/cdx?'+q)
+          (out/'results.json').write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding='utf-8')
           PY
-      - name: Upload recovery results
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: dges-2025-recovery
-          path: dges-2025-recovery/
-          if-no-files-found: error
+          name: dges-fast-probe
+          path: dges-fast-probe/
           retention-days: 1
