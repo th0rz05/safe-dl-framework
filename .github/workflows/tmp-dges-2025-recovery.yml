@@ -9,59 +9,179 @@ permissions:
   contents: read
 
 jobs:
-  probe:
+  recover-and-parse:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
-      - name: Fast archive probe
+      - name: Recover Wayback captures and parse tables
         shell: bash
         run: |
           python - <<'PY'
-          import json, urllib.parse, urllib.request, urllib.error
+          from __future__ import annotations
+          import csv
+          import html
+          import io
+          import json
+          import re
+          import time
+          import urllib.parse
+          import urllib.request
+          import urllib.error
+          from html.parser import HTMLParser
           from pathlib import Path
 
-          out = Path('dges-fast-probe')
-          out.mkdir()
-          ua = 'Mozilla/5.0 (compatible; DGES2025ArchiveProbe/1.0)'
-          results=[]
+          OUT=Path('dges-2025-wayback-recovery')
+          RAW=OUT/'raw'
+          OUT.mkdir(); RAW.mkdir()
+          UA='Mozilla/5.0 (compatible; DGES2025Recovery/1.0; archival research)'
 
-          def fetch(label, url, timeout=15):
-              print(f'>>> {label}\n{url}', flush=True)
+          def fetch(url, timeout=45, attempts=3):
+              last=None
+              for i in range(attempts):
+                  try:
+                      req=urllib.request.Request(url,headers={'User-Agent':UA,'Accept':'*/*','Accept-Encoding':'identity'})
+                      with urllib.request.urlopen(req,timeout=timeout) as r:
+                          return r.status,dict(r.headers.items()),r.read(),r.geturl()
+                  except urllib.error.HTTPError as e:
+                      body=e.read(); return e.code,dict(e.headers.items()),body,e.geturl()
+                  except Exception as e:
+                      last=repr(e); time.sleep(1+i*2)
+              return 0,{},(last or 'unknown').encode(),url
+
+          def cdx(pattern):
+              params={
+                  'url':pattern,
+                  'output':'json',
+                  'filter':'statuscode:200',
+                  'fl':'timestamp,original,statuscode,mimetype,digest,length',
+                  'from':'2025','to':'2026','limit':'100000',
+              }
+              api='https://web.archive.org/cdx/search/cdx?'+urllib.parse.urlencode(params)
+              st,hd,body,final=fetch(api,timeout=60,attempts=4)
+              print('CDX',st,len(body),pattern,flush=True)
+              if st!=200: print(body[:500].decode('utf-8','replace'),flush=True); return []
               try:
-                  req=urllib.request.Request(url, headers={'User-Agent':ua,'Accept':'*/*','Accept-Encoding':'identity'})
-                  with urllib.request.urlopen(req, timeout=timeout) as r:
-                      body=r.read()
-                      rec={'label':label,'url':url,'status':r.status,'final':r.geturl(),'type':r.headers.get('Content-Type',''),'bytes':len(body),'preview':body[:4000].decode('utf-8','replace')}
-              except urllib.error.HTTPError as e:
-                  body=e.read()
-                  rec={'label':label,'url':url,'status':e.code,'final':e.geturl(),'type':e.headers.get('Content-Type',''),'bytes':len(body),'preview':body[:4000].decode('utf-8','replace')}
+                  obj=json.loads(body)
+                  if not obj or not isinstance(obj,list): return []
+                  header=obj[0]
+                  return [dict(zip(header,row)) for row in obj[1:] if isinstance(row,list)]
               except Exception as e:
-                  rec={'label':label,'url':url,'status':0,'final':url,'type':'','bytes':0,'preview':repr(e)}
-              results.append(rec)
-              print(json.dumps(rec, ensure_ascii=False), flush=True)
-              (out/(str(len(results)).zfill(2)+'_'+label.replace('/','_')+'.txt')).write_text(rec['preview'], encoding='utf-8')
-              return rec
+                  print('CDX_PARSE_ERROR',repr(e),body[:500],flush=True); return []
 
-          target='https://dges.gov.pt/coloc/2025/col1listaser.asp?CodEstab=1108&CodCurso=9813&ids=0&ide=10000&Mx=10000'
-          base='https://dges.gov.pt/coloc/2025/col1listaser.asp'
-          directory='https://dges.gov.pt/coloc/2025/'
-          fetch('live_exact', target)
-          for i,t in enumerate([base,target]):
-              enc=urllib.parse.quote(t, safe=':/?=&%')
-              fetch(f'arquivo_timemap_{i}', 'https://arquivo.pt/wayback/timemap/json/'+enc)
-              fetch(f'arquivo_timemap_link_{i}', 'https://arquivo.pt/wayback/timemap/link/'+enc)
-          for i,t in enumerate([base,target,directory]):
-              q=urllib.parse.urlencode({'url':t,'matchType':'prefix','output':'json','from':'2025','to':'2026','limit':'100000'})
-              fetch(f'arquivo_cdx_{i}', 'https://arquivo.pt/wayback/cdx?'+q)
-          for crawl in ['CC-MAIN-2025-33','CC-MAIN-2025-38','CC-MAIN-2025-43','CC-MAIN-2025-47','CC-MAIN-2025-51','CC-MAIN-2026-04']:
-              q=urllib.parse.urlencode({'url':'dges.gov.pt/coloc/2025/col1listaser.asp*','output':'json'})
-              fetch('cc_'+crawl, f'https://index.commoncrawl.org/{crawl}-index?'+q)
-          q=urllib.parse.urlencode({'url':'dges.gov.pt/coloc/2025/col1listaser.asp*','output':'json','filter':'statuscode:200','fl':'timestamp,original,statuscode,mimetype,digest,length','from':'2025','to':'2026','limit':'100000'})
-          fetch('wayback_cdx', 'https://web.archive.org/cdx/search/cdx?'+q)
-          (out/'results.json').write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding='utf-8')
+          patterns=[]
+          for host in ('dges.gov.pt','www.dges.gov.pt'):
+              patterns += [
+                  f'{host}/coloc/2025/col1listaser.asp*',
+                  f'{host}/coloc/2025/col1listacol.asp*',
+                  f'{host}/coloc/2025/col1listas.asp*',
+                  f'{host}/coloc/2025/col1listaredir.asp*',
+                  f'{host}/coloc/2025/col2listaser.asp*',
+                  f'{host}/coloc/2025/col2listacol.asp*',
+                  f'{host}/coloc/2025/col2listas.asp*',
+                  f'{host}/coloc/2025/col3listaser.asp*',
+                  f'{host}/coloc/2025/col3listacol.asp*',
+                  f'{host}/coloc/2025/col3listas.asp*',
+                  f'{host}/coloc/2025/*',
+              ]
+
+          entries=[]
+          for p in patterns: entries += cdx(p)
+          seen=set(); uniq=[]
+          for e in entries:
+              key=(e.get('timestamp'),e.get('original'),e.get('digest'))
+              if key in seen: continue
+              seen.add(key); uniq.append(e)
+          entries=sorted(uniq,key=lambda e:(e.get('original',''),e.get('timestamp','')))
+          list_entries=[e for e in entries if re.search(r'col[123]lista(?:ser|col|s|redir)?\.asp',e.get('original',''),re.I)]
+          (OUT/'cdx_all.json').write_text(json.dumps(entries,ensure_ascii=False,indent=2),encoding='utf-8')
+          (OUT/'cdx_list_entries.json').write_text(json.dumps(list_entries,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('UNIQUE_ENTRIES',len(entries),'LIST_ENTRIES',len(list_entries),flush=True)
+          for e in list_entries: print('CAPTURE',e.get('timestamp'),e.get('original'),flush=True)
+
+          class RowParser(HTMLParser):
+              def __init__(self):
+                  super().__init__(convert_charrefs=True)
+                  self.rows=[]; self.row=None; self.cell=None; self.links=[]
+                  self.in_script=0; self.in_style=0
+              def handle_starttag(self,tag,attrs):
+                  tag=tag.lower(); ad=dict(attrs)
+                  if tag=='script': self.in_script+=1
+                  if tag=='style': self.in_style+=1
+                  if tag=='tr': self.row=[]
+                  elif tag in ('td','th') and self.row is not None: self.cell=[]
+                  if tag=='a' and ad.get('href'): self.links.append(ad['href'])
+              def handle_endtag(self,tag):
+                  tag=tag.lower()
+                  if tag=='script' and self.in_script: self.in_script-=1
+                  if tag=='style' and self.in_style: self.in_style-=1
+                  if tag in ('td','th') and self.cell is not None and self.row is not None:
+                      txt=' '.join(''.join(self.cell).replace('\xa0',' ').split())
+                      self.row.append(txt); self.cell=None
+                  elif tag=='tr' and self.row is not None:
+                      if any(x.strip() for x in self.row): self.rows.append(self.row)
+                      self.row=None; self.cell=None
+              def handle_data(self,data):
+                  if self.in_script or self.in_style: return
+                  if self.cell is not None: self.cell.append(data)
+
+          pages=[]; table_rows=[]; linked_urls=[]
+          for idx,e in enumerate(list_entries):
+              ts=e.get('timestamp',''); orig=e.get('original','')
+              if not ts or not orig: continue
+              replay=f'https://web.archive.org/web/{ts}id_/{orig}'
+              st,hd,body,final=fetch(replay,timeout=60,attempts=3)
+              ctype=hd.get('Content-Type','')
+              # DGES pages declare ISO-8859-1; use it when UTF-8 decoding is visibly broken.
+              try: text=body.decode('utf-8')
+              except Exception: text=body.decode('iso-8859-1','replace')
+              if '\ufffd' in text: text=body.decode('iso-8859-1','replace')
+              safe=re.sub(r'[^A-Za-z0-9_.-]+','_',f'{idx:03d}_{ts}_{orig}')[:190]+'.html'
+              (RAW/safe).write_bytes(body)
+              parser=RowParser()
+              try: parser.feed(text)
+              except Exception as ex: print('HTML_PARSE_ERROR',repr(ex),orig,flush=True)
+              for rno,row in enumerate(parser.rows):
+                  table_rows.append({'source_index':idx,'timestamp':ts,'original':orig,'replay':replay,'row_number':rno,'cells':row})
+              for href in parser.links:
+                  absolute=urllib.parse.urljoin(orig,html.unescape(href))
+                  if re.search(r'col[123]lista(?:ser|col)\.asp',absolute,re.I): linked_urls.append(absolute)
+              marker=bool(re.search(r'Lista\s+Ordenada\s+de\s+Candidatos|Nota\s+de\s+Candidatura|Classifica[cç][aã]o.*prova.*ingresso|Lista\s+de\s+Colocados',text,re.I|re.S))
+              page={'index':idx,'timestamp':ts,'original':orig,'replay':replay,'status':st,'final':final,'content_type':ctype,'bytes':len(body),'rows':len(parser.rows),'links':len(parser.links),'marker':marker,'title':re.findall(r'<title[^>]*>(.*?)</title>',text,re.I|re.S)[:1],'text_preview':re.sub(r'<[^>]+>',' ',text)[:3000]}
+              pages.append(page)
+              print('REPLAY',st,len(body),'rows',len(parser.rows),'marker',marker,orig,flush=True)
+              if parser.rows:
+                  for row in parser.rows[:8]: print('ROW',json.dumps(row,ensure_ascii=False),flush=True)
+
+          # Deduplicate linked pagination URLs and show which ones do not have an exact CDX capture.
+          linked_urls=sorted(set(linked_urls))
+          captured_originals=set(e.get('original','') for e in list_entries)
+          missing_links=[u for u in linked_urls if u not in captured_originals]
+          (OUT/'pages.json').write_text(json.dumps(pages,ensure_ascii=False,indent=2),encoding='utf-8')
+          (OUT/'table_rows.json').write_text(json.dumps(table_rows,ensure_ascii=False,indent=2),encoding='utf-8')
+          (OUT/'linked_list_urls.txt').write_text('\n'.join(linked_urls),encoding='utf-8')
+          (OUT/'missing_linked_list_urls.txt').write_text('\n'.join(missing_links),encoding='utf-8')
+
+          # Flat CSV of every table row and a best-effort candidate subset.
+          with (OUT/'all_table_rows.csv').open('w',newline='',encoding='utf-8-sig') as f:
+              w=csv.writer(f); w.writerow(['source_index','timestamp','original','row_number']+[f'cell_{i}' for i in range(1,13)])
+              for x in table_rows: w.writerow([x['source_index'],x['timestamp'],x['original'],x['row_number']]+x['cells'][:12])
+
+          candidates=[]
+          for x in table_rows:
+              cells=x['cells']
+              # Candidate rows normally begin with order number and contain 7-9 cells.
+              if len(cells)>=6 and re.fullmatch(r'\d{1,5}',cells[0].replace('.','').strip()):
+                  candidates.append(x)
+          with (OUT/'candidate_rows.csv').open('w',newline='',encoding='utf-8-sig') as f:
+              w=csv.writer(f); w.writerow(['timestamp','original','order','candidate_id_or_name','field_3','field_4','field_5','field_6','field_7','field_8','field_9'])
+              for x in candidates: w.writerow([x['timestamp'],x['original']]+x['cells'][:9])
+          summary={'cdx_entries':len(entries),'list_entries':len(list_entries),'replayed_pages':len(pages),'successful_pages':sum(1 for p in pages if p['status']==200),'marker_pages':sum(1 for p in pages if p['marker']),'table_rows':len(table_rows),'candidate_rows':len(candidates),'linked_list_urls':len(linked_urls),'missing_linked_urls':len(missing_links)}
+          (OUT/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2),encoding='utf-8')
+          print('SUMMARY',json.dumps(summary,ensure_ascii=False),flush=True)
           PY
-      - uses: actions/upload-artifact@v4
+      - name: Upload recovered pages and tables
+        uses: actions/upload-artifact@v4
         with:
-          name: dges-fast-probe
-          path: dges-fast-probe/
+          name: dges-2025-wayback-recovery
+          path: dges-2025-wayback-recovery/
           retention-days: 1
